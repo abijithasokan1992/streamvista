@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Default Deny All
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Function to check if user has an admin role (mock function, requires Firestore integration or Custom Claims)
+    // Note: Best practice is to use Custom Claims for Storage rules role checking
+    function isPlatformAdmin() {
+      return request.auth.token.role in ['platform_owner', 'founder', 'super_admin', 'admin'];
+    }
+
+    // Titles Assets (Master Videos, Posters, etc)
+    match /titles/{titleId}/{fileName} {
+      allow read: if isAuthenticated(); // Should be restricted by buyer assignments in a real scenario
+      allow write: if isAuthenticated() && (
+        isPlatformAdmin() || 
+        request.auth.token.role == 'creator_partner'
+      );
+    }
+    
+    // User Avatars
+    match /users/{userId}/avatar {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}

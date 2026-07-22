@@ -1,0 +1,13 @@
+{
+  "generatedAt": null,
+  "source": "legacy-streamvista",
+  "target": "firebase",
+  "records": [
+    {
+      "legacyId": "demo-legacy-1",
+      "targetId": null,
+      "status": "pending",
+      "reason": null
+    }
+  ]
+}

@@ -1,83 +1,59 @@
-import { Play, Zap, Shield, Sparkles, ArrowRight } from 'lucide-react';
-import './index.css';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { MainLayout } from "./layouts/MainLayout";
+
+// Pages
+import Login from "./pages/Login";
+import Unauthorized from "./pages/Unauthorized";
+import Dashboard from "./pages/Dashboard";
+import Titles from "./pages/Titles";
+import CreatorDashboard from "./pages/CreatorDashboard";
+import BuyerDashboard from "./pages/BuyerDashboard";
+import Drafts from "./pages/Drafts";
+import Uploads from "./pages/Uploads";
+import Screenings from "./pages/Screenings";
+import QC from "./pages/QC";
+import Legal from "./pages/Legal";
+import Payments from "./pages/Payments";
+import Analytics from "./pages/Analytics";
+import Campaigns from "./pages/Campaigns";
+import Users from "./pages/Users";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
-    <div className="app-container">
-      <div className="bg-glow-top"></div>
-      <div className="bg-glow-bottom"></div>
-
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="nav-brand">
-          <Play fill="currentColor" size={24} color="var(--primary)" />
-          <span>StreamVista</span>
-        </div>
-        <div className="nav-links">
-          <a href="#" className="nav-link">Features</a>
-          <a href="#" className="nav-link">Creators</a>
-          <a href="#" className="nav-link">Pricing</a>
-        </div>
-        <div className="nav-actions">
-          <button className="btn btn-outline" style={{ marginRight: '1rem', padding: '0.5rem 1rem' }}>Log in</button>
-          <button className="btn btn-primary" style={{ padding: '0.5rem 1.25rem' }}>Get Started</button>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <main className="hero">
-        <div className="hero-badge animate-fade-in delay-100">
-          ✨ Introducing Next-Gen Streaming
-        </div>
-        <h1 className="hero-title animate-fade-in delay-200">
-          Your World, <span className="text-gradient">Broadcasted</span> Beautifully.
-        </h1>
-        <p className="hero-subtitle animate-fade-in delay-300">
-          StreamVista gives you the tools to create, manage, and monetize your content with unparalleled clarity and zero latency.
-        </p>
-        <div className="hero-actions animate-fade-in" style={{ animationDelay: '400ms' }}>
-          <button className="btn btn-primary btn-lg">
-            Start Streaming For Free <ArrowRight size={20} />
-          </button>
-          <button className="btn btn-outline btn-lg">
-            View Documentation
-          </button>
-        </div>
-      </main>
-
-      {/* Features */}
-      <section className="features animate-fade-in" style={{ animationDelay: '500ms' }}>
-        <div className="feature-card">
-          <div className="feature-icon">
-            <Zap size={24} />
-          </div>
-          <h3 className="feature-title">Ultra-Low Latency</h3>
-          <p className="feature-desc">
-            Experience real-time interaction with your audience. Our global edge network ensures sub-second latency worldwide.
-          </p>
-        </div>
-
-        <div className="feature-card">
-          <div className="feature-icon">
-            <Shield size={24} />
-          </div>
-          <h3 className="feature-title">Secure & Private</h3>
-          <p className="feature-desc">
-            End-to-end encryption and robust access controls give you complete ownership over who sees your content.
-          </p>
-        </div>
-
-        <div className="feature-card">
-          <div className="feature-icon">
-            <Sparkles size={24} />
-          </div>
-          <h3 className="feature-title">AI-Powered Tools</h3>
-          <p className="feature-desc">
-            Automatically generate highlights, subtitles, and scene cuts using our integrated artificial intelligence engine.
-          </p>
-        </div>
-      </section>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          
+          <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/titles" element={<Titles />} />
+            <Route path="/creator" element={<CreatorDashboard />} />
+            <Route path="/buyer" element={<BuyerDashboard />} />
+            <Route path="/drafts" element={<Drafts />} />
+            <Route path="/uploads" element={<Uploads />} />
+            <Route path="/screenings" element={<Screenings />} />
+            <Route path="/qc" element={<QC />} />
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/finance" element={<Payments />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/campaigns" element={<Campaigns />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            {/* Other routes will go here as they are built */}
+            <Route path="*" element={
+              <div className="flex items-center justify-center h-full text-slate-400">
+                <p>Page not found or under construction.</p>
+              </div>
+            } />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

@@ -1,37 +1,46 @@
 # Implementation Status
 
-*Last updated: Phase 7 (Documentation Setup)*
+*Last updated: Phase 8 & 9 (Razorpay Integration & Backend Architecture)*
 
 - **Current branch:** `main`
-- **Latest commit:** `b7147ff feat: complete local mock implementation phases 1-6` (Pre-docs commit)
+- **Latest commit:** (Pending Phase 9 Commit)
 - **Completed features:**
   - Vite + React + TypeScript base configuration.
   - Tailwind CSS setup with cinematic enterprise design system.
   - Core role-based authentication and routing with mock data layer.
   - Floating Mock Role Switcher for local development.
-  - Placeholders for all requested pages (Mission Control, Titles, Drafts, Uploads, Creator, Buyer, Screenings, QC, Legal, Payments, Analytics, Campaigns, Users, Settings).
+  - Placeholders for all requested pages.
   - Firebase rules and environment structure definitions.
+  - Firebase Cloud Functions initialized (`functions/`).
+  - Razorpay Test Mode endpoints: `createOrder` (Callable) and `verifyWebhook` (HTTP).
+  - Secure backend Webhook signature verification.
+  - Audit logging utility writing securely to Firestore.
+  - Mock UI checkout flow integration in `Payments.tsx`.
 - **Incomplete features:**
   - Fully interactive UI for managing titles/drafts.
-  - Real Firebase integration.
-  - Live data import.
+  - Real Firebase environment binding (project ID, live keys).
+  - Live data import (legacy JSON mapping).
 - **Files created:**
-  - `docs/IMPLEMENTATION_STATUS.md`
-  - `docs/ROUTE_MATRIX.md`
-  - `docs/ROLE_PERMISSION_MATRIX.md`
-  - `docs/FIREBASE_REQUIREMENTS.md`
-  - `docs/MIGRATION_REQUIREMENTS.md`
-  - `docs/TEST_MATRIX.md`
+  - `functions/package.json`, `functions/tsconfig.json`
+  - `functions/src/index.ts`
+  - `functions/src/razorpay/createOrder.ts`
+  - `functions/src/razorpay/verifyWebhook.ts`
+  - `functions/src/utils/auditLog.ts`
+  - `src/services/payment/index.ts`
+  - `src/types/razorpay.d.ts`
 - **Files modified:**
-  - N/A for this phase.
+  - `src/pages/Payments.tsx` (Added Razorpay UI flow)
 - **Commands run:**
-  - `New-Item -ItemType Directory -Force -Path "docs"`
-  - `git log -1`
-- **Typecheck result:** Pass (`tsc -b`)
+  - `npm install` (functions)
+  - `npm run build` (frontend and backend)
+- **Typecheck result:** Pass (`tsc -b` on both frontend and backend)
 - **Lint result:** Pass (Using relaxed rules for local demo)
-- **Test result:** Manual verification pass (Routes correctly protect against unauthorized access).
-- **Build result:** Pass (`vite build`)
+- **Test result:** Manual verification pass.
+- **Build result:** Pass (`vite build` and `tsc` for functions).
 - **Known errors:** None.
-- **Security concerns:** The application is running in mock mode, bypassing real authentication. The floating role switcher allows local role impersonation.
-- **Decisions required:** None currently.
-- **Exact next task:** Expand the placeholder pages (e.g., Title Management, Drafts, and Mission Control) into fully interactive UIs with mock state.
+- **Security concerns:** 
+  - Mock mode bypasses real auth. 
+  - Webhook secret must be securely configured via `.env` in production.
+  - Refund API requires additional Razorpay Live keys if ever transitioned to Live.
+- **Decisions required:** Await explicit approval from Abijith before transitioning out of Mock/Test mode.
+- **Exact next task:** Await review. If approved, begin mapping the legacy JSON database to the Firestore structure.

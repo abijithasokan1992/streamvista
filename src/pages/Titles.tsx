@@ -1,74 +1,97 @@
-import { useEffect, useState } from "react";
-import { databaseService } from "../services/database";
-import { Title } from "../types/title";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
-import { Loader2, Plus, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import { Film, Search, Filter, Loader2, Plus } from "lucide-react";
+import type { Title } from "../types/title";
+import { databaseService } from "../services/database";
 
 export default function Titles() {
   const [titles, setTitles] = useState<Title[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function load() {
-      const data = await databaseService.getTitles();
-      setTitles(data);
-      setLoading(false);
+    async function fetchTitles() {
+      try {
+        const data = await databaseService.getTitles();
+        setTitles(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
-    load();
+    fetchTitles();
   }, []);
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Titles</h1>
-          <p className="text-slate-400">Manage all published titles on StreamVista.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Title Management</h1>
+          <p className="text-slate-400">View and manage all active films in the catalog.</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button variant="primary" className="flex items-center gap-2">
           <Plus size={16} /> Add Title
         </Button>
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <Input placeholder="Search titles..." className="pl-10" />
         </div>
+        <Button variant="secondary" className="flex items-center gap-2">
+          <Filter size={16} /> Filter
+        </Button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="animate-spin text-brand-gold h-8 w-8" />
+      <Card className="bg-brand-navy-light/40 border-brand-navy-light overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-300">
+            <thead className="bg-black/40 text-xs uppercase text-slate-400 border-b border-white/5">
+              <tr>
+                <th className="px-6 py-4 font-medium">Title</th>
+                <th className="px-6 py-4 font-medium">Genre</th>
+                <th className="px-6 py-4 font-medium">Status</th>
+                <th className="px-6 py-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                    <Loader2 className="animate-spin h-6 w-6 mx-auto mb-2 text-brand-gold" />
+                    Loading titles...
+                  </td>
+                </tr>
+              ) : titles.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center">
+                    <Film className="mx-auto h-8 w-8 text-slate-600 mb-3" />
+                    <p className="text-slate-400">No titles found in the catalog.</p>
+                  </td>
+                </tr>
+              ) : (
+                titles.map((title) => (
+                  <tr key={title.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 font-medium text-white">{title.title}</td>
+                    <td className="px-6 py-4">{title.contentType || "N/A"}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                        {title.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="secondary" className="px-3 py-1 h-8 text-xs">View</Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {titles.map(title => (
-            <Card key={title.id} className="flex flex-col group cursor-pointer hover:border-brand-gold/50 transition-colors">
-              <div className="aspect-[2/3] bg-brand-navy border-b border-white/5 relative overflow-hidden flex items-center justify-center">
-                {title.posterUrl ? (
-                  <img src={title.posterUrl} alt={title.title} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-slate-600 font-medium">No Poster</span>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                  <Button size="sm" variant="primary" className="w-full">View Details</Button>
-                </div>
-              </div>
-              <CardHeader className="flex-1 pb-4">
-                <CardTitle className="line-clamp-1">{title.title}</CardTitle>
-                <CardDescription className="line-clamp-2 mt-1">{title.synopsis}</CardDescription>
-              </CardHeader>
-              <div className="px-6 pb-4 flex gap-2 flex-wrap">
-                <Badge variant="outline">{title.contentType}</Badge>
-                <Badge variant="success">{title.status}</Badge>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      </Card>
     </div>
   );
 }

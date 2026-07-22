@@ -1,11 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
-import { Plus, Edit3 } from "lucide-react";
+import { Plus, Edit3, Loader2 } from "lucide-react";
+import { databaseService } from "../services/database";
+import type { TitleDraft } from "../types/title";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Drafts() {
-  const [drafts] = useState([]); // Will hook up to databaseService later
+  const { user } = useAuth();
+  const [drafts, setDrafts] = useState<TitleDraft[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDrafts() {
+      if (!user?.uid) return;
+      try {
+        const data = await databaseService.getDraftsByCreator(user.uid);
+        setDrafts(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDrafts();
+  }, [user?.uid]);
 
   return (
     <div className="space-y-6">
@@ -19,7 +39,11 @@ export default function Drafts() {
         </Button>
       </div>
 
-      {drafts.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="animate-spin text-brand-gold h-8 w-8" />
+        </div>
+      ) : drafts.length === 0 ? (
         <Card className="bg-brand-navy-light/30 border-dashed border-2">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-slate-400 mb-4">
@@ -34,7 +58,22 @@ export default function Drafts() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Draft cards will go here */}
+          {drafts.map((draft) => (
+             <Card key={draft.id} className="flex flex-col group cursor-pointer hover:border-brand-gold/50 transition-colors bg-brand-navy-light/40">
+               <CardHeader className="flex-1">
+                 <CardTitle className="line-clamp-1">{draft.title || "Untitled Draft"}</CardTitle>
+                 <CardDescription className="line-clamp-2 mt-1">
+                   Last edited: {draft.updatedAt ? new Date(draft.updatedAt).toLocaleDateString() : "Unknown"}
+                 </CardDescription>
+               </CardHeader>
+               <div className="px-6 pb-4 flex justify-between items-center">
+                 <Badge variant="outline">{draft.contentType || "Unknown"}</Badge>
+                 <Button variant="secondary" className="px-3 py-1 h-8 text-xs flex items-center gap-1">
+                   <Edit3 size={14} /> Edit
+                 </Button>
+               </div>
+             </Card>
+          ))}
         </div>
       )}
     </div>

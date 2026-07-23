@@ -7,10 +7,13 @@ import { databaseService } from "../services/database";
 import type { TitleDraft } from "../types/title";
 import { useAuth } from "../contexts/AuthContext";
 
+import { TitleEditor } from "../components/TitleEditor";
+
 export default function Drafts() {
   const { user } = useAuth();
   const [drafts, setDrafts] = useState<TitleDraft[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingDraft, setEditingDraft] = useState<TitleDraft | null>(null);
 
   useEffect(() => {
     async function fetchDrafts() {
@@ -27,6 +30,28 @@ export default function Drafts() {
     fetchDrafts();
   }, [user?.uid]);
 
+  const handleCreateNew = () => {
+    if (!user?.uid) return;
+    const newDraft: TitleDraft = {
+      id: `draft_${Date.now()}`,
+      creatorOwnerId: user.uid,
+      title: "",
+      status: "draft",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    setEditingDraft(newDraft);
+  };
+
+  const handleSaveDraft = (savedDraft: TitleDraft) => {
+    setDrafts(prev => {
+      const exists = prev.find(d => d.id === savedDraft.id);
+      if (exists) return prev.map(d => d.id === savedDraft.id ? savedDraft : d);
+      return [savedDraft, ...prev];
+    });
+    setEditingDraft(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -34,7 +59,7 @@ export default function Drafts() {
           <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Drafts</h1>
           <p className="text-slate-400">Continue working on unpublished titles.</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button onClick={handleCreateNew} className="flex items-center gap-2">
           <Plus size={16} /> New Draft
         </Button>
       </div>
@@ -53,13 +78,17 @@ export default function Drafts() {
             <p className="text-slate-400 mb-6 max-w-md">
               You don't have any drafts in progress. Start a new draft to begin entering title metadata and uploading assets.
             </p>
-            <Button>Start a New Draft</Button>
+            <Button onClick={handleCreateNew}>Start a New Draft</Button>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {drafts.map((draft) => (
-             <Card key={draft.id} className="flex flex-col group cursor-pointer hover:border-brand-gold/50 transition-colors bg-brand-navy-light/40">
+             <Card 
+                key={draft.id} 
+                onClick={() => setEditingDraft(draft)}
+                className="flex flex-col group cursor-pointer hover:border-brand-gold/50 transition-colors bg-brand-navy-light/40"
+             >
                <CardHeader className="flex-1">
                  <CardTitle className="line-clamp-1">{draft.title || "Untitled Draft"}</CardTitle>
                  <CardDescription className="line-clamp-2 mt-1">
@@ -75,6 +104,14 @@ export default function Drafts() {
              </Card>
           ))}
         </div>
+      )}
+
+      {editingDraft && (
+        <TitleEditor 
+          draft={editingDraft} 
+          onClose={() => setEditingDraft(null)} 
+          onSave={handleSaveDraft} 
+        />
       )}
     </div>
   );

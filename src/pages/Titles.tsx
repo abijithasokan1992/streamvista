@@ -5,10 +5,16 @@ import { Input } from "../components/ui/Input";
 import { Film, Search, Filter, Loader2, Plus } from "lucide-react";
 import type { Title } from "../types/title";
 import { databaseService } from "../services/database";
+import { TitleDetails } from "../components/TitleDetails";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Titles() {
+  const { user } = useAuth();
   const [titles, setTitles] = useState<Title[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewingTitle, setViewingTitle] = useState<Title | null>(null);
+
+  const isCreatorOrAdmin = user?.role === "creator_partner" || user?.role === "admin";
 
   useEffect(() => {
     async function fetchTitles() {
@@ -31,9 +37,11 @@ export default function Titles() {
           <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Title Management</h1>
           <p className="text-slate-400">View and manage all active films in the catalog.</p>
         </div>
-        <Button variant="primary" className="flex items-center gap-2">
-          <Plus size={16} /> Add Title
-        </Button>
+        {isCreatorOrAdmin && (
+          <Button variant="primary" className="flex items-center gap-2">
+            <Plus size={16} /> Add Title
+          </Button>
+        )}
       </div>
 
       <div className="flex gap-4">
@@ -74,7 +82,7 @@ export default function Titles() {
                 </tr>
               ) : (
                 titles.map((title) => (
-                  <tr key={title.id} className="hover:bg-white/5 transition-colors">
+                  <tr key={title.id} className="hover:bg-white/5 transition-colors cursor-pointer" onClick={() => setViewingTitle(title)}>
                     <td className="px-6 py-4 font-medium text-white">{title.title}</td>
                     <td className="px-6 py-4">{title.contentType || "N/A"}</td>
                     <td className="px-6 py-4">
@@ -83,7 +91,9 @@ export default function Titles() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button variant="secondary" className="px-3 py-1 h-8 text-xs">View</Button>
+                      <Button variant="secondary" className="px-3 py-1 h-8 text-xs" onClick={(e) => { e.stopPropagation(); setViewingTitle(title); }}>
+                        View
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -92,6 +102,10 @@ export default function Titles() {
           </table>
         </div>
       </Card>
+
+      {viewingTitle && (
+        <TitleDetails title={viewingTitle} onClose={() => setViewingTitle(null)} />
+      )}
     </div>
   );
 }

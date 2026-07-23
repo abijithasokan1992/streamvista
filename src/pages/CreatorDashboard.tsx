@@ -8,11 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Badge } from "../components/ui/Badge";
 import { Loader2, DollarSign } from "lucide-react";
 
+import { TitleEditor } from "../components/TitleEditor";
+import { Plus } from "lucide-react";
+
 export default function CreatorDashboard() {
   const { user } = useAuth();
   const [titles, setTitles] = useState<Title[]>([]);
   const [wallet, setWallet] = useState<CreatorWallet | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingDraft, setEditingDraft] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
@@ -34,13 +38,31 @@ export default function CreatorDashboard() {
   }, [user]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-end">
+    <div className="space-y-6 relative">
+      <div className="flex justify-between items-end mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Creator Hub</h1>
           <p className="text-slate-400">Welcome, {user?.displayName}. Manage your portfolio and track performance.</p>
         </div>
+        <Button 
+          onClick={() => setEditingDraft({ creatorOwnerId: user?.uid })} 
+          className="bg-brand-gold text-brand-navy hover:bg-yellow-500"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          New Title
+        </Button>
       </div>
+      
+      {editingDraft && (
+        <TitleEditor 
+          draft={editingDraft} 
+          onClose={() => setEditingDraft(null)} 
+          onSave={(updated) => {
+            setEditingDraft(null);
+            window.location.reload();
+          }} 
+        />
+      )}
       
       {loading ? (
         <div className="flex justify-center py-12">
@@ -53,12 +75,32 @@ export default function CreatorDashboard() {
               <Card className="bg-gradient-to-br from-brand-navy-light/80 to-brand-navy-light/40 border-brand-gold/30">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-slate-400 flex items-center justify-between">
-                    Total Lifetime Earnings
+                    Available Balance
                     <DollarSign className="h-4 w-4 text-brand-gold" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold text-white">₹{wallet.totalEarned.toLocaleString()}</div>
+                  <div className="text-4xl font-bold text-white">₹{wallet.availableBalance?.toLocaleString() || 0}</div>
+                  <div className="text-sm text-slate-400 mt-1">Total Earned: ₹{wallet.totalEarned?.toLocaleString() || 0}</div>
+                  {wallet.availableBalance > 0 && (
+                    <Button 
+                      className="mt-4 w-full bg-brand-gold text-brand-navy hover:bg-yellow-500"
+                      onClick={async () => {
+                        const amount = parseFloat(prompt("Enter amount to settle:") || "0");
+                        if (amount > 0 && amount <= wallet.availableBalance) {
+                          try {
+                            await financeService.requestSettlement(amount);
+                            alert("Settlement requested successfully!");
+                            window.location.reload();
+                          } catch(e) {
+                            alert("Failed to request settlement.");
+                          }
+                        }
+                      }}
+                    >
+                      Request Settlement
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>

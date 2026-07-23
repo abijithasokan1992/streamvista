@@ -29,8 +29,12 @@ test.describe('Notification System', () => {
     await page.fill('input[type="password"]', 'password');
     await page.click('button:has-text("Register")');
     
-    // Wait for dashboard to load (New Title button)
-await expect(page.locator('button').filter({ has: page.locator('svg.lucide-bell') })).toBeVisible({ timeout: 12000 });
+    // Verify navigation away from /register
+    await expect(page).not.toHaveURL(/\/register/);
+    // Wait for main UI elements
+    await expect(page.locator('aside')).toBeVisible({ timeout: 12000 });
+    await expect(page.locator('[data-testid="notification-bell"]')).toBeVisible({ timeout: 12000 });
+    const bellButton = page.locator('[data-testid="notification-bell"]');
     
     // We don't know the exact UID since we just registered, but let's grab it if we can.
     // Or we just insert a notification for ALL users, or we find the user by email via admin SDK.
@@ -48,10 +52,10 @@ await expect(page.locator('button').filter({ has: page.locator('svg.lucide-bell'
       data: { titleId: 'fake_title_123' }
     });
     
-    // Check if the bell icon has a badge (1)
-    const bellButton = page.locator('button').filter({ has: page.locator('svg.lucide-bell') });
+    // Use the previously defined bellButton with test-id
+    // const bellButton = page.locator('button').filter({ has: page.locator('svg.lucide-bell') });
     await expect(bellButton).toBeVisible();
-    await expect(bellButton.locator('span.bg-red-500')).toHaveText('1', { timeout: 5000 });
+    await expect(bellButton.locator('[data-testid="notification-count"]')).toHaveText('1', { timeout: 5000 });
     
     // Click the bell
     await bellButton.click();

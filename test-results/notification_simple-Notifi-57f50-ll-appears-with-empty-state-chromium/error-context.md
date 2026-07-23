@@ -14,14 +14,14 @@
 ```
 Error: expect(locator).toBeVisible() failed
 
-Locator: locator('button:has-text("New Title")')
+Locator: locator('aside')
 Expected: visible
 Timeout: 12000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 12000ms
-  - waiting for locator('button:has-text("New Title")')
+  - waiting for locator('aside')
 
 ```
 
@@ -53,15 +53,18 @@ Call log:
   9  |     await page.fill('input[type="email"]', 'simplecreator@streamvista.com');
   10 |     await page.fill('input[type="password"]', 'password');
   11 |     await page.click('button:has-text("Register")');
-  12 |     // Wait for dashboard
-> 13 |     await expect(page.locator('button:has-text("New Title")')).toBeVisible({ timeout: 12000 });
-     |                                                                ^ Error: expect(locator).toBeVisible() failed
-  14 |     const bellButton = page.locator('button').filter({ has: page.locator('svg.lucide-bell') });
-  15 |     await expect(bellButton).toBeVisible();
-  16 |     await bellButton.click();
-  17 |     await expect(page.locator('text=Notifications')).toBeVisible();
-  18 |     await expect(page.locator('text=You have no notifications.')).toBeVisible();
-  19 |   });
-  20 | });
-  21 | 
+  12 |     // Verify navigation away from /register
+  13 |     await expect(page).not.toHaveURL(/\/register/);
+  14 |     // Wait for main UI elements
+> 15 |     await expect(page.locator('aside')).toBeVisible({ timeout: 12000 });
+     |                                         ^ Error: expect(locator).toBeVisible() failed
+  16 |     await expect(page.locator('[data-testid="notification-bell"]')).toBeVisible({ timeout: 12000 });
+  17 |     const bellButton = page.locator('[data-testid="notification-bell"]');
+  18 |     await expect(bellButton).toBeVisible();
+  19 |     await bellButton.click();
+  20 |     await expect(page.locator('text=Notifications')).toBeVisible();
+  21 |     await expect(page.locator('text=You have no notifications.')).toBeVisible();
+  22 |   });
+  23 | });
+  24 | 
 ```

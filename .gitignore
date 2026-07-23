@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# JDK binaries
+jdk/
+jdk21/
+jdk.zip
+jdk21.zip

@@ -48,28 +48,62 @@ export const verifyWebhook = functions.https.onRequest(async (req, res) => {
         return;
       }
 
-      const paymentRef = db.collection("payments").doc(orderId);
+      const orderRef = db.collection("orders").doc(orderId);
       
-      // Update payment state securely from the backend via Webhook
-      await paymentRef.update({
-        status: "captured",
-        paymentId: paymentEntity.id,
-        method: paymentEntity.method,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      // Use a Firestore transaction to ensure atomic updates and idempotency
+      await db.runTransaction(async (t) => {
+        const orderSnap = await t.get(orderRef);
+        if (!orderSnap.exists) {
+          throw new Error("Order not found");
+        }
+        
+        const orderData = orderSnap.data();
+        if (orderData?.status === "captured") {
+          // Idempotency check: Already processed
+          return;
+        }
+
+        // 1. Mark Order as captured
+        t.update(orderRef, {
+          status: "captured",
+          paymentId: paymentEntity.id,
+          method: paymentEntity.method,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 2. Append to Immutable Ledger: Platform Commission
+        const ledgerRefCommission = db.collection("ledgers").doc();
+        t.set(ledgerRefCommission, {
+          type: "platform_commission",
+          amount: orderData?.commissionAmount,
+          currency: orderData?.currency,
+          orderId,
+          titleId: orderData?.titleId,
+          timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 3. Append to Immutable Ledger: Creator Payable
+        const ledgerRefCreator = db.collection("ledgers").doc();
+        t.set(ledgerRefCreator, {
+          type: "creator_payable",
+          creatorId: orderData?.creatorId,
+          amount: orderData?.creatorPayable,
+          currency: orderData?.currency,
+          orderId,
+          titleId: orderData?.titleId,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          settlementStatus: "pending" // track whether this chunk has been paid out
+        });
       });
 
-      // Grant access logic can go here or trigger another function based on 'payments' update
-      const paymentDoc = await paymentRef.get();
-      if (paymentDoc.exists) {
-        const data = paymentDoc.data();
-        await createAuditLog("PAYMENT_VERIFIED", orderId, { paymentId: paymentEntity.id }, data?.userId);
-      }
+      await createAuditLog("PAYMENT_VERIFIED", orderId, { paymentId: paymentEntity.id }, "SYSTEM");
+
     } else if (payload.event === "payment.failed") {
       const paymentEntity = payload.payload.payment.entity;
       const orderId = paymentEntity.order_id;
       
       if (orderId) {
-        await db.collection("payments").doc(orderId).update({
+        await db.collection("orders").doc(orderId).update({
           status: "failed",
           errorReason: paymentEntity.error_description,
           updatedAt: admin.firestore.FieldValue.serverTimestamp()

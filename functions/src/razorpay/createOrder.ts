@@ -32,6 +32,32 @@ export const createOrder = functions.https.onCall(async (data, context) => {
   try {
     const db = admin.firestore();
     
+    // 1. Fetch Dynamic Platform Configuration (Commission Rate)
+    // Fallback to 0.35 if config is missing, but log a warning.
+    let platformCommissionRate = 0.35; 
+    const configDoc = await db.collection("settings").doc("finance").get();
+    if (configDoc.exists) {
+      platformCommissionRate = configDoc.data()?.platformCommissionRate || 0.35;
+    } else {
+      console.warn("Finance settings not found. Falling back to default commission rate 35%.");
+    }
+
+    // 2. Fetch Title details (to ensure it exists and get creator ID)
+    const titleDoc = await db.collection("titles").doc(titleId).get();
+    if (!titleDoc.exists) {
+      throw new functions.https.HttpsError("not-found", "Title not found.");
+    }
+    const titleData = titleDoc.data();
+    const creatorId = titleData?.creatorOwnerId;
+
+    if (!creatorId) {
+       throw new functions.https.HttpsError("failed-precondition", "Title missing creator owner.");
+    }
+
+    // Calculate distributions
+    const commissionAmount = amount * platformCommissionRate;
+    const creatorPayable = amount - commissionAmount;
+
     // Idempotency / Order prep
     const options = {
       amount: Math.round(amount * 100), // convert to smallest currency unit (paise)
@@ -59,13 +85,17 @@ export const createOrder = functions.https.onCall(async (data, context) => {
       order = await razorpay.orders.create(options);
     }
 
-    // Save initial payment intent to Firestore
-    const paymentRef = db.collection("payments").doc(order.id);
-    await paymentRef.set({
-      userId: context.auth.uid,
+    // Save Immutable Pricing Snapshot & Order Intent to Firestore
+    const orderRef = db.collection("orders").doc(order.id);
+    await orderRef.set({
+      userId: context.auth.uid, // Buyer
+      creatorId, // Seller
       titleId,
-      amount,
+      baseAmount: amount,
       currency,
+      platformCommissionRate,
+      commissionAmount,
+      creatorPayable,
       status: "created",
       orderId: order.id,
       receiptId: options.receipt,
@@ -76,7 +106,7 @@ export const createOrder = functions.https.onCall(async (data, context) => {
     await createAuditLog(
       "PAYMENT_ORDER_CREATED", 
       order.id, 
-      { amount, titleId }, 
+      { amount, titleId, commissionRate: platformCommissionRate }, 
       context.auth.uid
     );
 

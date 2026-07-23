@@ -33,10 +33,11 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.razorpay = void 0;
+exports.finance = exports.razorpay = void 0;
 const admin = __importStar(require("firebase-admin"));
 const createOrder_1 = require("./razorpay/createOrder");
 const verifyWebhook_1 = require("./razorpay/verifyWebhook");
+const finance_1 = require("./finance");
 // Initialize Firebase Admin (Only once)
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -45,5 +46,9 @@ if (!admin.apps.length) {
 exports.razorpay = {
     createOrder: createOrder_1.createOrder,
     verifyWebhook: verifyWebhook_1.verifyWebhook
+};
+exports.finance = {
+    getWalletSummary: finance_1.getWalletSummary,
+    requestSettlement: finance_1.requestSettlement
 };
 //# sourceMappingURL=index.js.map

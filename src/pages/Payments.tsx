@@ -1,29 +1,55 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
-import { Wallet, TrendingUp, DollarSign, Loader2, ArrowUpRight } from "lucide-react";
+import { Wallet, TrendingUp, DollarSign, Loader2, ArrowUpRight, ShoppingCart } from "lucide-react";
 import { financeService } from "../services/finance";
-import type { CreatorWallet, CommissionConfig } from "../types/finance";
+import type { CreatorWallet, CommissionConfig, Agreement } from "../types/finance";
 import { useAuth } from "../contexts/AuthContext";
 import { logger } from "../utils/logger";
+import { getFunctions, httpsCallable } from "firebase/functions";
+
+// Define razorpay window type for typescript
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export default function Payments() {
   const { user } = useAuth();
   const [wallet, setWallet] = useState<CreatorWallet | null>(null);
   const [config, setConfig] = useState<CommissionConfig | null>(null);
+  const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [settling, setSettling] = useState(false);
+  const [checkingOut, setCheckingOut] = useState<string | null>(null);
 
   useEffect(() => {
+    // Load Razorpay script dynamically
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+
     async function fetchFinanceData() {
-      if (!user?.uid) return;
+      if (!user?.uid || !user?.role) return;
       try {
-        const [wData, cData] = await Promise.all([
-          financeService.getCreatorWallet(user.uid),
-          financeService.getCommissionConfig()
-        ]);
-        setWallet(wData);
-        setConfig(cData);
+        const promises: Promise<any>[] = [
+          financeService.getCommissionConfig(),
+          financeService.getAgreements(user.uid, user.role)
+        ];
+        
+        // Only creators need their wallet
+        if (user.role === 'creator_partner') {
+          promises.push(financeService.getCreatorWallet(user.uid));
+        }
+        
+        const results = await Promise.all(promises);
+        setConfig(results[0]);
+        setAgreements(results[1]);
+        if (user.role === 'creator_partner') {
+          setWallet(results[2]);
+        }
       } catch (err) {
         logger.error("Failed to fetch finance data", err as Error, { userId: user.uid });
       } finally {
@@ -31,7 +57,7 @@ export default function Payments() {
       }
     }
     fetchFinanceData();
-  }, [user?.uid]);
+  }, [user?.uid, user?.role]);
 
   const handleWithdraw = async () => {
     if (!wallet || wallet.availableBalance <= 0) return;
@@ -46,7 +72,6 @@ export default function Payments() {
       await financeService.requestSettlement(wallet.creatorId, wallet.availableBalance);
       logger.info(`Settlement processed successfully for ${wallet.creatorId}`);
       alert("Settlement requested successfully. Admin will review and process payout.");
-      // Refresh wallet
       if (user?.uid) {
         const wData = await financeService.getCreatorWallet(user.uid);
         setWallet(wData);
@@ -59,6 +84,54 @@ export default function Payments() {
     }
   };
 
+  const handleCheckout = async (agreement: Agreement) => {
+    setCheckingOut(agreement.id);
+    try {
+      const functions = getFunctions();
+      const createOrder = httpsCallable(functions, 'razorpay-createOrder'); 
+      
+      const response = await createOrder({
+        amount: agreement.agreedPrice,
+        currency: agreement.currency,
+        titleId: agreement.titleId,
+        receiptId: agreement.id
+      });
+
+      const { orderId, amount, currency, keyId } = response.data as any;
+
+      const options = {
+        key: keyId,
+        amount,
+        currency,
+        name: "StreamVista OS",
+        description: `Acquisition: ${agreement.titleId}`,
+        order_id: orderId,
+        handler: function (response: any) {
+          alert(`Payment successful! Order ID: ${response.razorpay_order_id}. Processing on backend...`);
+          window.location.reload();
+        },
+        prefill: {
+          email: user?.email || "",
+        },
+        theme: {
+          color: "#D4AF37" // Brand Gold
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        alert("Payment failed: " + response.error.description);
+      });
+      rzp.open();
+
+    } catch (error) {
+      console.error(error);
+      alert("Failed to initiate checkout");
+    } finally {
+      setCheckingOut(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -68,17 +141,56 @@ export default function Payments() {
   }
 
   const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+  const isBuyer = user?.role === "buyer";
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Revenue & Finance</h1>
         <p className="text-slate-400">
-          {isAdmin ? "Manage platform ledgers, global commissions, and payouts." : "Track your earnings, agreements, and request payouts."}
+          {isAdmin ? "Manage platform ledgers, global commissions, and payouts." : 
+           isBuyer ? "Manage your acquisitions and complete pending payments." :
+           "Track your earnings, agreements, and request payouts."}
         </p>
       </div>
 
-      {!isAdmin ? (
+      {isBuyer ? (
+        // BUYER VIEW
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold text-white">Pending Acquisitions</h2>
+          {agreements.filter(a => a.status === 'draft').length === 0 ? (
+            <div className="text-slate-400">No pending acquisitions.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {agreements.filter(a => a.status === 'draft').map(agreement => (
+                <Card key={agreement.id} className="bg-brand-navy-light/40 border-brand-navy-light">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-white">Title ID: {agreement.titleId}</h3>
+                        <p className="text-sm text-slate-400">Agreement Ref: {agreement.id}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-brand-gold">
+                          ₹{agreement.agreedPrice.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => handleCheckout(agreement)} 
+                      disabled={checkingOut === agreement.id}
+                      className="w-full bg-brand-gold text-brand-navy hover:bg-yellow-500"
+                    >
+                      {checkingOut === agreement.id ? <Loader2 className="animate-spin mr-2" size={16} /> : <ShoppingCart className="mr-2" size={16} />}
+                      Checkout Securely
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : !isAdmin ? (
         // CREATOR VIEW
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-gradient-to-br from-brand-navy-light/80 to-brand-navy-light/40 border-brand-gold/30">

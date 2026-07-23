@@ -12,7 +12,8 @@ export type AuditLogAction =
   | "PAYMENT_WEBHOOK_RECEIVED"
   | "PAYMENT_VERIFIED"
   | "PAYMENT_FAILED"
-  | "PAYMENT_REFUNDED";
+  | "PAYMENT_REFUNDED"
+  | "SETTLEMENT_REQUESTED";
 
 export interface AuditLogEntry {
   action: AuditLogAction;

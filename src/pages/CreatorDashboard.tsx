@@ -1,21 +1,32 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { databaseService } from "../services/database";
+import { financeService } from "../services/finance";
 import { Title } from "../types/title";
+import { CreatorWallet } from "../types/finance";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, DollarSign } from "lucide-react";
 
 export default function CreatorDashboard() {
   const { user } = useAuth();
   const [titles, setTitles] = useState<Title[]>([]);
+  const [wallet, setWallet] = useState<CreatorWallet | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       if (user) {
-        const data = await databaseService.getTitlesByCreator(user.uid);
-        setTitles(data);
+        try {
+          const [data, walletData] = await Promise.all([
+            databaseService.getTitlesByCreator(user.uid),
+            financeService.getCreatorWallet(user.uid)
+          ]);
+          setTitles(data);
+          setWallet(walletData);
+        } catch (e) {
+          console.error("Dashboard load error", e);
+        }
       }
       setLoading(false);
     }
@@ -37,6 +48,22 @@ export default function CreatorDashboard() {
         </div>
       ) : (
         <>
+          {wallet && (
+            <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="bg-gradient-to-br from-brand-navy-light/80 to-brand-navy-light/40 border-brand-gold/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-slate-400 flex items-center justify-between">
+                    Total Lifetime Earnings
+                    <DollarSign className="h-4 w-4 text-brand-gold" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold text-white">₹{wallet.totalEarned.toLocaleString()}</div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
           <h2 className="text-xl font-semibold text-white mt-8 mb-4">My Titles</h2>
           {titles.length === 0 ? (
             <Card className="bg-brand-navy-light/30 border-dashed border-2">

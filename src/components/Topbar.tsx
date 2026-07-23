@@ -1,6 +1,7 @@
 import { useAuth } from "../contexts/AuthContext";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { Button } from "./ui/Button";
+import { NotificationBell } from "./NotificationBell";
 
 export function Topbar() {
   const { user, logout } = useAuth();
@@ -11,6 +12,8 @@ export function Topbar() {
       
       {user && (
         <div className="flex items-center gap-6">
+          <NotificationBell />
+          
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-brand-gold/20 flex items-center justify-center text-brand-gold">
               <UserIcon size={16} />

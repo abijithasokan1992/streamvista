@@ -97,6 +97,20 @@ class FirebaseDatabaseService implements DatabaseService {
       updatedAt: new Date().toISOString()
     });
     logger.trackEvent('qc_status_updated', { titleId, status });
+    
+    // Fire Notification
+    const titleSnap = await getDoc(titleRef);
+    if (titleSnap.exists()) {
+      const title = titleSnap.data() as Title;
+      await import('../notifications').then(({ notificationService }) => {
+        notificationService.createNotification({
+          userId: title.creatorOwnerId,
+          title: `QC Status: ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+          message: `Your title "${title.title}" has been ${status} by Quality Control.`,
+          type: status === 'approved' ? 'success' : 'error'
+        });
+      });
+    }
   }
 
   async updateLegalStatus(titleId: string, status: "approved" | "rejected"): Promise<void> {
@@ -114,6 +128,24 @@ class FirebaseDatabaseService implements DatabaseService {
       updates.status = "published";
       updates.approvalStatus = "approved";
       logger.trackEvent('title_published', { titleId });
+      
+      await import('../notifications').then(({ notificationService }) => {
+        notificationService.createNotification({
+          userId: title.creatorOwnerId,
+          title: `Title Published!`,
+          message: `"${title.title}" is now published and available to buyers.`,
+          type: 'success'
+        });
+      });
+    } else {
+      await import('../notifications').then(({ notificationService }) => {
+        notificationService.createNotification({
+          userId: title.creatorOwnerId,
+          title: `Legal Clearance: ${status === 'approved' ? 'Approved' : 'Rejected'}`,
+          message: `Your title "${title.title}" has been ${status} by the Legal team.`,
+          type: status === 'approved' ? 'success' : 'error'
+        });
+      });
     }
     
     await updateDoc(titleRef, updates);

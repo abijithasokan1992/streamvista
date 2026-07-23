@@ -32,6 +32,7 @@ export interface Title {
   territories: string[];
   excludedTerritories: string[];
   licensingModel: "exclusive" | "non-exclusive" | "hybrid";
+  price?: number;
   rightsStartDate?: string;
   rightsEndDate?: string;
   creatorOwnerId: string;

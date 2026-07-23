@@ -24,12 +24,12 @@ export function TitleDetails({ title, onClose }: TitleDetailsProps) {
     if (!user?.uid || !title.creatorOwnerId) return;
     setLoading(true);
     try {
-      // Mock agreement creation
+      // Create agreement with actual title price
       const agreement = await financeService.createAgreement(
         title.id,
         user.uid,
         title.creatorOwnerId,
-        15000 // $15,000 mock price
+        title.price || 15000
       );
       setAgreementStatus(agreement.id);
       alert("Agreement initiated! Head to Payments to complete the transaction.");

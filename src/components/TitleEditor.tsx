@@ -76,6 +76,10 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
       alert("Title, Poster, and Video are required before submitting for review.");
       return;
     }
+    if (!formData.licensingModel || !formData.price || !formData.rightsAvailable || formData.rightsAvailable.length === 0) {
+      alert("Licensing Model, Price, and Territories are required before submitting for review.");
+      return;
+    }
     setSaving(true);
     try {
       // Must save first, then submit
@@ -166,8 +170,8 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
               </div>
             </div>
 
-            {/* Right Col: Metadata */}
             <div className="lg:col-span-2 space-y-5">
+              {/* Basic Metadata */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Project Title *</label>
                 <Input name="title" value={formData.title || ""} onChange={handleChange} placeholder="Enter title..." className="text-lg" />
@@ -220,6 +224,46 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Runtime (mins)</label>
                   <Input name="runtimeMinutes" type="number" value={formData.runtimeMinutes || ""} onChange={handleChange} placeholder="e.g. 120" />
+                </div>
+              </div>
+
+              {/* Rights & Pricing */}
+              <div className="border-t border-white/10 pt-5 mt-5">
+                <h3 className="text-brand-gold font-bold mb-4">Rights & Pricing</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Licensing Model</label>
+                    <select 
+                      name="licensingModel" 
+                      value={formData.licensingModel || ""} 
+                      onChange={handleChange}
+                      className="w-full bg-brand-navy border border-white/10 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                    >
+                      <option value="">Select Model...</option>
+                      <option value="exclusive">Exclusive</option>
+                      <option value="non-exclusive">Non-Exclusive</option>
+                      <option value="hybrid">Hybrid</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-1">Price (₹)</label>
+                    <Input 
+                      name="price" 
+                      type="number" 
+                      value={formData.price || ""} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))} 
+                      placeholder="e.g. 15000" 
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Territories (Rights)</label>
+                  <Input 
+                    name="rightsAvailable" 
+                    value={formData.rightsAvailable?.join(", ") || ""} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, rightsAvailable: e.target.value.split(",").map(r => r.trim()) }))} 
+                    placeholder="e.g. Global, NA, EU" 
+                  />
                 </div>
               </div>
             </div>

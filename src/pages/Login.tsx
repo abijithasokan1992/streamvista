@@ -8,13 +8,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 export default function Login() {
   const [email, setEmail] = useState("owner@streamvista.com"); // default for testing
   const [password, setPassword] = useState("password");
-  const { login, loading } = useAuth();
+  const [displayName, setDisplayName] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+  const { login, register, loading } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
-    navigate("/");
+    try {
+      if (isRegistering) {
+        await register(email, password, displayName);
+      } else {
+        await login(email, password);
+      }
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert("Authentication failed.");
+    }
   };
 
   return (
@@ -29,11 +40,22 @@ export default function Login() {
         
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access the platform.</CardDescription>
+            <CardTitle className="text-2xl">{isRegistering ? "Create Account" : "Sign In"}</CardTitle>
+            <CardDescription>
+              {isRegistering ? "Register for a new StreamVista buyer account." : "Enter your credentials to access the platform."}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleAuth} className="space-y-4">
+              {isRegistering && (
+                <Input
+                  label="Display Name"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                />
+              )}
               <Input
                 label="Email address"
                 type="email"
@@ -49,9 +71,20 @@ export default function Login() {
                 required
               />
               <Button type="submit" className="w-full mt-6" isLoading={loading}>
-                Sign In
+                {isRegistering ? "Register" : "Sign In"}
               </Button>
             </form>
+            
+            <div className="mt-4 text-center">
+              <button 
+                type="button" 
+                onClick={() => setIsRegistering(!isRegistering)} 
+                className="text-sm text-brand-gold hover:underline"
+              >
+                {isRegistering ? "Already have an account? Sign in" : "Need an account? Register as Buyer"}
+              </button>
+            </div>
+
             <div className="mt-6 p-4 rounded bg-brand-navy-light/50 border border-white/5">
               <p className="text-xs text-slate-400 mb-2 font-medium">Demo Accounts:</p>
               <ul className="text-xs text-slate-500 space-y-1">

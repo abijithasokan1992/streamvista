@@ -13,27 +13,42 @@ class FirebaseAuthService implements AuthService {
     
     if (userDoc.exists()) {
       return userDoc.data() as UserProfile;
-    } else {
-      // Auto-provision a default profile for first-time emulator logins
-      // Assign role based on email hint for testing purposes
-      let role: UserRole = 'buyer';
-      if (user.email?.includes('creator')) role = 'creator_partner';
-      if (user.email?.includes('admin')) role = 'super_admin';
-      if (user.email?.includes('qc')) role = 'qc_staff';
-      if (user.email?.includes('legal')) role = 'legal_staff';
+    }
+    
+    throw new Error("User profile not found in database. Account may be incomplete.");
+  }
+
+  async register(email: string, password?: string, displayName?: string): Promise<UserProfile> {
+    const pwd = password || "password123";
+    const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
+    
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pwd);
+      
+      if (displayName) {
+        await updateProfile(userCredential.user, { displayName });
+      }
+
+      // Hardcode 'buyer' as the default role for all new registrations (least privilege)
+      const role: UserRole = 'buyer';
       
       const newProfile: UserProfile = {
-        uid: user.uid,
-        email: user.email || '',
-        displayName: user.displayName || user.email?.split('@')[0] || 'Unknown User',
+        uid: userCredential.user.uid,
+        email: userCredential.user.email || email,
+        displayName: displayName || userCredential.user.displayName || email.split('@')[0],
         role,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
+      const userDocRef = doc(db, "users", userCredential.user.uid);
       await setDoc(userDocRef, newProfile);
-      logger.info(`Auto-provisioned new user profile in Firestore: ${user.email} as ${role}`);
+      
+      logger.trackEvent('user_registered_success', { uid: userCredential.user.uid });
       return newProfile;
+    } catch (e: any) {
+      logger.error("Registration failed", e);
+      throw new Error(e.message || "Registration failed");
     }
   }
 
@@ -59,23 +74,10 @@ class FirebaseAuthService implements AuthService {
   async login(email: string, password?: string): Promise<UserProfile> {
     const pwd = password || "password123";
     try {
-      // First try to sign in
       const userCredential = await signInWithEmailAndPassword(auth, email, pwd);
       logger.trackEvent('user_login_success', { uid: userCredential.user.uid });
       return await this.fetchUserProfile(userCredential.user);
     } catch (e: any) {
-      if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential' || e.message?.includes('invalid')) {
-        // Auto-register the user if they don't exist yet in the emulator
-        try {
-          const { createUserWithEmailAndPassword } = await import("firebase/auth");
-          const newUserCredential = await createUserWithEmailAndPassword(auth, email, pwd);
-          logger.trackEvent('user_registered_success', { uid: newUserCredential.user.uid });
-          return await this.fetchUserProfile(newUserCredential.user);
-        } catch (regError: any) {
-          logger.error("Auto-registration failed", regError);
-          throw new Error(regError.message);
-        }
-      }
       logger.error("Login failed", e);
       throw new Error(e.message || "Login failed");
     }

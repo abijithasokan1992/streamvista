@@ -1,4 +1,4 @@
-import { DatabaseService } from "./database.types";
 import { firebaseDatabaseService } from "./firebaseDatabaseService";
 
-export const databaseService: DatabaseService = firebaseDatabaseService;
+export const databaseService = firebaseDatabaseService;
+export type { DatabaseService } from "./database.types";

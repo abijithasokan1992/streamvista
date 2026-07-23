@@ -6,8 +6,8 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password?: string) => Promise<void>;
+  register: (email: string, password?: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
-  switchMockRole: (role: UserRole) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (email: string, password?: string, displayName?: string) => {
+    setLoading(true);
+    try {
+      const newUser = await authService.register(email, password, displayName);
+      setUser(newUser);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     setLoading(true);
     try {
@@ -50,20 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const switchMockRole = async (role: UserRole) => {
-    if (authService.switchMockRole) {
-      setLoading(true);
-      try {
-        const newUser = await authService.switchMockRole(role);
-        setUser(newUser);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, switchMockRole }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

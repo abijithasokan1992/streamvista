@@ -94,6 +94,30 @@ export const verifyWebhook = functions.https.onRequest(async (req, res) => {
           timestamp: admin.firestore.FieldValue.serverTimestamp(),
           settlementStatus: "pending" // track whether this chunk has been paid out
         });
+
+        // 4. Update the transactional aggregated wallet balance
+        if (orderData?.creatorId && orderData?.creatorPayable) {
+          const walletRef = db.collection("wallets").doc(orderData.creatorId);
+          const walletSnap = await t.get(walletRef);
+          
+          if (!walletSnap.exists) {
+            t.set(walletRef, {
+              availableBalance: orderData.creatorPayable,
+              pendingBalance: 0,
+              reservedBalance: 0,
+              settledBalance: 0,
+              totalEarned: orderData.creatorPayable,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+          } else {
+            const currentWallet = walletSnap.data();
+            t.update(walletRef, {
+              availableBalance: (currentWallet?.availableBalance || 0) + orderData.creatorPayable,
+              totalEarned: (currentWallet?.totalEarned || 0) + orderData.creatorPayable,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+          }
+        }
       });
 
       await createAuditLog("PAYMENT_VERIFIED", orderId, { paymentId: paymentEntity.id }, "SYSTEM");

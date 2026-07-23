@@ -24,6 +24,8 @@ export default function Payments() {
   const [settling, setSettling] = useState(false);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
 
+  const [pendingPayouts, setPendingPayouts] = useState<any[]>([]);
+
   useEffect(() => {
     // Load Razorpay script dynamically
     const script = document.createElement("script");
@@ -39,9 +41,12 @@ export default function Payments() {
           financeService.getAgreements(user.uid, user.role)
         ];
         
-        // Only creators need their wallet
         if (user.role === 'creator_partner') {
           promises.push(financeService.getCreatorWallet(user.uid));
+        } else if (user.role === 'admin' || user.role === 'super_admin' || user.role === 'platform_owner') {
+          promises.push(
+            import('../services/adminService').then(m => m.adminService.getLedgers())
+          );
         }
         
         const results = await Promise.all(promises);
@@ -49,6 +54,9 @@ export default function Payments() {
         setAgreements(results[1]);
         if (user.role === 'creator_partner') {
           setWallet(results[2]);
+        } else if (results[2]) {
+          const ledgers = results[2];
+          setPendingPayouts(ledgers.filter((l: any) => l.type === "creator_payable" && l.settlementStatus === "pending"));
         }
       } catch (err) {
         logger.error("Failed to fetch finance data", err as Error, { userId: user.uid });
@@ -267,9 +275,29 @@ export default function Payments() {
             <CardHeader>
               <CardTitle>Pending Payout Requests</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-              <Wallet className="h-10 w-10 text-slate-600 mb-4" />
-              <p className="text-slate-400">No pending payouts at this time.</p>
+            <CardContent>
+              {pendingPayouts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Wallet className="h-10 w-10 text-slate-600 mb-4" />
+                  <p className="text-slate-400">No pending payouts at this time.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                  {pendingPayouts.map(payout => (
+                    <div key={payout.id} className="p-3 bg-black/40 rounded-lg border border-white/5 flex justify-between items-center">
+                      <div>
+                        <div className="font-bold text-white mb-1">Creator: {payout.creatorId}</div>
+                        <div className="text-sm text-brand-gold font-bold">₹{payout.amount.toLocaleString()}</div>
+                        <div className="text-xs text-slate-500 mt-1">{new Date(payout.timestamp?.toDate ? payout.timestamp.toDate() : payout.timestamp).toLocaleString()}</div>
+                      </div>
+                      <Button size="sm" onClick={() => {
+                        alert("In a real app, this would trigger RazorpayX payout or manual bank transfer. For MVP, we approve locally.");
+                        // Real implementation would call a firebase function to process the payout
+                      }} className="bg-emerald-600 hover:bg-emerald-500 text-white">Approve Payout</Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

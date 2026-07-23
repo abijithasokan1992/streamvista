@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import * as functionsTest from "firebase-functions-test";
+import functionsTest from "firebase-functions-test";
 import { resolve } from "path";
 
 // Initialize the firebase-functions-test SDK

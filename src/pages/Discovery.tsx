@@ -70,7 +70,7 @@ export default function Discovery() {
                   <div className="absolute inset-0 flex items-center justify-center text-slate-500">No Image</div>
                 )}
                 <div className="absolute top-2 right-2">
-                  <Badge variant="primary" className="bg-brand-gold text-brand-navy">{title.contentType}</Badge>
+                  <Badge variant="default" className="bg-brand-gold text-brand-navy">{title.contentType}</Badge>
                 </div>
               </div>
               <CardHeader className="pb-2">

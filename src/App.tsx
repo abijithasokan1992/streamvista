@@ -14,6 +14,11 @@ import TitleSubmission from "./pages/TitleSubmission";
 import QC from "./pages/QC";
 import Legal from "./pages/Legal";
 import Payments from "./pages/Payments";
+import CreatorProfile from './pages/CreatorProfile';
+import PurchaseHistory from './pages/PurchaseHistory';
+import AuditExplorer from './pages/AuditExplorer';
+import { Reporting } from './pages/Reporting';
+import { DirectIngest } from './pages/DirectIngest';
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -65,17 +70,22 @@ export default function App() {
           <Route path="/creator" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><CreatorDashboard /></RoleBasedRoute></AppLayout>} />
           <Route path="/creator/titles/new" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><TitleSubmission /></RoleBasedRoute></AppLayout>} />
           <Route path="/creator/titles/:id/edit" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><TitleSubmission /></RoleBasedRoute></AppLayout>} />
+          <Route path="/creator/profile" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><CreatorProfile /></RoleBasedRoute></AppLayout>} />
           
           <Route path="/buyer" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><BuyerDashboard /></RoleBasedRoute></AppLayout>} />
           <Route path="/buyer/discover" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Discovery /></RoleBasedRoute></AppLayout>} />
           <Route path="/buyer/title/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><TitleDetails /></RoleBasedRoute></AppLayout>} />
           <Route path="/buyer/checkout/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Checkout /></RoleBasedRoute></AppLayout>} />
           <Route path="/buyer/play/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Player /></RoleBasedRoute></AppLayout>} />
-          <Route path="/payments" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Payments /></RoleBasedRoute></AppLayout>} />
+          <Route path="/buyer/history" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><PurchaseHistory /></RoleBasedRoute></AppLayout>} />
+          <Route path="/payments" element={<AppLayout><RoleBasedRoute roles={["buyer", "admin", "super_admin"]}><Payments /></RoleBasedRoute></AppLayout>} />
           
           <Route path="/qc" element={<AppLayout><RoleBasedRoute roles={["qc_staff"]}><QC /></RoleBasedRoute></AppLayout>} />
           <Route path="/legal" element={<AppLayout><RoleBasedRoute roles={["legal_staff"]}><Legal /></RoleBasedRoute></AppLayout>} />
           <Route path="/admin" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><AdminDashboard /></RoleBasedRoute></AppLayout>} />
+          <Route path="/admin/audit" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><AuditExplorer /></RoleBasedRoute></AppLayout>} />
+          <Route path="/admin/reporting" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><Reporting /></RoleBasedRoute></AppLayout>} />
+          <Route path="/admin/ingest" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><DirectIngest /></RoleBasedRoute></AppLayout>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

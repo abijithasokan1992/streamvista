@@ -84,15 +84,6 @@ export default function Login() {
                 {isRegistering ? "Already have an account? Sign in" : "Need an account? Register as Buyer"}
               </button>
             </div>
-
-            <div className="mt-6 p-4 rounded bg-brand-navy-light/50 border border-white/5">
-              <p className="text-xs text-slate-400 mb-2 font-medium">Demo Accounts:</p>
-              <ul className="text-xs text-slate-500 space-y-1">
-                <li>owner@streamvista.com (Platform Owner)</li>
-                <li>creator@example.com (Creator)</li>
-                <li>buyer@example.com (Buyer)</li>
-              </ul>
-            </div>
           </CardContent>
         </Card>
       </div>

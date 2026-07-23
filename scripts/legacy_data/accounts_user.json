@@ -1,0 +1,31 @@
+[
+  {
+    "id": 1,
+    "email": "legacy_creator@streamvista.com",
+    "password": "pbkdf2_sha256$260000$mockhash",
+    "is_active": true,
+    "is_staff": false,
+    "is_superuser": false,
+    "date_joined": "2022-01-01T10:00:00Z",
+    "profile_type": "creator"
+  },
+  {
+    "id": 2,
+    "email": "legacy_buyer@streamvista.com",
+    "password": "pbkdf2_sha256$260000$mockhash",
+    "is_active": true,
+    "is_staff": false,
+    "is_superuser": false,
+    "date_joined": "2023-05-15T14:30:00Z",
+    "profile_type": "buyer"
+  },
+  {
+    "id": 3,
+    "email": "legacy_admin@streamvista.com",
+    "password": "pbkdf2_sha256$260000$mockhash",
+    "is_active": true,
+    "is_staff": true,
+    "is_superuser": true,
+    "date_joined": "2021-11-20T08:15:00Z"
+  }
+]

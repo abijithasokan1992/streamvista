@@ -134,7 +134,7 @@ export default function AdminDashboard() {
                     <div className="font-medium text-white">{u.displayName || u.email}</div>
                     <div className="text-xs text-slate-400">{u.email}</div>
                   </div>
-                  <Badge variant="secondary" className="uppercase text-[10px]">{u.role}</Badge>
+                  <Badge variant="default" className="uppercase text-[10px]">{u.role}</Badge>
                 </div>
               ))}
             </div>

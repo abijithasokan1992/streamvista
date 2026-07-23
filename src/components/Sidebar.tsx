@@ -13,7 +13,8 @@ import {
   BarChart3, 
   Megaphone,
   Settings,
-  ListVideo
+  ListVideo,
+  Activity
 } from "lucide-react";
 
 export function Sidebar() {
@@ -25,8 +26,10 @@ export function Sidebar() {
   const navItems = [
     { name: "Mission Control", path: "/", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Creator Dashboard", path: "/creator", icon: LayoutDashboard, roles: ["creator_partner"] },
+    { name: "My Profile", path: "/creator/profile", icon: Users, roles: ["creator_partner"] },
     { name: "My Screenings", path: "/buyer", icon: LayoutDashboard, roles: ["buyer"] },
     { name: "Discover", path: "/buyer/discover", icon: Film, roles: ["buyer"] },
+    { name: "Purchase History", path: "/buyer/history", icon: CreditCard, roles: ["buyer"] },
     { name: "Titles", path: "/titles", icon: Film, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
     { name: "Drafts", path: "/drafts", icon: FileEdit, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
     { name: "Uploads", path: "/uploads", icon: UploadCloud, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
@@ -35,6 +38,7 @@ export function Sidebar() {
     { name: "Legal", path: "/legal", icon: Scale, roles: ["platform_owner", "founder", "super_admin", "legal_staff"] },
     { name: "Payments & Revenue", path: "/finance", icon: CreditCard, roles: ["platform_owner", "founder", "super_admin", "finance"] },
     { name: "Analytics", path: "/analytics", icon: BarChart3, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
+    { name: "Audit Log", path: "/admin/audit", icon: Activity, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Campaigns", path: "/campaigns", icon: Megaphone, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Users", path: "/users", icon: Users, roles: ["platform_owner", "founder", "super_admin"] },
     { name: "Settings", path: "/settings", icon: Settings, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"] },

@@ -74,7 +74,7 @@ export default function TitleDetails() {
         <div className="md:col-span-2 space-y-6">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <Badge variant="primary" className="bg-brand-gold text-brand-navy">{title.contentType}</Badge>
+              <Badge variant="default" className="bg-brand-gold text-brand-navy">{title.contentType}</Badge>
               <Badge variant="outline">{title.licensingModel}</Badge>
             </div>
             <h1 className="text-4xl font-bold text-white mb-2">{title.title}</h1>

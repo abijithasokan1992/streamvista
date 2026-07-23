@@ -64,35 +64,30 @@ export default function Checkout() {
 
       const orderData = (response.data as any);
 
-      // If we are fully mocked (no live keys at all), we just simulate success
-      if (orderData.keyId === "rzp_test_mock") {
-        setProcessing(false);
-        setSuccess(true);
-        // Note: In a real mock flow without webhook access from Razorpay, we'd need a way to 
-        // trigger the webhook manually. But for the test, we assume the backend handles it.
-        return;
-      }
-
-      // 2. Initialize Razorpay
       const options = {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
         name: "StreamVista OS",
-        description: `Acquisition of ${title.title}`,
+        description: `Acquisition: ${title.title}`,
         order_id: orderData.orderId,
         handler: async function (response: any) {
-          // Success! The webhook will handle the backend state.
-          // Frontend just shows success.
-          setSuccess(true);
-          setProcessing(false);
+          try {
+            console.log("Payment successful, verifying on backend...");
+            // Backend handles actual ledger entry via webhook, 
+            // but we can poll for completion or show a success screen.
+            alert(`Payment successful! Order ID: ${response.razorpay_order_id}. Processing on backend...`);
+            navigate("/buyer");
+          } catch (e) {
+            console.error(e);
+            alert("Error verifying payment");
+          }
         },
         prefill: {
-          name: user.displayName,
-          email: user.email,
+          email: user?.email || "",
         },
         theme: {
-          color: "#cda434" // brand-gold
+          color: "#D4AF37"
         }
       };
 

@@ -21,4 +21,8 @@ export interface UserProfile extends User {
   role: UserRole;
   createdAt: string;
   updatedAt: string;
+  studioName?: string;
+  website?: string;
+  taxId?: string;
+  bankAccount?: string;
 }

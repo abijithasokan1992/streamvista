@@ -10,8 +10,12 @@ import { Loader2, DollarSign } from "lucide-react";
 
 import { TitleEditor } from "../components/TitleEditor";
 import { Plus } from "lucide-react";
+import { Button } from "../components/ui/Button";
+
+import { useNavigate } from "react-router-dom";
 
 export default function CreatorDashboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [titles, setTitles] = useState<Title[]>([]);
   const [wallet, setWallet] = useState<CreatorWallet | null>(null);
@@ -82,25 +86,14 @@ export default function CreatorDashboard() {
                 <CardContent>
                   <div className="text-4xl font-bold text-white">₹{wallet.availableBalance?.toLocaleString() || 0}</div>
                   <div className="text-sm text-slate-400 mt-1">Total Earned: ₹{wallet.totalEarned?.toLocaleString() || 0}</div>
-                  {wallet.availableBalance > 0 && (
-                    <Button 
-                      className="mt-4 w-full bg-brand-gold text-brand-navy hover:bg-yellow-500"
-                      onClick={async () => {
-                        const amount = parseFloat(prompt("Enter amount to settle:") || "0");
-                        if (amount > 0 && amount <= wallet.availableBalance) {
-                          try {
-                            await financeService.requestSettlement(amount);
-                            alert("Settlement requested successfully!");
-                            window.location.reload();
-                          } catch(e) {
-                            alert("Failed to request settlement.");
-                          }
-                        }
-                      }}
-                    >
-                      Request Settlement
-                    </Button>
-                  )}
+                  <Button 
+                    size="sm" 
+                    variant="primary"
+                    className="w-full mt-4"
+                    onClick={() => navigate('/finance')}
+                  >
+                    Go to Payments
+                  </Button>
                 </CardContent>
               </Card>
             </div>

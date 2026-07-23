@@ -1,6 +1,4 @@
 import { DatabaseService } from "./database.types";
-import { mockDatabaseService } from "./mockDatabaseService";
+import { firebaseDatabaseService } from "./firebaseDatabaseService";
 
-const isMockMode = import.meta.env.VITE_DATA_MODE !== "firebase";
-
-export const databaseService: DatabaseService = isMockMode ? mockDatabaseService : mockDatabaseService; // Will replace later
+export const databaseService: DatabaseService = firebaseDatabaseService;

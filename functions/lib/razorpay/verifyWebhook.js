@@ -32,14 +32,11 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyWebhook = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
-const crypto_1 = __importDefault(require("crypto"));
+const crypto = __importStar(require("crypto"));
 const auditLog_1 = require("../utils/auditLog");
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || "mock_webhook_secret";
 exports.verifyWebhook = functions.https.onRequest(async (req, res) => {
@@ -55,7 +52,7 @@ exports.verifyWebhook = functions.https.onRequest(async (req, res) => {
         return;
     }
     // Verify signature
-    const expectedSignature = crypto_1.default
+    const expectedSignature = crypto
         .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
         .update(body)
         .digest("hex");

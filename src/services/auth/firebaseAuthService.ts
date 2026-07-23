@@ -87,6 +87,17 @@ class FirebaseAuthService implements AuthService {
     await signOut(auth);
     logger.trackEvent('user_logout');
   }
+
+  async resetPassword(email: string): Promise<void> {
+    const { sendPasswordResetEmail } = await import("firebase/auth");
+    try {
+      await sendPasswordResetEmail(auth, email);
+      logger.trackEvent('password_reset_requested', { email });
+    } catch (e: any) {
+      logger.error("Password reset failed", e);
+      throw new Error(e.message || "Failed to send password reset email");
+    }
+  }
 }
 
 export const firebaseAuthService = new FirebaseAuthService();

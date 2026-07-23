@@ -5,6 +5,10 @@ import { Topbar } from "./components/Topbar";
 import Login from "./pages/Login";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import BuyerDashboard from "./pages/BuyerDashboard";
+import Discovery from "./pages/Discovery";
+import TitleDetails from "./pages/TitleDetails";
+import Checkout from "./pages/Checkout";
+import Player from "./pages/Player";
 import AdminDashboard from "./pages/AdminDashboard";
 import TitleSubmission from "./pages/TitleSubmission";
 import QC from "./pages/QC";
@@ -63,6 +67,10 @@ export default function App() {
           <Route path="/creator/titles/:id/edit" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><TitleSubmission /></RoleBasedRoute></AppLayout>} />
           
           <Route path="/buyer" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><BuyerDashboard /></RoleBasedRoute></AppLayout>} />
+          <Route path="/buyer/discover" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Discovery /></RoleBasedRoute></AppLayout>} />
+          <Route path="/buyer/title/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><TitleDetails /></RoleBasedRoute></AppLayout>} />
+          <Route path="/buyer/checkout/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Checkout /></RoleBasedRoute></AppLayout>} />
+          <Route path="/buyer/play/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Player /></RoleBasedRoute></AppLayout>} />
           <Route path="/payments" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Payments /></RoleBasedRoute></AppLayout>} />
           
           <Route path="/qc" element={<AppLayout><RoleBasedRoute roles={["qc_staff"]}><QC /></RoleBasedRoute></AppLayout>} />

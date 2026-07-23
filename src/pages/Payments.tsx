@@ -5,6 +5,7 @@ import { Wallet, TrendingUp, DollarSign, Loader2, ArrowUpRight } from "lucide-re
 import { financeService } from "../services/finance";
 import type { CreatorWallet, CommissionConfig } from "../types/finance";
 import { useAuth } from "../contexts/AuthContext";
+import { logger } from "../utils/logger";
 
 export default function Payments() {
   const { user } = useAuth();
@@ -24,7 +25,7 @@ export default function Payments() {
         setWallet(wData);
         setConfig(cData);
       } catch (err) {
-        console.error(err);
+        logger.error("Failed to fetch finance data", err as Error, { userId: user.uid });
       } finally {
         setLoading(false);
       }
@@ -35,8 +36,15 @@ export default function Payments() {
   const handleWithdraw = async () => {
     if (!wallet || wallet.availableBalance <= 0) return;
     setSettling(true);
+    
+    logger.trackEvent('payout_requested', { 
+      userId: wallet.creatorId, 
+      amount: wallet.availableBalance 
+    });
+
     try {
       await financeService.requestSettlement(wallet.creatorId, wallet.availableBalance);
+      logger.info(`Settlement processed successfully for ${wallet.creatorId}`);
       alert("Settlement requested successfully. Admin will review and process payout.");
       // Refresh wallet
       if (user?.uid) {
@@ -44,7 +52,7 @@ export default function Payments() {
         setWallet(wData);
       }
     } catch (err) {
-      console.error(err);
+      logger.error("Failed to request settlement", err as Error, { userId: wallet.creatorId });
       alert("Failed to request settlement.");
     } finally {
       setSettling(false);

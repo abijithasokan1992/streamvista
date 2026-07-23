@@ -1,105 +1,159 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "../components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
-import { CreditCard, Loader2 } from "lucide-react";
-import { paymentService } from "../services/payment";
+import { Wallet, TrendingUp, DollarSign, Loader2, ArrowUpRight } from "lucide-react";
+import { financeService } from "../services/finance";
+import type { CreatorWallet, CommissionConfig } from "../types/finance";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Payments() {
-  const [loading, setLoading] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const { user } = useAuth();
+  const [wallet, setWallet] = useState<CreatorWallet | null>(null);
+  const [config, setConfig] = useState<CommissionConfig | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [settling, setSettling] = useState(false);
 
   useEffect(() => {
-    // Dynamically load Razorpay SDK
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => setRazorpayLoaded(true);
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const handlePayment = async () => {
-    if (!razorpayLoaded) {
-      alert("Payment gateway is loading. Please wait.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // 1. Create order on the backend
-      const orderData = await paymentService.createOrder("test-title-123", 499); // $4.99 equivalent
-
-      // 2. Initialize Razorpay Checkout
-      const options = {
-        key: orderData.keyId,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "StreamVista",
-        description: "Test Transaction",
-        order_id: orderData.orderId,
-        handler: async function (response: any) {
-          // In real setup, the webhook handles this securely.
-          // For local mock we can trigger a state update.
-          alert(`Payment Successful! ID: ${response.razorpay_payment_id}`);
-          if (import.meta.env.VITE_DATA_MODE === "mock") {
-             await paymentService.verifyMockPayment(response.razorpay_order_id);
-          }
-        },
-        prefill: {
-          name: "Test User",
-          email: "test@example.com",
-          contact: "9999999999"
-        },
-        theme: {
-          color: "#F59E0B" // brand-gold
-        }
-      };
-
-      if (options.key === "rzp_test_mock") {
-        // Mocking the checkout window for totally offline mock mode
-        setTimeout(() => {
-          options.handler({
-            razorpay_payment_id: `pay_mock_${Date.now()}`,
-            razorpay_order_id: options.order_id,
-            razorpay_signature: "mock_signature"
-          });
-        }, 1500);
-      } else {
-        const rzp = new window.Razorpay(options);
-        rzp.open();
+    async function fetchFinanceData() {
+      if (!user?.uid) return;
+      try {
+        const [wData, cData] = await Promise.all([
+          financeService.getCreatorWallet(user.uid),
+          financeService.getCommissionConfig()
+        ]);
+        setWallet(wData);
+        setConfig(cData);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
+    }
+    fetchFinanceData();
+  }, [user?.uid]);
 
-    } catch (error) {
-      console.error(error);
-      alert("Payment failed to initialize.");
+  const handleWithdraw = async () => {
+    if (!wallet || wallet.availableBalance <= 0) return;
+    setSettling(true);
+    try {
+      await financeService.requestSettlement(wallet.creatorId, wallet.availableBalance);
+      alert("Settlement requested successfully. Admin will review and process payout.");
+      // Refresh wallet
+      if (user?.uid) {
+        const wData = await financeService.getCreatorWallet(user.uid);
+        setWallet(wData);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to request settlement.");
     } finally {
-      setLoading(false);
+      setSettling(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-brand-gold h-10 w-10" />
+      </div>
+    );
+  }
+
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Payments & Revenue</h1>
-        <p className="text-slate-400">Track financial transactions, payouts, and title revenue securely.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Revenue & Finance</h1>
+        <p className="text-slate-400">
+          {isAdmin ? "Manage platform ledgers, global commissions, and payouts." : "Track your earnings, agreements, and request payouts."}
+        </p>
       </div>
 
-      <Card className="bg-brand-navy-light/30 border-dashed border-2">
-        <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold mb-4">
-            <CreditCard size={32} />
-          </div>
-          <h3 className="text-xl font-medium text-white mb-2">Razorpay Checkout Test</h3>
-          <p className="text-slate-400 max-w-md mb-6">Click below to test the secure Razorpay integration flow.</p>
-          <Button onClick={handlePayment} disabled={loading || !razorpayLoaded} className="min-w-[150px]">
-            {loading ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-            Test Payment (₹499)
-          </Button>
-        </CardContent>
-      </Card>
+      {!isAdmin ? (
+        // CREATOR VIEW
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-gradient-to-br from-brand-navy-light/80 to-brand-navy-light/40 border-brand-gold/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-slate-400 flex items-center justify-between">
+                Available Balance
+                <Wallet className="h-4 w-4 text-brand-gold" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-white mb-4">₹{wallet?.availableBalance.toLocaleString()}</div>
+              <Button 
+                onClick={handleWithdraw} 
+                disabled={settling || (wallet?.availableBalance || 0) <= 0} 
+                className="w-full flex items-center justify-center gap-2"
+              >
+                {settling ? <Loader2 size={16} className="animate-spin" /> : <ArrowUpRight size={16} />}
+                Request Payout
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-brand-navy-light/40 border-brand-navy-light">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-slate-400 flex items-center justify-between">
+                Pending Escrow
+                <TrendingUp className="h-4 w-4 text-brand-orange" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-white">₹{wallet?.pendingBalance.toLocaleString()}</div>
+              <p className="text-xs text-slate-500 mt-2">Funds awaiting buyer delivery confirmation.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-brand-navy-light/40 border-brand-navy-light">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-slate-400 flex items-center justify-between">
+                Total Lifetime Earnings
+                <DollarSign className="h-4 w-4 text-emerald-500" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-bold text-white">₹{wallet?.totalEarned.toLocaleString()}</div>
+              <p className="text-xs text-slate-500 mt-2">Before platform commission of {config?.freeCreatorCommissionPercent}%.</p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        // ADMIN VIEW
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-brand-navy-light/40 border-brand-navy-light">
+            <CardHeader>
+              <CardTitle>Global Commission Configuration</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-slate-300">Free Creator Commission</span>
+                <span className="text-brand-gold font-bold">{config?.freeCreatorCommissionPercent}%</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-slate-300">Storage Billing (per GB)</span>
+                <span className="text-brand-gold font-bold">${config?.storageBillingRatePerGb}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-white/5">
+                <span className="text-slate-300">QC Service Fee</span>
+                <span className="text-brand-gold font-bold">${config?.qcServiceFee}</span>
+              </div>
+              <Button variant="secondary" className="w-full mt-4">Edit Global Rates</Button>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-brand-navy-light/40 border-brand-navy-light">
+            <CardHeader>
+              <CardTitle>Pending Payout Requests</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+              <Wallet className="h-10 w-10 text-slate-600 mb-4" />
+              <p className="text-slate-400">No pending payouts at this time.</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

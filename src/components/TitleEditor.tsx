@@ -5,6 +5,9 @@ import { Card, CardContent } from "./ui/Card";
 import { Loader2, UploadCloud, X, Save } from "lucide-react";
 import type { TitleDraft } from "../types/title";
 import { databaseService } from "../services/database";
+import { storageService } from "../services/storage";
+import { useAuth } from "../contexts/AuthContext";
+import { useRef } from "react";
 
 interface TitleEditorProps {
   draft: TitleDraft;
@@ -13,8 +16,14 @@ interface TitleEditorProps {
 }
 
 export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [formData, setFormData] = useState<TitleDraft>({ ...draft });
+  
+  const posterInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -34,11 +43,31 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
     }
   };
 
-  const handleMockUpload = async (field: 'posterUrl' | 'masterVideoUrl') => {
-    // In production, this binds to Firebase Storage upload tasks.
-    const fileUrl = prompt("MOCK UPLOAD: Enter a URL for the file to simulate upload completion:", "https://example.com/asset.jpg");
-    if (fileUrl) {
-      setFormData(prev => ({ ...prev, [field]: fileUrl }));
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>, 
+    field: 'posterUrl' | 'masterVideoUrl', 
+    category: 'posters' | 'masters'
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    // Auto-generate a dummy title ID if creating a new draft to ensure deterministic paths
+    const currentTitleId = formData.id || `draft-${Date.now()}`;
+    if (!formData.id) {
+      setFormData(prev => ({ ...prev, id: currentTitleId }));
+    }
+
+    const setUploading = field === 'posterUrl' ? setUploadingPoster : setUploadingVideo;
+    setUploading(true);
+    
+    try {
+      const url = await storageService.uploadFile(file, user.uid, currentTitleId, category);
+      setFormData(prev => ({ ...prev, [field]: url }));
+    } catch (err) {
+      console.error(err);
+      alert(`Failed to upload ${field}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -81,11 +110,23 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
             <div className="lg:col-span-1 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Poster Artwork</label>
+                <input 
+                  type="file" 
+                  ref={posterInputRef} 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={(e) => handleFileUpload(e, 'posterUrl', 'posters')}
+                />
                 <div 
-                  onClick={() => handleMockUpload('posterUrl')}
+                  onClick={() => !uploadingPoster && posterInputRef.current?.click()}
                   className="aspect-[2/3] w-full border-2 border-dashed border-white/10 rounded-lg bg-black/40 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:border-brand-gold/50 transition-colors relative overflow-hidden"
                 >
-                  {formData.posterUrl ? (
+                  {uploadingPoster ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 size={32} className="mb-2 animate-spin text-brand-gold" />
+                      <span className="text-sm font-medium">Uploading...</span>
+                    </div>
+                  ) : formData.posterUrl ? (
                     <img src={formData.posterUrl} alt="Poster" className="absolute inset-0 w-full h-full object-cover" />
                   ) : (
                     <>
@@ -99,12 +140,28 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Master Video File</label>
+                <input 
+                  type="file" 
+                  ref={videoInputRef} 
+                  className="hidden" 
+                  accept="video/*"
+                  onChange={(e) => handleFileUpload(e, 'masterVideoUrl', 'masters')}
+                />
                 <div 
-                  onClick={() => handleMockUpload('masterVideoUrl')}
+                  onClick={() => !uploadingVideo && videoInputRef.current?.click()}
                   className="w-full p-4 border-2 border-dashed border-white/10 rounded-lg bg-black/40 flex items-center justify-center text-slate-400 cursor-pointer hover:border-brand-gold/50 transition-colors"
                 >
-                  <UploadCloud size={20} className="mr-2" />
-                  <span className="text-sm">{formData.masterVideoUrl ? "Video Uploaded" : "Upload Video (ProRes/MP4)"}</span>
+                  {uploadingVideo ? (
+                    <>
+                      <Loader2 size={20} className="mr-2 animate-spin text-brand-gold" />
+                      <span className="text-sm">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud size={20} className="mr-2" />
+                      <span className="text-sm">{formData.masterVideoUrl ? "Video Uploaded" : "Upload Video (ProRes/MP4)"}</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -175,7 +232,7 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             Save Draft
           </Button>
-          <Button variant="primary" onClick={handleSubmitReview} disabled={saving} className="bg-brand-gold text-brand-navy border-brand-gold">
+          <Button variant="primary" onClick={handleSubmitReview} disabled={saving || uploadingPoster || uploadingVideo} className="bg-brand-gold text-brand-navy border-brand-gold">
             {saving ? <Loader2 size={16} className="animate-spin" /> : "Submit for QC & Legal"}
           </Button>
         </div>

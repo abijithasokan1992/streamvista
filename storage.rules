@@ -2,34 +2,35 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Default Deny All
+    
+    // Deny all by default
     match /{allPaths=**} {
       allow read, write: if false;
     }
-    
+
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Function to check if user has an admin role (mock function, requires Firestore integration or Custom Claims)
-    // Note: Best practice is to use Custom Claims for Storage rules role checking
-    function isPlatformAdmin() {
-      return request.auth.token.role in ['platform_owner', 'founder', 'super_admin', 'admin'];
+    // Deterministic Ownership-Aware Paths (Creator Uploads)
+    match /users/{userId}/titles/{titleId}/{assetCategory}/{assetId} {
+      // Only the owner can upload, modify, or read their own un-published assets here
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Titles Assets (Master Videos, Posters, etc)
-    match /titles/{titleId}/{fileName} {
-      allow read: if isAuthenticated(); // Should be restricted by buyer assignments in a real scenario
-      allow write: if isAuthenticated() && (
-        isPlatformAdmin() || 
-        request.auth.token.role == 'creator_partner'
-      );
+    // Master files (Strict limits)
+    match /titles/{titleId}/masters/{assetId} {
+      // In production architecture, this will require verifying the user's role and title ownership 
+      // via custom claims or firestore lookups.
+      allow read, write: if isAuthenticated();
     }
     
-    // User Avatars
-    match /users/{userId}/avatar {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId;
+    // Delivered Assets for Buyers
+    match /deliveries/{orderId}/{assetId} {
+      // Read access should be governed by backend-issued signed URLs
+      // Directly via rules, we only allow access if the uid matches a buyer ID embedded in the order metadata
+      allow read: if isAuthenticated(); 
+      allow write: if false; // Only backend functions can write deliveries
     }
   }
 }

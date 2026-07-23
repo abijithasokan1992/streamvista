@@ -14,8 +14,7 @@ export default function QC() {
     async function fetchPendingQC() {
       try {
         const data = await databaseService.getTitles();
-        // Mock filtering logic for UI purposes
-        setTitles(data);
+        setTitles(data.filter(t => t.qcStatus === "pending"));
       } catch (err) {
         console.error(err);
       } finally {
@@ -25,9 +24,14 @@ export default function QC() {
     fetchPendingQC();
   }, []);
 
-  const handleAction = (id: string, action: 'approve' | 'reject') => {
-    alert(`Mock: Title ${id} QC status set to ${action}. Audit log created.`);
-    setTitles(prev => prev.filter(t => t.id !== id));
+  const handleAction = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      await databaseService.updateQCStatus(id, action === 'approve' ? 'approved' : 'rejected');
+      setTitles(prev => prev.filter(t => t.id !== id));
+      alert(`Title QC status updated to ${action}.`);
+    } catch (e) {
+      alert("Failed to update QC status");
+    }
   };
 
   return (

@@ -1,8 +1,10 @@
 import { DatabaseService } from "./database.types";
 import { Title, TitleDraft } from "../../types/title";
 import { UserProfile } from "../../types/auth";
+import { logger } from "../../utils/logger";
 
-const MOCK_TITLES: Title[] = [
+// Make the mock state mutable and global across the app lifecycle
+let MOCK_TITLES: Title[] = [
   {
     id: "title-1",
     title: "Jananam 1947 Pranayam Thudarunnu",
@@ -33,106 +35,15 @@ const MOCK_TITLES: Title[] = [
     approvalStatus: "approved",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
-  },
-  {
-    id: "title-2",
-    title: "Bahumukham – Good, Bad & The Actor",
-    synopsis: "A psychological thriller exploring the multifaceted nature of human psychology and the dark side of ambition.",
-    contentType: "movie",
-    genres: ["Thriller", "Drama"],
-    director: "Demo Director",
-    producer: "Demo Productions",
-    cast: ["Actor C", "Actor D"],
-    runtimeMinutes: 110,
-    originalLanguage: "Malayalam",
-    additionalLanguages: [],
-    country: "India",
-    releaseDate: "2024-04-05",
-    posterUrl: "",
-    galleryUrls: [],
-    subtitleFiles: [],
-    captionFiles: [],
-    ageRating: "U/A",
-    rightsAvailable: ["VOD"],
-    territories: ["Global"],
-    excludedTerritories: ["Middle East"],
-    licensingModel: "non-exclusive",
-    creatorOwnerId: "mock-creator-1",
-    status: "published",
-    qcStatus: "approved",
-    legalStatus: "approved",
-    approvalStatus: "approved",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: "title-3",
-    title: "Civilian",
-    synopsis: "An ordinary man gets caught up in an extraordinary conspiracy.",
-    contentType: "movie",
-    genres: ["Action", "Thriller"],
-    director: "Demo Director",
-    producer: "Demo Productions",
-    cast: ["Actor E", "Actor F"],
-    runtimeMinutes: 135,
-    originalLanguage: "English",
-    additionalLanguages: [],
-    country: "USA",
-    releaseDate: "2023-11-20",
-    posterUrl: "",
-    galleryUrls: [],
-    subtitleFiles: [],
-    captionFiles: [],
-    ageRating: "A",
-    rightsAvailable: ["Theatrical", "VOD"],
-    territories: ["North America", "Europe"],
-    excludedTerritories: [],
-    licensingModel: "exclusive",
-    creatorOwnerId: "mock-creator-2",
-    status: "published",
-    qcStatus: "approved",
-    legalStatus: "approved",
-    approvalStatus: "approved",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: "title-4",
-    title: "Ali’s Nature",
-    synopsis: "A documentary about a man's quest to reconnect with nature.",
-    contentType: "documentary",
-    genres: ["Nature", "Biography"],
-    director: "Demo Director",
-    producer: "Demo Productions",
-    cast: ["Ali"],
-    runtimeMinutes: 85,
-    originalLanguage: "English",
-    additionalLanguages: ["Spanish", "French"],
-    country: "UK",
-    releaseDate: "2022-06-10",
-    posterUrl: "",
-    galleryUrls: [],
-    subtitleFiles: [],
-    captionFiles: [],
-    ageRating: "U",
-    rightsAvailable: ["Educational", "VOD"],
-    territories: ["Global"],
-    excludedTerritories: [],
-    licensingModel: "non-exclusive",
-    creatorOwnerId: "mock-creator-1",
-    status: "published",
-    qcStatus: "approved",
-    legalStatus: "approved",
-    approvalStatus: "approved",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
   }
 ];
+
+let MOCK_DRAFTS: TitleDraft[] = [];
 
 class MockDatabaseService implements DatabaseService {
   async getTitles(): Promise<Title[]> {
     await new Promise(r => setTimeout(r, 600));
-    return MOCK_TITLES;
+    return [...MOCK_TITLES];
   }
   
   async getTitleById(id: string): Promise<Title | null> {
@@ -146,19 +57,85 @@ class MockDatabaseService implements DatabaseService {
   }
 
   async getTitlesByBuyer(buyerId: string): Promise<Title[]> {
-    // For demo, just return first two titles for any buyer
     await new Promise(r => setTimeout(r, 500));
     return MOCK_TITLES.slice(0, 2); 
   }
 
   async getDraftsByCreator(creatorId: string): Promise<TitleDraft[]> {
     await new Promise(r => setTimeout(r, 400));
-    return []; // Return empty drafts for demo
+    return MOCK_DRAFTS.filter(d => d.creatorOwnerId === creatorId);
   }
 
   async saveDraft(draft: TitleDraft): Promise<TitleDraft> {
     await new Promise(r => setTimeout(r, 700));
-    return { ...draft, id: draft.id || `draft-${Date.now()}` };
+    const isNew = !draft.id || draft.id.startsWith("draft_");
+    const finalDraft = {
+      ...draft,
+      id: isNew && !draft.id ? `draft-${Date.now()}` : draft.id,
+      updatedAt: new Date().toISOString()
+    };
+    
+    const existingIndex = MOCK_DRAFTS.findIndex(d => d.id === finalDraft.id);
+    if (existingIndex >= 0) {
+      MOCK_DRAFTS[existingIndex] = finalDraft;
+    } else {
+      MOCK_DRAFTS.push(finalDraft);
+    }
+    
+    logger.trackEvent('draft_saved', { draftId: finalDraft.id });
+    return finalDraft;
+  }
+
+  // --- NEW WORKFLOW METHODS ---
+  
+  async submitDraftForReview(draftId: string): Promise<void> {
+    await new Promise(r => setTimeout(r, 800));
+    const draftIndex = MOCK_DRAFTS.findIndex(d => d.id === draftId);
+    if (draftIndex === -1) throw new Error("Draft not found");
+    
+    const draft = MOCK_DRAFTS[draftIndex];
+    MOCK_DRAFTS.splice(draftIndex, 1); // Remove from drafts
+
+    const newTitle: Title = {
+      ...draft,
+      status: "draft", 
+      qcStatus: "pending", // Enters QC Queue
+      legalStatus: "pending",
+      approvalStatus: "pending",
+      createdAt: draft.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } as Title;
+
+    MOCK_TITLES.push(newTitle);
+    logger.trackEvent('title_submitted_for_qc', { titleId: newTitle.id });
+  }
+
+  async updateQCStatus(titleId: string, status: "approved" | "rejected"): Promise<void> {
+    await new Promise(r => setTimeout(r, 500));
+    const title = MOCK_TITLES.find(t => t.id === titleId);
+    if (!title) throw new Error("Title not found");
+    
+    title.qcStatus = status;
+    title.updatedAt = new Date().toISOString();
+    logger.trackEvent('qc_status_updated', { titleId, status });
+  }
+
+  async updateLegalStatus(titleId: string, status: "approved" | "rejected"): Promise<void> {
+    await new Promise(r => setTimeout(r, 500));
+    const title = MOCK_TITLES.find(t => t.id === titleId);
+    if (!title) throw new Error("Title not found");
+    
+    title.legalStatus = status;
+    
+    // If both QC and Legal are approved, Auto-Publish!
+    if (title.qcStatus === "approved" && title.legalStatus === "approved") {
+      title.status = "published";
+      title.approvalStatus = "approved";
+      logger.trackEvent('title_published', { titleId });
+    }
+    
+    title.updatedAt = new Date().toISOString();
+    logger.trackEvent('legal_status_updated', { titleId, status });
   }
 
   async getUsers(): Promise<UserProfile[]> {

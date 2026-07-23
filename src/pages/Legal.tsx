@@ -13,7 +13,7 @@ export default function Legal() {
     async function fetchPendingLegal() {
       try {
         const data = await databaseService.getTitles();
-        setTitles(data);
+        setTitles(data.filter(t => t.legalStatus === "pending"));
       } catch (err) {
         console.error(err);
       } finally {
@@ -23,9 +23,14 @@ export default function Legal() {
     fetchPendingLegal();
   }, []);
 
-  const handleAction = (id: string, action: 'approve' | 'reject') => {
-    alert(`Mock: Title ${id} Legal clearance set to ${action}. Audit log created.`);
-    setTitles(prev => prev.filter(t => t.id !== id));
+  const handleAction = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      await databaseService.updateLegalStatus(id, action === 'approve' ? 'approved' : 'rejected');
+      setTitles(prev => prev.filter(t => t.id !== id));
+      alert(`Title Legal clearance updated to ${action}.`);
+    } catch (e) {
+      alert("Failed to update Legal status");
+    }
   };
 
   return (

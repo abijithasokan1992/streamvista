@@ -11,6 +11,9 @@ export interface DatabaseService {
   // Drafts
   getDraftsByCreator(creatorId: string): Promise<TitleDraft[]>;
   saveDraft(draft: TitleDraft): Promise<TitleDraft>;
+  submitDraftForReview(draftId: string): Promise<void>;
+  updateQCStatus(titleId: string, status: "approved" | "rejected"): Promise<void>;
+  updateLegalStatus(titleId: string, status: "approved" | "rejected"): Promise<void>;
   
   // Users (for admin)
   getUsers(): Promise<UserProfile[]>;

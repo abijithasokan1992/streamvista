@@ -34,11 +34,31 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
     }
   };
 
-  const handleMockUpload = async (field: 'posterUrl' | 'videoUrl') => {
+  const handleMockUpload = async (field: 'posterUrl' | 'masterVideoUrl') => {
     // In production, this binds to Firebase Storage upload tasks.
     const fileUrl = prompt("MOCK UPLOAD: Enter a URL for the file to simulate upload completion:", "https://example.com/asset.jpg");
     if (fileUrl) {
       setFormData(prev => ({ ...prev, [field]: fileUrl }));
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!formData.title || !formData.posterUrl || !formData.masterVideoUrl) {
+      alert("Title, Poster, and Video are required before submitting for review.");
+      return;
+    }
+    setSaving(true);
+    try {
+      // Must save first, then submit
+      const saved = await databaseService.saveDraft(formData);
+      await databaseService.submitDraftForReview(saved.id);
+      alert("Title submitted for QC and Legal Review!");
+      onSave(saved); // closes modal
+    } catch (err) {
+      console.error(err);
+      alert("Failed to submit draft.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -80,11 +100,11 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Master Video File</label>
                 <div 
-                  onClick={() => handleMockUpload('videoUrl')}
+                  onClick={() => handleMockUpload('masterVideoUrl')}
                   className="w-full p-4 border-2 border-dashed border-white/10 rounded-lg bg-black/40 flex items-center justify-center text-slate-400 cursor-pointer hover:border-brand-gold/50 transition-colors"
                 >
                   <UploadCloud size={20} className="mr-2" />
-                  <span className="text-sm">Upload Video (ProRes/MP4)</span>
+                  <span className="text-sm">{formData.masterVideoUrl ? "Video Uploaded" : "Upload Video (ProRes/MP4)"}</span>
                 </div>
               </div>
             </div>
@@ -151,9 +171,12 @@ export function TitleEditor({ draft, onClose, onSave }: TitleEditorProps) {
 
         <div className="p-6 border-t border-white/5 flex justify-end gap-3 bg-black/20">
           <Button variant="secondary" onClick={onClose} disabled={saving}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave} disabled={saving} className="flex items-center gap-2">
+          <Button variant="secondary" onClick={handleSave} disabled={saving} className="bg-brand-navy border-brand-gold/30 hover:bg-brand-navy-light text-white">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             Save Draft
+          </Button>
+          <Button variant="primary" onClick={handleSubmitReview} disabled={saving} className="bg-brand-gold text-brand-navy border-brand-gold">
+            {saving ? <Loader2 size={16} className="animate-spin" /> : "Submit for QC & Legal"}
           </Button>
         </div>
       </Card>

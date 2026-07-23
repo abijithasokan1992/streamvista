@@ -118,6 +118,28 @@ export const verifyWebhook = functions.https.onRequest(async (req, res) => {
             });
           }
         }
+
+        // 5. Create Invoice
+        const invoiceRef = db.collection("invoices").doc(orderId);
+        t.set(invoiceRef, {
+          orderId,
+          userId: orderData?.userId,
+          titleId: orderData?.titleId,
+          amount: orderData?.baseAmount,
+          currency: orderData?.currency,
+          paymentId: paymentEntity.id,
+          issuedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 6. Create Entitlement (Secure License)
+        const entitlementRef = db.collection("entitlements").doc(`${orderData?.userId}_${orderData?.titleId}`);
+        t.set(entitlementRef, {
+          userId: orderData?.userId,
+          titleId: orderData?.titleId,
+          orderId,
+          accessGrantedAt: admin.firestore.FieldValue.serverTimestamp(),
+          status: "active"
+        });
       });
 
       await createAuditLog("PAYMENT_VERIFIED", orderId, { paymentId: paymentEntity.id }, "SYSTEM");

@@ -25,7 +25,8 @@ export function Sidebar() {
   const navItems = [
     { name: "Mission Control", path: "/", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Creator Dashboard", path: "/creator", icon: LayoutDashboard, roles: ["creator_partner"] },
-    { name: "Buyer Dashboard", path: "/buyer", icon: LayoutDashboard, roles: ["buyer"] },
+    { name: "My Screenings", path: "/buyer", icon: LayoutDashboard, roles: ["buyer"] },
+    { name: "Discover", path: "/buyer/discover", icon: Film, roles: ["buyer"] },
     { name: "Titles", path: "/titles", icon: Film, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
     { name: "Drafts", path: "/drafts", icon: FileEdit, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
     { name: "Uploads", path: "/uploads", icon: UploadCloud, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },

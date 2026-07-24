@@ -28,3 +28,5 @@ jdk/
 jdk21/
 jdk.zip
 jdk21.zip
+/playwright-report/
+/test-results/

@@ -67,6 +67,6 @@ test.describe('Notification System', () => {
     await page.locator('text=Title Approved').click();
     
     // Badge should disappear
-    await expect(bellButton.locator('span.bg-red-500')).toBeHidden();
+    await expect(bellButton.locator('[data-testid="notification-count"]').toBeHidden();
   });
 });

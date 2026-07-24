@@ -33,11 +33,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.finance = exports.razorpay = void 0;
+exports.instagram = exports.finance = exports.razorpay = void 0;
 const admin = __importStar(require("firebase-admin"));
 const createOrder_1 = require("./razorpay/createOrder");
 const verifyWebhook_1 = require("./razorpay/verifyWebhook");
 const finance_1 = require("./finance");
+const instagramController_1 = require("./instagram/instagramController");
 // Initialize Firebase Admin (Only once)
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -50,5 +51,8 @@ exports.razorpay = {
 exports.finance = {
     getWalletSummary: finance_1.getWalletSummary,
     requestSettlement: finance_1.requestSettlement
+};
+exports.instagram = {
+    InstagramController: instagramController_1.InstagramController
 };
 //# sourceMappingURL=index.js.map

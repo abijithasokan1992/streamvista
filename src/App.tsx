@@ -1,24 +1,14 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
-import Login from "./pages/Login";
-import CreatorDashboard from "./pages/CreatorDashboard";
-import BuyerDashboard from "./pages/BuyerDashboard";
-import Discovery from "./pages/Discovery";
-import TitleDetails from "./pages/TitleDetails";
-import Checkout from "./pages/Checkout";
-import Player from "./pages/Player";
-import AdminDashboard from "./pages/AdminDashboard";
-import TitleSubmission from "./pages/TitleSubmission";
-import QC from "./pages/QC";
-import Legal from "./pages/Legal";
-import Payments from "./pages/Payments";
-import CreatorProfile from './pages/CreatorProfile';
-import PurchaseHistory from './pages/PurchaseHistory';
-import AuditExplorer from './pages/AuditExplorer';
-import { Reporting } from './pages/Reporting';
-import { DirectIngest } from './pages/DirectIngest';
+
+// Page Imports
+import InstagramDashboard from "./pages/integrations/InstagramDashboard";
+import InstagramCallback from "./pages/integrations/InstagramCallback";
+import InstagramAccount from "./pages/integrations/InstagramAccount";
+import InstagramMediaView from "./pages/integrations/InstagramMedia";
+import InstagramInsightsView from "./pages/integrations/InstagramInsights";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -47,45 +37,55 @@ function RoleBasedRoute({ roles, children }: { roles: string[], children: React.
   return <>{children}</>;
 }
 
-function RootRedirect() {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" />;
-  
-  if (user.role === "creator_partner") return <Navigate to="/creator" />;
-  if (user.role === "buyer") return <Navigate to="/buyer" />;
-  if (user.role === "qc_staff") return <Navigate to="/qc" />;
-  if (user.role === "legal_staff") return <Navigate to="/legal" />;
-  return <Navigate to="/admin" />;
-}
-
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          
-          <Route path="/" element={<AppLayout><RootRedirect /></AppLayout>} />
-          
-          <Route path="/creator" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><CreatorDashboard /></RoleBasedRoute></AppLayout>} />
-          <Route path="/creator/titles/new" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><TitleSubmission /></RoleBasedRoute></AppLayout>} />
-          <Route path="/creator/titles/:id/edit" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><TitleSubmission /></RoleBasedRoute></AppLayout>} />
-          <Route path="/creator/profile" element={<AppLayout><RoleBasedRoute roles={["creator_partner"]}><CreatorProfile /></RoleBasedRoute></AppLayout>} />
-          
-          <Route path="/buyer" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><BuyerDashboard /></RoleBasedRoute></AppLayout>} />
-          <Route path="/buyer/discover" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Discovery /></RoleBasedRoute></AppLayout>} />
-          <Route path="/buyer/title/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><TitleDetails /></RoleBasedRoute></AppLayout>} />
-          <Route path="/buyer/checkout/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Checkout /></RoleBasedRoute></AppLayout>} />
-          <Route path="/buyer/play/:id" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><Player /></RoleBasedRoute></AppLayout>} />
-          <Route path="/buyer/history" element={<AppLayout><RoleBasedRoute roles={["buyer"]}><PurchaseHistory /></RoleBasedRoute></AppLayout>} />
-          <Route path="/payments" element={<AppLayout><RoleBasedRoute roles={["buyer", "admin", "super_admin"]}><Payments /></RoleBasedRoute></AppLayout>} />
-          
-          <Route path="/qc" element={<AppLayout><RoleBasedRoute roles={["qc_staff"]}><QC /></RoleBasedRoute></AppLayout>} />
-          <Route path="/legal" element={<AppLayout><RoleBasedRoute roles={["legal_staff"]}><Legal /></RoleBasedRoute></AppLayout>} />
-          <Route path="/admin" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><AdminDashboard /></RoleBasedRoute></AppLayout>} />
-          <Route path="/admin/audit" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><AuditExplorer /></RoleBasedRoute></AppLayout>} />
-          <Route path="/admin/reporting" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><Reporting /></RoleBasedRoute></AppLayout>} />
-          <Route path="/admin/ingest" element={<AppLayout><RoleBasedRoute roles={["admin", "super_admin", "founder", "platform_owner"]}><DirectIngest /></RoleBasedRoute></AppLayout>} />
+          {/* Main Integration Routes */}
+          <Route
+            path="/integrations/instagram"
+            element={
+              <AppLayout>
+                <InstagramDashboard />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/integrations/instagram/callback"
+            element={
+              <AppLayout>
+                <InstagramCallback />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/integrations/instagram/account"
+            element={
+              <AppLayout>
+                <InstagramAccount />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/integrations/instagram/media"
+            element={
+              <AppLayout>
+                <InstagramMediaView />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/integrations/instagram/insights"
+            element={
+              <AppLayout>
+                <InstagramInsightsView />
+              </AppLayout>
+            }
+          />
+
+          {/* Root Redirect */}
+          <Route path="*" element={<Navigate to="/integrations/instagram" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

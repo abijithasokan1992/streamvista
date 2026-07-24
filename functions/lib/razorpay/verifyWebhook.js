@@ -38,8 +38,13 @@ const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
 const auditLog_1 = require("../utils/auditLog");
-const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || "mock_webhook_secret";
+const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET;
 exports.verifyWebhook = functions.https.onRequest(async (req, res) => {
+    if (!RAZORPAY_WEBHOOK_SECRET) {
+        console.error("Missing RAZORPAY_WEBHOOK_SECRET");
+        res.status(500).send("Configuration error");
+        return;
+    }
     if (req.method !== "POST") {
         res.status(405).send("Method Not Allowed");
         return;
@@ -56,7 +61,7 @@ exports.verifyWebhook = functions.https.onRequest(async (req, res) => {
         .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
         .update(body)
         .digest("hex");
-    if (signature !== expectedSignature && RAZORPAY_WEBHOOK_SECRET !== "mock_webhook_secret") {
+    if (signature !== expectedSignature) {
         console.error("Invalid Razorpay webhook signature");
         res.status(400).send("Invalid Signature");
         return;

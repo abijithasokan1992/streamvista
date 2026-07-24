@@ -41,8 +41,8 @@ const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const razorpay_1 = __importDefault(require("razorpay"));
 const auditLog_1 = require("../utils/auditLog");
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || "rzp_test_mock";
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "mock_secret";
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
 const razorpay = new razorpay_1.default({
     key_id: RAZORPAY_KEY_ID,
     key_secret: RAZORPAY_KEY_SECRET,
@@ -91,21 +91,8 @@ exports.createOrder = functions.https.onCall(async (data, context) => {
                 userId: context.auth.uid
             }
         };
-        let order;
-        // If we are fully mocked (no real key), return a mock order
-        if (RAZORPAY_KEY_ID === "rzp_test_mock") {
-            order = {
-                id: `order_mock_${Date.now()}`,
-                amount: options.amount,
-                currency: options.currency,
-                receipt: options.receipt,
-                status: "created"
-            };
-        }
-        else {
-            // Call actual Razorpay API (Test Mode)
-            order = await razorpay.orders.create(options);
-        }
+        // Call actual Razorpay API (Test Mode)
+        const order = await razorpay.orders.create(options);
         // Save Immutable Pricing Snapshot & Order Intent to Firestore
         const orderRef = db.collection("orders").doc(order.id);
         await orderRef.set({

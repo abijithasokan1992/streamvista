@@ -16,7 +16,7 @@ import {
   InstagramError,
 } from '../../types/instagram';
 import {
-  Instagram,
+  Share2,
   RefreshCw,
   Unlink,
   CheckCircle2,
@@ -212,7 +212,7 @@ export default function InstagramDashboard() {
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 p-0.5 shadow-lg shadow-pink-500/10">
             <div className="w-full h-full bg-brand-black rounded-[10px] flex items-center justify-center">
-              <Instagram className="text-pink-400" size={24} />
+              <Share2 className="text-pink-400" size={24} />
             </div>
           </div>
           <div>
@@ -251,7 +251,7 @@ export default function InstagramDashboard() {
               onClick={handleConnect}
               className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-lg shadow-lg shadow-pink-500/25 transition-all"
             >
-              <Instagram size={18} />
+              <Share2 size={18} />
               Connect Instagram
             </button>
           )}
@@ -286,7 +286,7 @@ export default function InstagramDashboard() {
             onClick={handleConnect}
             className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold bg-brand-gold text-brand-black font-bold rounded-lg shadow-lg shadow-amber-500/10 hover:bg-amber-400 transition-all"
           >
-            <Instagram size={18} />
+            <Share2 size={18} />
             Connect Account Now
           </button>
         </div>

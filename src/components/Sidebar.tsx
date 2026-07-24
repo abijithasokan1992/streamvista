@@ -15,7 +15,7 @@ import {
   Settings,
   ListVideo,
   Activity,
-  Instagram
+  Share2
 } from "lucide-react";
 
 export function Sidebar() {
@@ -26,7 +26,7 @@ export function Sidebar() {
 
   const navItems = [
     { name: "Mission Control", path: "/", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
-    { name: "Instagram Integration", path: "/integrations/instagram", icon: Instagram, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"] },
+    { name: "Instagram Integration", path: "/integrations/instagram", icon: Share2, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"] },
     { name: "Creator Dashboard", path: "/creator", icon: LayoutDashboard, roles: ["creator_partner"] },
     { name: "My Profile", path: "/creator/profile", icon: Users, roles: ["creator_partner"] },
     { name: "My Screenings", path: "/buyer", icon: LayoutDashboard, roles: ["buyer"] },

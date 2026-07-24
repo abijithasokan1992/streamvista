@@ -30,3 +30,4 @@ jdk.zip
 jdk21.zip
 /playwright-report/
 /test-results/
+debug_notification.js

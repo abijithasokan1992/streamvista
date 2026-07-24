@@ -1,9 +1,32 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 
 // Page Imports
+import { LandingPage } from "./pages/LandingPage";
+import { WorkspaceOS } from "./pages/WorkspaceOS";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import CreatorDashboard from "./pages/CreatorDashboard";
+import CreatorProfile from "./pages/CreatorProfile";
+import BuyerDashboard from "./pages/BuyerDashboard";
+import Discovery from "./pages/Discovery";
+import PurchaseHistory from "./pages/PurchaseHistory";
+import Titles from "./pages/Titles";
+import Drafts from "./pages/Drafts";
+import Uploads from "./pages/Uploads";
+import Screenings from "./pages/Screenings";
+import QC from "./pages/QC";
+import Legal from "./pages/Legal";
+import Payments from "./pages/Payments";
+import Analytics from "./pages/Analytics";
+import AuditExplorer from "./pages/AuditExplorer";
+import Campaigns from "./pages/Campaigns";
+import Users from "./pages/Users";
+import Settings from "./pages/Settings";
+
+// Integrations
 import InstagramDashboard from "./pages/integrations/InstagramDashboard";
 import InstagramCallback from "./pages/integrations/InstagramCallback";
 import InstagramAccount from "./pages/integrations/InstagramAccount";
@@ -11,9 +34,6 @@ import InstagramMediaView from "./pages/integrations/InstagramMedia";
 import InstagramInsightsView from "./pages/integrations/InstagramInsights";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" />;
-
   return (
     <div className="flex h-screen overflow-hidden bg-brand-black">
       <Sidebar />
@@ -30,62 +50,50 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function RoleBasedRoute({ roles, children }: { roles: string[], children: React.ReactNode }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" />;
-  if (!roles.includes(user.role)) return <Navigate to="/" />;
-  return <>{children}</>;
-}
-
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Main Integration Routes */}
-          <Route
-            path="/integrations/instagram"
-            element={
-              <AppLayout>
-                <InstagramDashboard />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/integrations/instagram/callback"
-            element={
-              <AppLayout>
-                <InstagramCallback />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/integrations/instagram/account"
-            element={
-              <AppLayout>
-                <InstagramAccount />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/integrations/instagram/media"
-            element={
-              <AppLayout>
-                <InstagramMediaView />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/integrations/instagram/insights"
-            element={
-              <AppLayout>
-                <InstagramInsightsView />
-              </AppLayout>
-            }
-          />
+          {/* Public & Workspace OS Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/workspace" element={<WorkspaceOS />} />
+          <Route path="/login" element={<Login />} />
 
-          {/* Root Redirect */}
-          <Route path="*" element={<Navigate to="/integrations/instagram" replace />} />
+          {/* Mission Control & Dashboard Routes */}
+          <Route path="/mission-control" element={<AppLayout><Dashboard /></AppLayout>} />
+          <Route path="/creator" element={<AppLayout><CreatorDashboard /></AppLayout>} />
+          <Route path="/creator/profile" element={<AppLayout><CreatorProfile /></AppLayout>} />
+          <Route path="/buyer" element={<AppLayout><BuyerDashboard /></AppLayout>} />
+          <Route path="/buyer/discover" element={<AppLayout><Discovery /></AppLayout>} />
+          <Route path="/buyer/history" element={<AppLayout><PurchaseHistory /></AppLayout>} />
+
+          {/* Catalogue & Content Management */}
+          <Route path="/titles" element={<AppLayout><Titles /></AppLayout>} />
+          <Route path="/drafts" element={<AppLayout><Drafts /></AppLayout>} />
+          <Route path="/uploads" element={<AppLayout><Uploads /></AppLayout>} />
+          <Route path="/screenings" element={<AppLayout><Screenings /></AppLayout>} />
+
+          {/* Admin OS Operations */}
+          <Route path="/qc" element={<AppLayout><QC /></AppLayout>} />
+          <Route path="/legal" element={<AppLayout><Legal /></AppLayout>} />
+          <Route path="/finance" element={<AppLayout><Payments /></AppLayout>} />
+          <Route path="/analytics" element={<AppLayout><Analytics /></AppLayout>} />
+          <Route path="/admin/audit" element={<AppLayout><AuditExplorer /></AppLayout>} />
+          <Route path="/campaigns" element={<AppLayout><Campaigns /></AppLayout>} />
+          <Route path="/users" element={<AppLayout><Users /></AppLayout>} />
+          <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+
+          {/* Instagram Integration Routes */}
+          <Route path="/integrations/instagram" element={<AppLayout><InstagramDashboard /></AppLayout>} />
+          <Route path="/integrations/instagram/callback" element={<AppLayout><InstagramCallback /></AppLayout>} />
+          <Route path="/integrations/instagram/account" element={<AppLayout><InstagramAccount /></AppLayout>} />
+          <Route path="/integrations/instagram/media" element={<AppLayout><InstagramMediaView /></AppLayout>} />
+          <Route path="/integrations/instagram/insights" element={<AppLayout><InstagramInsightsView /></AppLayout>} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -4,7 +4,9 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
-if (typeof process !== "undefined" && process.env) {
+declare const process: { env: Record<string, string | undefined> };
+
+if (typeof process !== "undefined" && process?.env) {
   if (!process.env.FIRESTORE_EMULATOR_HOST) {
     process.env.FIRESTORE_EMULATOR_HOST = "127.0.0.1:8080";
   }
@@ -13,15 +15,13 @@ if (typeof process !== "undefined" && process.env) {
   }
 }
 
-const env = (typeof import.meta !== "undefined" && import.meta.env) ? import.meta.env : {};
-
 const firebaseConfig = {
-  apiKey: env.VITE_FIREBASE_API_KEY || "demo-key",
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || "demo-project.firebaseapp.com",
-  projectId: env.VITE_FIREBASE_PROJECT_ID || "demo-streamvista",
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "demo-project.appspot.com",
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-key",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "demo-project.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "demo-streamvista",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "demo-project.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -31,7 +31,7 @@ const storage = getStorage(app);
 const functions = getFunctions(app);
 
 // Connect to Local Emulators
-if (env.DEV || (typeof process !== "undefined" && process.env.NODE_ENV === "test")) {
+if (import.meta.env.DEV || (typeof process !== "undefined" && process?.env?.NODE_ENV === "test")) {
   try {
     connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
     connectFirestoreEmulator(db, "127.0.0.1", 8080);

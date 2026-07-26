@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
-import { CheckCircle, XCircle, FileSignature, AlertCircle, Scale, Globe } from "lucide-react";
+import { CheckCircle, XCircle, FileSignature, AlertCircle, Scale, Globe, ShieldAlert } from "lucide-react";
 import type { Title } from "../types/title";
 import { databaseService } from "../services/database";
 import { useAuth } from "../contexts/AuthContext";
@@ -42,7 +42,12 @@ export default function Legal() {
           action === 'approve_distribution_ready' ? 'LEGAL_CLEARED_DISTRIBUTION_READY' : 'LEGAL_CLEARANCE_REJECTED',
           'title',
           title.id,
-          { attorney: user?.email, notes: legalNote, timestamp: new Date().toISOString() }
+          { 
+            attorney: user?.email, 
+            notes: legalNote, 
+            governanceTags: ['NON-SUBLICENSABLE', 'No Right to Deliver to Next Person'],
+            timestamp: new Date().toISOString() 
+          }
         );
       }
 
@@ -105,6 +110,17 @@ export default function Legal() {
                   <div className="flex justify-between items-center text-sm border-b border-white/5 pb-2">
                     <span className="text-slate-400">Territories Rights:</span>
                     <span className="text-white text-xs">{title.rightsAvailable?.join(', ') || 'Worldwide (All Regions)'}</span>
+                  </div>
+
+                  {/* Mandatory Metadata Governance Tags */}
+                  <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg space-y-1 text-xs">
+                    <div className="flex items-center gap-1.5 text-purple-300 font-semibold">
+                      <ShieldAlert size={14} className="text-purple-400" /> Mandatory License Governance
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      <span className="px-2 py-0.5 bg-purple-500/20 text-purple-200 rounded font-mono text-[10px] border border-purple-500/40">NON-SUBLICENSABLE</span>
+                      <span className="px-2 py-0.5 bg-purple-500/20 text-purple-200 rounded font-mono text-[10px] border border-purple-500/40">No Right to Deliver to Next Person</span>
+                    </div>
                   </div>
 
                   <div className="flex items-start gap-2 text-xs text-amber-300 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">

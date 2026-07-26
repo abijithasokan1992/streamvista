@@ -86,6 +86,10 @@ export default function App() {
           <Route path="/users" element={<AppLayout><Users /></AppLayout>} />
           <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
 
+          {/* Intentional Compatibility Redirects */}
+          <Route path="/checkout/storage" element={<Navigate to="/uploads?upgrade=storage" replace />} />
+          <Route path="/dashboard/content" element={<Navigate to="/uploads" replace />} />
+
           {/* Instagram Integration Routes */}
           <Route path="/integrations/instagram" element={<AppLayout><InstagramDashboard /></AppLayout>} />
           <Route path="/integrations/instagram/callback" element={<AppLayout><InstagramCallback /></AppLayout>} />

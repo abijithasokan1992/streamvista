@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
+import { RoleSwitcherWidget } from "./components/RoleSwitcherWidget";
 
 // Page Imports
 import { LandingPage } from "./pages/LandingPage";
@@ -95,6 +96,9 @@ export default function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
+        {/* Floating Dev Tools Role Switcher */}
+        <RoleSwitcherWidget />
       </BrowserRouter>
     </AuthProvider>
   );

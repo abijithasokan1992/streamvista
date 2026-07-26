@@ -20,6 +20,7 @@ import {
   Zap
 } from "lucide-react";
 import { LiveActivityTickerBar } from "../components/LiveActivityTickerBar";
+import { StakeholderHubSection } from "../components/stakeholders/StakeholderHubSection";
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -279,6 +280,9 @@ export function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* 4.5. 6 Stakeholder Persona Dedicated Entrance Hub */}
+      <StakeholderHubSection />
 
       {/* 5. Featured B2B Film Catalogue Showcase */}
       <section className="py-20 bg-slate-900/60 border-t border-b border-slate-800">

@@ -27,7 +27,7 @@ class Logger {
       level,
       message,
       context,
-      environment: import.meta.env.MODE,
+      environment: (typeof import.meta !== 'undefined' && import.meta?.env ? import.meta.env.MODE : 'development'),
     };
   }
 

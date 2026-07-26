@@ -196,7 +196,9 @@ export function LandingPage() {
               <img 
                 src={slides[currentSlide].posterUrl} 
                 alt={slides[currentSlide].title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 will-change-transform"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent flex flex-col justify-end p-8">
                 <span className="text-xs font-extrabold text-cyan-400 uppercase tracking-widest block">Director: {slides[currentSlide].director}</span>
@@ -291,7 +293,7 @@ export function LandingPage() {
             {catalogMovies.map((movie) => (
               <div key={movie.id} className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl space-y-4 hover:border-cyan-500/40 transition-all">
                 <div className="relative aspect-video bg-slate-950 overflow-hidden">
-                  <img src={movie.poster} alt={movie.title} className="w-full h-full object-cover" />
+                  <img src={movie.poster} alt={movie.title} loading="lazy" decoding="async" className="w-full h-full object-cover will-change-transform" />
                   <div className="absolute top-4 right-4 bg-slate-950/80 border border-slate-700 px-3 py-1 rounded-full text-[11px] font-black text-emerald-400 font-mono">
                     {movie.dealValue}
                   </div>

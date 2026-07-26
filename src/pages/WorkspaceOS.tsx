@@ -1,28 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { NotificationBell } from "../components/NotificationBell";
 import { 
   Film, 
-  Upload, 
   ShieldCheck, 
-  Scale, 
   DollarSign, 
-  Users, 
   Tv, 
   Briefcase, 
   BarChart3, 
   CheckCircle2, 
-  ChevronRight, 
   Play, 
   Plus, 
   FileText, 
-  Lock, 
-  Download, 
   Search,
-  Filter,
-  Eye,
   LogOut,
-  Layers
+  ArrowLeft
 } from "lucide-react";
 
 export function WorkspaceOS() {
@@ -44,39 +36,42 @@ export function WorkspaceOS() {
   };
 
   const workspaces = [
-    { id: "creator", name: "🎬 Creator Workspace", icon: Film, color: "bg-cyan-500" },
-    { id: "studio_producer", name: "🏢 Studio / Producer", icon: Briefcase, color: "bg-blue-500" },
-    { id: "global_buyer", name: "🌐 Global Buyer", icon: Search, color: "bg-emerald-500" },
-    { id: "investor", name: "💼 Investor Workspace", icon: DollarSign, color: "bg-purple-500" },
-    { id: "consumer", name: "📺 Consumer (Crayons Loop)", icon: Tv, color: "bg-orange-500" },
-    { id: "admin_os", name: "🛡️ Admin OS", icon: ShieldCheck, color: "bg-rose-500" }
+    { id: "creator", name: "🎬 Creator Workspace", icon: Film },
+    { id: "studio_producer", name: "🏢 Studio / Producer", icon: Briefcase },
+    { id: "global_buyer", name: "🌐 Global Buyer", icon: Search },
+    { id: "investor", name: "💼 Investor Workspace", icon: DollarSign },
+    { id: "consumer", name: "📺 Consumer (Crayons Loop)", icon: Tv },
+    { id: "admin_os", name: "🛡️ Admin OS", icon: ShieldCheck }
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
       {/* 1. OS Top Bar */}
-      <header className="h-16 bg-slate-950 border-b border-slate-800 px-6 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-4">
+      <header className="h-20 bg-slate-900 border-b border-slate-800 px-6 lg:px-12 flex items-center justify-between sticky top-0 z-40 shadow-lg">
+        <div className="flex items-center gap-6">
           <div 
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-cyan-500/20">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-cyan-500/20">
               SV
             </div>
-            <span className="font-extrabold text-white tracking-tight group-hover:text-cyan-300 transition-colors">
-              StreamVista <span className="text-[10px] bg-slate-800 text-cyan-400 border border-slate-700 px-1.5 py-0.5 rounded font-mono ml-1">OS</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="font-black text-white text-lg tracking-tight group-hover:text-cyan-300 transition-colors flex items-center gap-2">
+                StreamVista <span className="text-[11px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-mono">OS</span>
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium">Crayons Bridge Workspace</span>
+            </div>
           </div>
 
-          <div className="h-5 w-px bg-slate-800 hidden sm:block" />
+          <div className="h-6 w-px bg-slate-800 hidden sm:block" />
 
           {/* Workspace Switcher Selector */}
           <div className="relative">
             <select 
               value={currentRole}
               onChange={(e) => handleWorkspaceChange(e.target.value)}
-              className="bg-slate-900 border border-slate-700 hover:border-cyan-500 text-slate-200 text-xs font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-cyan-500 cursor-pointer transition-all"
+              className="bg-slate-950 border border-slate-700 hover:border-cyan-400 text-white text-sm font-bold rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer transition-all shadow-sm"
             >
               {workspaces.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -91,25 +86,25 @@ export function WorkspaceOS() {
         <div className="flex items-center gap-4">
           <NotificationBell />
 
-          <div className="h-5 w-px bg-slate-800" />
+          <div className="h-6 w-px bg-slate-800" />
 
           <button 
             onClick={() => navigate("/")}
-            className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-xs font-bold text-slate-300 hover:text-white flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 transition-all border border-slate-700 cursor-pointer"
           >
-            <LogOut size={14} /> Exit OS
+            <ArrowLeft size={14} /> Back to Landing Page
           </button>
         </div>
       </header>
 
       {/* 2. 4-Step Pipeline Progress Banner */}
-      <div className="bg-slate-950/60 border-b border-slate-800 px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs font-medium">
-          <span className="text-slate-400 uppercase tracking-wider text-[11px] font-bold">
+      <div className="bg-slate-900/80 border-b border-slate-800 px-6 lg:px-12 py-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-bold">
+          <span className="text-cyan-400 uppercase tracking-widest text-xs">
             4-Step B2B Pipeline:
           </span>
 
-          <div className="flex items-center gap-2 sm:gap-6">
+          <div className="flex items-center gap-3 sm:gap-6 flex-wrap justify-center">
             {[
               { num: 1, label: "Upload Assets" },
               { num: 2, label: "Legal & QC Verify" },
@@ -119,24 +114,24 @@ export function WorkspaceOS() {
               <button
                 key={step.num}
                 onClick={() => setPipelineStep(step.num as any)}
-                className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all cursor-pointer ${
                   pipelineStep === step.num
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-extrabold shadow-sm"
                     : pipelineStep > step.num
-                    ? "text-emerald-400"
-                    : "text-slate-500 hover:text-slate-300"
+                    ? "text-emerald-400 font-semibold"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                   pipelineStep === step.num
                     ? "bg-cyan-500 text-slate-950"
                     : pipelineStep > step.num
                     ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                     : "bg-slate-800 text-slate-400"
                 }`}>
-                  {pipelineStep > step.num ? <CheckCircle2 size={12} /> : step.num}
+                  {pipelineStep > step.num ? <CheckCircle2 size={14} /> : step.num}
                 </span>
-                <span className="hidden md:inline">{step.label}</span>
+                <span>{step.label}</span>
               </button>
             ))}
           </div>
@@ -144,55 +139,55 @@ export function WorkspaceOS() {
       </div>
 
       {/* 3. Workspace Stage Canvas */}
-      <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+      <main className="flex-1 p-6 lg:p-12 max-w-7xl w-full mx-auto space-y-8">
         
         {/* WORKSPACE VIEW 1: CREATOR */}
         {currentRole === "creator" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between bg-slate-800/40 border border-slate-800 rounded-xl p-6">
+          <div className="space-y-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
               <div>
-                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
                   🎬 Creator Workspace
                 </h1>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-base text-slate-300 mt-2">
                   Upload vertical clips, feature films, scripts & music. Set rights terms and trigger promo boosts.
                 </p>
               </div>
-              <button className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-all">
-                <Plus size={16} /> New Asset Submission
+              <button className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3.5 rounded-xl flex items-center gap-2 shadow-lg shadow-cyan-500/25 transition-all cursor-pointer">
+                <Plus size={18} /> New Asset Submission
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6 space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
-                  <Film size={20} />
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-4 shadow-md hover:border-slate-700 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+                  <Film size={24} />
                 </div>
-                <h3 className="font-semibold text-white">Vertical & Short Videos</h3>
-                <p className="text-xs text-slate-400">Ingest vertical clips, trailers, and promo reels for instant buyer preview.</p>
-                <button className="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-md transition-colors">
+                <h3 className="text-xl font-bold text-white">Vertical & Short Videos</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">Ingest vertical clips, trailers, and promo reels for instant buyer preview.</p>
+                <button className="w-full text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl transition-all cursor-pointer">
                   Upload Video Clip
                 </button>
               </div>
 
-              <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6 space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
-                  <FileText size={20} />
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-4 shadow-md hover:border-slate-700 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                  <FileText size={24} />
                 </div>
-                <h3 className="font-semibold text-white">Scripts & Music Specs</h3>
-                <p className="text-xs text-slate-400">Register screenplays, audio dubbing stems, and background score tracks.</p>
-                <button className="w-full text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-md transition-colors">
+                <h3 className="text-xl font-bold text-white">Scripts & Music Specs</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">Register screenplays, audio dubbing stems, and background score tracks.</p>
+                <button className="w-full text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl transition-all cursor-pointer">
                   Upload Script / Audio
                 </button>
               </div>
 
-              <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6 space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                  <BarChart3 size={20} />
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-4 shadow-md hover:border-slate-700 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+                  <BarChart3 size={24} />
                 </div>
-                <h3 className="font-semibold text-white">Promo Boost Store</h3>
-                <p className="text-xs text-slate-400">Promote your catalogue directly on Global Buyer screening dashboards.</p>
-                <button className="w-full text-xs bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 py-2 rounded-md transition-colors font-semibold">
+                <h3 className="text-xl font-bold text-white">Promo Boost Store</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">Promote your catalogue directly on Global Buyer screening dashboards.</p>
+                <button className="w-full text-sm font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30 py-3 rounded-xl transition-all cursor-pointer">
                   Buy Promo Boost
                 </button>
               </div>
@@ -202,33 +197,33 @@ export function WorkspaceOS() {
 
         {/* WORKSPACE VIEW 2: STUDIO / PRODUCER */}
         {currentRole === "studio_producer" && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <div className="space-y-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+              <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
                 🏢 Studio / Producer Workspace
               </h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-base text-slate-300 mt-2">
                 Manage full film slates, camera RAW vaults, censor certificates & studio payout accounts.
               </p>
             </div>
 
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Active Production Slate</h3>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
+              <h3 className="text-xl font-bold text-white mb-6">Active Production Slate</h3>
               <div className="divide-y divide-slate-800">
                 {[
                   { title: "Imran 3:185", status: "QC Approved", rights: "Worldwide OTT", revenue: "$24,500" },
                   { title: "Jananam 1947 Pranayam Thudarunnu", status: "Deal Room Active", rights: "SVOD / Satellite", revenue: "$48,200" }
                 ].map((item, idx) => (
-                  <div key={idx} className="py-4 flex items-center justify-between">
+                  <div key={idx} className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <h4 className="font-bold text-white">{item.title}</h4>
-                      <p className="text-xs text-slate-400">Rights: {item.rights}</p>
+                      <h4 className="text-lg font-bold text-white">{item.title}</h4>
+                      <p className="text-xs text-slate-400 mt-0.5 font-medium">Rights Package: {item.rights}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 font-medium">
+                      <span className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
                         {item.status}
                       </span>
-                      <span className="text-sm font-mono text-cyan-300 font-bold">{item.revenue}</span>
+                      <span className="text-lg font-mono text-cyan-400 font-extrabold">{item.revenue}</span>
                     </div>
                   </div>
                 ))}
@@ -239,36 +234,34 @@ export function WorkspaceOS() {
 
         {/* WORKSPACE VIEW 3: GLOBAL BUYER */}
         {currentRole === "global_buyer" && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xl">
               <div>
-                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
                   🌐 Global Buyer Workspace
                 </h1>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-base text-slate-300 mt-2">
                   Browse rights-cleared catalogues, watch watermarked screeners, and submit B2B licensing offers.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="text" 
-                  placeholder="Search by title, territory, genre..."
-                  className="bg-slate-900 border border-slate-700 text-xs rounded-lg px-3 py-2 text-white placeholder-slate-500 w-64"
-                />
-              </div>
+              <input 
+                type="text" 
+                placeholder="Search by title, territory, genre..."
+                className="bg-slate-950 border border-slate-700 text-sm font-medium rounded-xl px-4 py-3 text-white placeholder-slate-500 w-full sm:w-80 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+              />
             </div>
 
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Active B2B Deal Room</h3>
-              <div className="p-4 bg-slate-900/60 border border-slate-700/60 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
+              <h3 className="text-xl font-bold text-white mb-6">Active B2B Deal Room</h3>
+              <div className="p-6 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div>
-                  <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Offer Pending Negotiation</span>
-                  <h4 className="text-xl font-bold text-white mt-0.5">Jananam 1947 Pranayam Thudarunnu</h4>
-                  <p className="text-xs text-slate-400 mt-1">Target Territory: North America SVOD • Licensing Period: 3 Years</p>
+                  <span className="text-xs font-extrabold text-cyan-400 uppercase tracking-widest">Offer Pending Negotiation</span>
+                  <h4 className="text-2xl font-extrabold text-white mt-1">Jananam 1947 Pranayam Thudarunnu</h4>
+                  <p className="text-sm text-slate-400 mt-1 font-medium">Target Territory: North America SVOD • Licensing Period: 3 Years</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-emerald-400 font-mono">$35,000 USD</span>
-                  <button className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl font-extrabold text-emerald-400 font-mono">$35,000 USD</span>
+                  <button className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-md cursor-pointer">
                     Review Terms & Lock Escrow
                   </button>
                 </div>
@@ -279,31 +272,31 @@ export function WorkspaceOS() {
 
         {/* WORKSPACE VIEW 4: INVESTOR */}
         {currentRole === "investor" && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <div className="space-y-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+              <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
                 💼 Investor Workspace
               </h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-base text-slate-300 mt-2">
                 Track live earnings, portfolio ROI metrics, and inspect transparent studio audit logs.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-                <span className="text-xs text-slate-400 font-medium">Portfolio Gross Revenue</span>
-                <h3 className="text-3xl font-extrabold text-white mt-1">$142,850</h3>
-                <span className="text-xs text-emerald-400 font-bold mt-2 inline-block">+18.4% this quarter</span>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
+                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Portfolio Gross Revenue</span>
+                <h3 className="text-4xl font-black text-white mt-2">$142,850</h3>
+                <span className="text-xs text-emerald-400 font-bold mt-3 inline-block">+18.4% this quarter</span>
               </div>
-              <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-                <span className="text-xs text-slate-400 font-medium">Active Funded Projects</span>
-                <h3 className="text-3xl font-extrabold text-cyan-300 mt-1">4 Titles</h3>
-                <span className="text-xs text-slate-400 mt-2 inline-block">2 in distribution</span>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
+                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Active Funded Projects</span>
+                <h3 className="text-4xl font-black text-cyan-400 mt-2">4 Titles</h3>
+                <span className="text-xs text-slate-400 mt-3 inline-block font-medium">2 in distribution</span>
               </div>
-              <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-                <span className="text-xs text-slate-400 font-medium">Net Royalty ROI</span>
-                <h3 className="text-3xl font-extrabold text-emerald-400 mt-1">24.2%</h3>
-                <span className="text-xs text-slate-400 mt-2 inline-block">Direct escrow payout</span>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
+                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Net Royalty ROI</span>
+                <h3 className="text-4xl font-black text-emerald-400 mt-2">24.2%</h3>
+                <span className="text-xs text-slate-400 mt-3 inline-block font-medium">Direct escrow payout</span>
               </div>
             </div>
           </div>
@@ -311,25 +304,25 @@ export function WorkspaceOS() {
 
         {/* WORKSPACE VIEW 5: CONSUMER / CRAYONS LOOP */}
         {currentRole === "consumer" && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <div className="space-y-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+              <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
                 📺 Consumer / Viewer (Crayons Loop)
               </h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-base text-slate-300 mt-2">
                 Stream feature films, web series & vertical video shorts via subscription, ad-supported, or pay-per-view.
               </p>
             </div>
 
-            <div className="aspect-video bg-slate-950 rounded-2xl overflow-hidden relative flex items-center justify-center border border-slate-800">
+            <div className="aspect-video bg-slate-950 rounded-2xl overflow-hidden relative flex items-center justify-center border border-slate-800 shadow-2xl">
               <div className="text-center p-8">
-                <Tv size={48} className="mx-auto text-cyan-400 opacity-60 mb-3" />
-                <h3 className="text-xl font-bold text-white">Crayons Loop Streaming Player</h3>
-                <p className="text-sm text-slate-400 mt-1 max-w-md mx-auto">
+                <Tv size={56} className="mx-auto text-cyan-400 opacity-80 mb-4" />
+                <h3 className="text-2xl font-bold text-white">Crayons Loop Streaming Player</h3>
+                <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed font-medium">
                   High quality adaptive HLS video player with multi-language subtitle tracks.
                 </p>
-                <button className="mt-4 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold px-5 py-2.5 rounded-lg transition-all inline-flex items-center gap-2">
-                  <Play size={14} fill="currentColor" /> Start Streaming Preview
+                <button className="mt-6 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-7 py-3 rounded-xl transition-all inline-flex items-center gap-2 shadow-lg cursor-pointer">
+                  <Play size={16} fill="currentColor" /> Start Streaming Preview
                 </button>
               </div>
             </div>
@@ -338,17 +331,17 @@ export function WorkspaceOS() {
 
         {/* WORKSPACE VIEW 6: ADMIN OS */}
         {currentRole === "admin_os" && (
-          <div className="space-y-6">
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <div className="space-y-8">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+              <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
                 🛡️ Admin OS — Platform Operations
               </h1>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-base text-slate-300 mt-2">
                 Central control for Legal clearance, Technical QC, Matchmaker buyer distribution, and Finance escrow payouts.
               </p>
 
               {/* Admin OS Sub-Roles Navigation Tabs */}
-              <div className="flex items-center gap-2 mt-6 border-b border-slate-800 pb-2">
+              <div className="flex items-center gap-3 mt-8 border-b border-slate-800 pb-3 flex-wrap">
                 {[
                   { id: "legal", label: "⚖️ Legal Admin", sub: "Chain-of-title clearance" },
                   { id: "qc", label: "🔍 QC Admin", sub: "Audio/Video specs" },
@@ -358,10 +351,10 @@ export function WorkspaceOS() {
                   <button
                     key={tab.id}
                     onClick={() => setAdminTab(tab.id as any)}
-                    className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       adminTab === tab.id
-                        ? "bg-cyan-500 text-slate-950 shadow"
-                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                        ? "bg-cyan-500 text-slate-950 shadow-md font-extrabold"
+                        : "text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800"
                     }`}
                   >
                     {tab.label}
@@ -371,47 +364,47 @@ export function WorkspaceOS() {
             </div>
 
             {/* Sub-Role Detail Panel */}
-            <div className="bg-slate-800/40 border border-slate-800 rounded-xl p-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
               {adminTab === "legal" && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-white text-lg">Legal Admin — Chain-of-Title Audit</h3>
-                  <p className="text-xs text-slate-400">Inspect copyright registration, music cue sheets, and talent release contracts.</p>
-                  <div className="p-4 bg-slate-900 rounded-lg flex items-center justify-between text-xs">
-                    <span>Imran 3:185 — Copyright Clearance #CR-2024-881</span>
-                    <span className="text-emerald-400 font-bold">VERIFIED</span>
+                  <h3 className="font-bold text-white text-xl">Legal Admin — Chain-of-Title Audit</h3>
+                  <p className="text-sm text-slate-300 font-medium">Inspect copyright registration, music cue sheets, and talent release contracts.</p>
+                  <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-slate-200">Imran 3:185 — Copyright Clearance #CR-2024-881</span>
+                    <span className="text-emerald-400 font-extrabold bg-emerald-500/10 px-3 py-1 rounded-md border border-emerald-500/20">VERIFIED</span>
                   </div>
                 </div>
               )}
 
               {adminTab === "qc" && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-white text-lg">QC Admin — Technical Quality Control</h3>
-                  <p className="text-xs text-slate-400">Verify ProRes/DNxHR master specs, 5.1 surround audio mix & EBU R128 loudness standards.</p>
-                  <div className="p-4 bg-slate-900 rounded-lg flex items-center justify-between text-xs">
-                    <span>Jananam 1947 — 4K ProRes 422 HQ Master</span>
-                    <span className="text-cyan-400 font-bold">QC PASSED</span>
+                  <h3 className="font-bold text-white text-xl">QC Admin — Technical Quality Control</h3>
+                  <p className="text-sm text-slate-300 font-medium">Verify ProRes/DNxHR master specs, 5.1 surround audio mix & EBU R128 loudness standards.</p>
+                  <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-slate-200">Jananam 1947 — 4K ProRes 422 HQ Master</span>
+                    <span className="text-cyan-400 font-extrabold bg-cyan-500/10 px-3 py-1 rounded-md border border-cyan-500/20">QC PASSED</span>
                   </div>
                 </div>
               )}
 
               {adminTab === "matchmaker" && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-white text-lg">Matchmaker Admin — Buyer Catalog Placement</h3>
-                  <p className="text-xs text-slate-400">Curate titles and match rights packages directly to buyer demand lists.</p>
-                  <div className="p-4 bg-slate-900 rounded-lg flex items-center justify-between text-xs">
-                    <span>Matched: Amazon Prime Video (Malayalam SVOD Slate)</span>
-                    <span className="text-purple-400 font-bold">MATCH SENT</span>
+                  <h3 className="font-bold text-white text-xl">Matchmaker Admin — Buyer Catalog Placement</h3>
+                  <p className="text-sm text-slate-300 font-medium">Curate titles and match rights packages directly to buyer demand lists.</p>
+                  <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-slate-200">Matched: Amazon Prime Video (Malayalam SVOD Slate)</span>
+                    <span className="text-purple-400 font-extrabold bg-purple-500/10 px-3 py-1 rounded-md border border-purple-500/20">MATCH SENT</span>
                   </div>
                 </div>
               )}
 
               {adminTab === "finance" && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-white text-lg">Finance Admin — Escrow & Instant Payout Dispatch</h3>
-                  <p className="text-xs text-slate-400">Manage buyer escrow deposits and dispatch instant direct payouts to content owners.</p>
-                  <div className="p-4 bg-slate-900 rounded-lg flex items-center justify-between text-xs">
-                    <span>Escrow Tx #ESC-9921 — $35,000 USD (Prime Video Deal)</span>
-                    <span className="text-emerald-400 font-bold">DISPATCH READY</span>
+                  <h3 className="font-bold text-white text-xl">Finance Admin — Escrow & Instant Payout Dispatch</h3>
+                  <p className="text-sm text-slate-300 font-medium">Manage buyer escrow deposits and dispatch instant direct payouts to content owners.</p>
+                  <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-slate-200">Escrow Tx #ESC-9921 — $35,000 USD (Prime Video Deal)</span>
+                    <span className="text-emerald-400 font-extrabold bg-emerald-500/10 px-3 py-1 rounded-md border border-emerald-500/20">DISPATCH READY</span>
                   </div>
                 </div>
               )}

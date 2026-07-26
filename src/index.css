@@ -22,16 +22,11 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--background);
-  color: var(--text-primary);
+  background-color: #0f172a;
+  color: #f8fafc;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-h1, h2, h3, .serif {
-  font-family: 'Cormorant Garamond', serif;
 }
 
 /* Animations */

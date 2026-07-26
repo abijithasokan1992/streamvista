@@ -25,6 +25,8 @@ import {
 
 import { EscrowContractModal, QCReportModal } from "../components/EnterpriseB2BModals";
 
+import { presignedUploadService, UploadProgress } from "../services/storage/presignedUploadService";
+
 export function WorkspaceOS() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -39,6 +41,9 @@ export function WorkspaceOS() {
   // Modals state
   const [showEscrowModal, setShowEscrowModal] = useState(false);
   const [showQCModal, setShowQCModal] = useState(false);
+
+  // Upload Progress state
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
 
   // 4-Step Pipeline active step
   const [pipelineStep, setPipelineStep] = useState<1 | 2 | 3 | 4>(1);
@@ -269,15 +274,41 @@ export function WorkspaceOS() {
                 <div className="border-2 border-dashed border-slate-700 hover:border-cyan-400 rounded-2xl p-8 text-center bg-slate-950/60 transition-all cursor-pointer">
                   <UploadCloud className="mx-auto text-cyan-400 mb-3" size={36} />
                   <p className="text-sm font-bold text-white">Click or drag video master, trailer, or script files here</p>
-                  <p className="text-xs text-slate-400 mt-1">Supports MP4, MOV, ProRes, PDF, WAV, and MP3 up to 50 GB</p>
-                  <input type="file" className="hidden" id="file-upload-input" onChange={(e) => {
-                    if (e.target.files?.[0]) {
-                      setNewTitleName(e.target.files[0].name.replace(/\.[^/.]+$/, ""));
+                  <p className="text-xs text-slate-400 mt-1">Direct AWS S3 Ingestion (`s3://streamvista-masters/`) via Presigned URL</p>
+                  <input type="file" className="hidden" id="file-upload-input" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setNewTitleName(file.name.replace(/\.[^/.]+$/, ""));
+                      try {
+                        const presigned = await presignedUploadService.getPresignedUploadUrl(file.name, file.type, user?.uid || "creator_abijith");
+                        await presignedUploadService.uploadFileToS3(file, presigned.upload_url, (prog) => {
+                          setUploadProgress(prog);
+                        });
+                      } catch (err) {
+                        console.error("Presigned upload error:", err);
+                      }
                     }
                   }} />
                   <label htmlFor="file-upload-input" className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs border border-slate-700 cursor-pointer">
                     Browse Local Files 📂
                   </label>
+
+                  {/* Live Upload Progress Meter */}
+                  {uploadProgress && (
+                    <div className="mt-6 p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-2 text-left">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-white">Direct S3 Ingestion Progress</span>
+                        <span className="text-cyan-400 font-mono">{uploadProgress.percentage}% ({uploadProgress.speedMbps} MB/s)</span>
+                      </div>
+                      <div className="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2.5 rounded-full transition-all duration-300" style={{ width: `${uploadProgress.percentage}%` }}></div>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Loaded: {(uploadProgress.loaded / (1024 * 1024)).toFixed(1)} MB / {(uploadProgress.total / (1024 * 1024)).toFixed(1)} MB</span>
+                        <span>Est. Remaining: {uploadProgress.estimatedSecondsRemaining}s</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

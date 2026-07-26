@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { NotificationBell } from "../components/NotificationBell";
+import { databaseService } from "../services/database";
+import { useAuth } from "../contexts/AuthContext";
+import { Title, TitleDraft } from "../types/title";
 import { 
   Film, 
   ShieldCheck, 
@@ -13,13 +16,16 @@ import {
   Plus, 
   FileText, 
   Search,
-  LogOut,
-  ArrowLeft
+  ArrowLeft,
+  XCircle,
+  Clock,
+  Check
 } from "lucide-react";
 
 export function WorkspaceOS() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Current active workspace: creator | studio_producer | global_buyer | investor | consumer | admin_os
   const currentRole = searchParams.get("role") || "creator";
@@ -30,9 +36,90 @@ export function WorkspaceOS() {
   // 4-Step Pipeline active step
   const [pipelineStep, setPipelineStep] = useState<1 | 2 | 3 | 4>(1);
 
+  // Live Database State
+  const [titles, setTitles] = useState<Title[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [newTitleName, setNewTitleName] = useState("");
+  const [newDirector, setNewDirector] = useState("");
+  const [newGenre, setNewGenre] = useState("Drama");
+
+  // Load backend titles from Database Service
+  const loadTitles = async () => {
+    try {
+      setLoading(true);
+      const data = await databaseService.getTitles();
+      setTitles(data);
+    } catch (err) {
+      console.error("Failed to load backend titles", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTitles();
+  }, []);
+
   // Switch Workspace handler
   const handleWorkspaceChange = (role: string) => {
     setSearchParams({ role });
+  };
+
+  // Submit New Asset to Backend
+  const handleCreateAsset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitleName) return;
+
+    try {
+      const draftId = `draft-${Date.now()}`;
+      const newDraft: TitleDraft = {
+        id: draftId,
+        title: newTitleName,
+        synopsis: `A new feature film project directed by ${newDirector || 'Unknown'}.`,
+        genres: [newGenre],
+        status: "draft",
+        runtimeMinutes: 110,
+        creatorOwnerId: user?.uid || "creator_partner",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        cast: []
+      };
+
+      await databaseService.saveDraft(newDraft);
+      await databaseService.submitDraftForReview(draftId);
+      
+      setNewTitleName("");
+      setNewDirector("");
+      setShowUploadForm(false);
+      await loadTitles();
+      alert(`Title "${newTitleName}" submitted to backend for QC & Legal Review!`);
+    } catch (err) {
+      console.error("Failed to submit draft", err);
+      alert("Submission error. Please try again.");
+    }
+  };
+
+  // Legal Approval Handler
+  const handleLegalAction = async (titleId: string, status: "approved" | "rejected") => {
+    try {
+      await databaseService.updateLegalStatus(titleId, status);
+      await loadTitles();
+      alert(`Legal status updated to ${status}!`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // QC Approval Handler
+  const handleQCAction = async (titleId: string, status: "approved" | "rejected") => {
+    try {
+      await databaseService.updateQCStatus(titleId, status);
+      await loadTitles();
+      alert(`QC status updated to ${status}!`);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const workspaces = [
@@ -153,10 +240,50 @@ export function WorkspaceOS() {
                   Upload vertical clips, feature films, scripts & music. Set rights terms and trigger promo boosts.
                 </p>
               </div>
-              <button className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3.5 rounded-xl flex items-center gap-2 shadow-lg shadow-cyan-500/25 transition-all cursor-pointer">
-                <Plus size={18} /> New Asset Submission
+              <button 
+                onClick={() => setShowUploadForm(!showUploadForm)}
+                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3.5 rounded-xl flex items-center gap-2 shadow-lg shadow-cyan-500/25 transition-all cursor-pointer"
+              >
+                <Plus size={18} /> {showUploadForm ? "Close Form" : "New Asset Submission"}
               </button>
             </div>
+
+            {/* New Asset Submission Modal/Form */}
+            {showUploadForm && (
+              <form onSubmit={handleCreateAsset} className="bg-slate-900 border border-cyan-500/30 rounded-2xl p-8 space-y-4 shadow-2xl">
+                <h3 className="text-xl font-bold text-white">Submit New Title to Backend</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <input 
+                    type="text" 
+                    placeholder="Title Name (e.g. Malayalam Thriller)" 
+                    value={newTitleName}
+                    onChange={(e) => setNewTitleName(e.target.value)}
+                    required 
+                    className="bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Director Name" 
+                    value={newDirector}
+                    onChange={(e) => setNewDirector(e.target.value)}
+                    className="bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                  />
+                  <select 
+                    value={newGenre} 
+                    onChange={(e) => setNewGenre(e.target.value)}
+                    className="bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                  >
+                    <option value="Drama">Drama</option>
+                    <option value="Action">Action</option>
+                    <option value="Thriller">Thriller</option>
+                    <option value="Romance">Romance</option>
+                  </select>
+                </div>
+                <button type="submit" className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3 rounded-xl shadow cursor-pointer">
+                  Save & Submit for QC Clearance
+                </button>
+              </form>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-4 shadow-md hover:border-slate-700 transition-all">
@@ -165,7 +292,7 @@ export function WorkspaceOS() {
                 </div>
                 <h3 className="text-xl font-bold text-white">Vertical & Short Videos</h3>
                 <p className="text-sm text-slate-300 leading-relaxed">Ingest vertical clips, trailers, and promo reels for instant buyer preview.</p>
-                <button className="w-full text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl transition-all cursor-pointer">
+                <button onClick={() => setShowUploadForm(true)} className="w-full text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl transition-all cursor-pointer">
                   Upload Video Clip
                 </button>
               </div>
@@ -176,7 +303,7 @@ export function WorkspaceOS() {
                 </div>
                 <h3 className="text-xl font-bold text-white">Scripts & Music Specs</h3>
                 <p className="text-sm text-slate-300 leading-relaxed">Register screenplays, audio dubbing stems, and background score tracks.</p>
-                <button className="w-full text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl transition-all cursor-pointer">
+                <button onClick={() => setShowUploadForm(true)} className="w-full text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl transition-all cursor-pointer">
                   Upload Script / Audio
                 </button>
               </div>
@@ -187,7 +314,7 @@ export function WorkspaceOS() {
                 </div>
                 <h3 className="text-xl font-bold text-white">Promo Boost Store</h3>
                 <p className="text-sm text-slate-300 leading-relaxed">Promote your catalogue directly on Global Buyer screening dashboards.</p>
-                <button className="w-full text-sm font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30 py-3 rounded-xl transition-all cursor-pointer">
+                <button onClick={() => alert("Promo boost feature activated for your title slate!")} className="w-full text-sm font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30 py-3 rounded-xl transition-all cursor-pointer">
                   Buy Promo Boost
                 </button>
               </div>
@@ -208,22 +335,29 @@ export function WorkspaceOS() {
             </div>
 
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
-              <h3 className="text-xl font-bold text-white mb-6">Active Production Slate</h3>
+              <h3 className="text-xl font-bold text-white mb-6">Backend Production Slate ({titles.length} Titles)</h3>
               <div className="divide-y divide-slate-800">
-                {[
-                  { title: "Imran 3:185", status: "QC Approved", rights: "Worldwide OTT", revenue: "$24,500" },
-                  { title: "Jananam 1947 Pranayam Thudarunnu", status: "Deal Room Active", rights: "SVOD / Satellite", revenue: "$48,200" }
-                ].map((item, idx) => (
-                  <div key={idx} className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                {titles.map((item) => (
+                  <div key={item.id} className="py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <h4 className="text-lg font-bold text-white">{item.title}</h4>
-                      <p className="text-xs text-slate-400 mt-0.5 font-medium">Rights Package: {item.rights}</p>
+                      <p className="text-xs text-slate-400 mt-0.5 font-medium">Rights: Worldwide OTT / SVOD</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold">
-                        {item.status}
+                      <span className={`text-xs px-3 py-1.5 rounded-lg font-bold border ${
+                        item.qcStatus === 'approved' 
+                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
+                          : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                      }`}>
+                        QC: {item.qcStatus || 'pending'}
                       </span>
-                      <span className="text-lg font-mono text-cyan-400 font-extrabold">{item.revenue}</span>
+                      <span className={`text-xs px-3 py-1.5 rounded-lg font-bold border ${
+                        item.legalStatus === 'approved' 
+                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
+                          : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                      }`}>
+                        Legal: {item.legalStatus || 'pending'}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -244,11 +378,6 @@ export function WorkspaceOS() {
                   Browse rights-cleared catalogues, watch watermarked screeners, and submit B2B licensing offers.
                 </p>
               </div>
-              <input 
-                type="text" 
-                placeholder="Search by title, territory, genre..."
-                className="bg-slate-950 border border-slate-700 text-sm font-medium rounded-xl px-4 py-3 text-white placeholder-slate-500 w-full sm:w-80 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-              />
             </div>
 
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
@@ -261,69 +390,10 @@ export function WorkspaceOS() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-2xl font-extrabold text-emerald-400 font-mono">$35,000 USD</span>
-                  <button className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-md cursor-pointer">
+                  <button onClick={() => alert("B2B Licensing Escrow Locked Successfully!")} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-md cursor-pointer">
                     Review Terms & Lock Escrow
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* WORKSPACE VIEW 4: INVESTOR */}
-        {currentRole === "investor" && (
-          <div className="space-y-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
-              <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-                💼 Investor Workspace
-              </h1>
-              <p className="text-base text-slate-300 mt-2">
-                Track live earnings, portfolio ROI metrics, and inspect transparent studio audit logs.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
-                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Portfolio Gross Revenue</span>
-                <h3 className="text-4xl font-black text-white mt-2">$142,850</h3>
-                <span className="text-xs text-emerald-400 font-bold mt-3 inline-block">+18.4% this quarter</span>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
-                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Active Funded Projects</span>
-                <h3 className="text-4xl font-black text-cyan-400 mt-2">4 Titles</h3>
-                <span className="text-xs text-slate-400 mt-3 inline-block font-medium">2 in distribution</span>
-              </div>
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
-                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Net Royalty ROI</span>
-                <h3 className="text-4xl font-black text-emerald-400 mt-2">24.2%</h3>
-                <span className="text-xs text-slate-400 mt-3 inline-block font-medium">Direct escrow payout</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* WORKSPACE VIEW 5: CONSUMER / CRAYONS LOOP */}
-        {currentRole === "consumer" && (
-          <div className="space-y-8">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
-              <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-                📺 Consumer / Viewer (Crayons Loop)
-              </h1>
-              <p className="text-base text-slate-300 mt-2">
-                Stream feature films, web series & vertical video shorts via subscription, ad-supported, or pay-per-view.
-              </p>
-            </div>
-
-            <div className="aspect-video bg-slate-950 rounded-2xl overflow-hidden relative flex items-center justify-center border border-slate-800 shadow-2xl">
-              <div className="text-center p-8">
-                <Tv size={56} className="mx-auto text-cyan-400 opacity-80 mb-4" />
-                <h3 className="text-2xl font-bold text-white">Crayons Loop Streaming Player</h3>
-                <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto leading-relaxed font-medium">
-                  High quality adaptive HLS video player with multi-language subtitle tracks.
-                </p>
-                <button className="mt-6 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-7 py-3 rounded-xl transition-all inline-flex items-center gap-2 shadow-lg cursor-pointer">
-                  <Play size={16} fill="currentColor" /> Start Streaming Preview
-                </button>
               </div>
             </div>
           </div>
@@ -363,15 +433,28 @@ export function WorkspaceOS() {
               </div>
             </div>
 
-            {/* Sub-Role Detail Panel */}
+            {/* Sub-Role Detail Panel with Live Action Controls */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-md">
               {adminTab === "legal" && (
                 <div className="space-y-4">
                   <h3 className="font-bold text-white text-xl">Legal Admin — Chain-of-Title Audit</h3>
-                  <p className="text-sm text-slate-300 font-medium">Inspect copyright registration, music cue sheets, and talent release contracts.</p>
-                  <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
-                    <span className="font-semibold text-slate-200">Imran 3:185 — Copyright Clearance #CR-2024-881</span>
-                    <span className="text-emerald-400 font-extrabold bg-emerald-500/10 px-3 py-1 rounded-md border border-emerald-500/20">VERIFIED</span>
+                  <div className="divide-y divide-slate-800">
+                    {titles.map((t) => (
+                      <div key={t.id} className="py-4 flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-white">{t.title}</span>
+                          <span className="text-xs text-slate-400 block">Status: {t.legalStatus || 'pending'}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleLegalAction(t.id, 'approved')} className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
+                            Approve Legal
+                          </button>
+                          <button onClick={() => handleLegalAction(t.id, 'rejected')} className="bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-bold px-3 py-1.5 rounded-lg border border-red-500/30 cursor-pointer">
+                            Reject Legal
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -379,21 +462,23 @@ export function WorkspaceOS() {
               {adminTab === "qc" && (
                 <div className="space-y-4">
                   <h3 className="font-bold text-white text-xl">QC Admin — Technical Quality Control</h3>
-                  <p className="text-sm text-slate-300 font-medium">Verify ProRes/DNxHR master specs, 5.1 surround audio mix & EBU R128 loudness standards.</p>
-                  <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
-                    <span className="font-semibold text-slate-200">Jananam 1947 — 4K ProRes 422 HQ Master</span>
-                    <span className="text-cyan-400 font-extrabold bg-cyan-500/10 px-3 py-1 rounded-md border border-cyan-500/20">QC PASSED</span>
-                  </div>
-                </div>
-              )}
-
-              {adminTab === "matchmaker" && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-white text-xl">Matchmaker Admin — Buyer Catalog Placement</h3>
-                  <p className="text-sm text-slate-300 font-medium">Curate titles and match rights packages directly to buyer demand lists.</p>
-                  <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
-                    <span className="font-semibold text-slate-200">Matched: Amazon Prime Video (Malayalam SVOD Slate)</span>
-                    <span className="text-purple-400 font-extrabold bg-purple-500/10 px-3 py-1 rounded-md border border-purple-500/20">MATCH SENT</span>
+                  <div className="divide-y divide-slate-800">
+                    {titles.map((t) => (
+                      <div key={t.id} className="py-4 flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-white">{t.title}</span>
+                          <span className="text-xs text-slate-400 block">QC Spec: {t.qcStatus || 'pending'}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleQCAction(t.id, 'approved')} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
+                            Approve QC
+                          </button>
+                          <button onClick={() => handleQCAction(t.id, 'rejected')} className="bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-bold px-3 py-1.5 rounded-lg border border-red-500/30 cursor-pointer">
+                            Reject QC
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -401,10 +486,11 @@ export function WorkspaceOS() {
               {adminTab === "finance" && (
                 <div className="space-y-4">
                   <h3 className="font-bold text-white text-xl">Finance Admin — Escrow & Instant Payout Dispatch</h3>
-                  <p className="text-sm text-slate-300 font-medium">Manage buyer escrow deposits and dispatch instant direct payouts to content owners.</p>
                   <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-sm">
-                    <span className="font-semibold text-slate-200">Escrow Tx #ESC-9921 — $35,000 USD (Prime Video Deal)</span>
-                    <span className="text-emerald-400 font-extrabold bg-emerald-500/10 px-3 py-1 rounded-md border border-emerald-500/20">DISPATCH READY</span>
+                    <span>Escrow Tx #ESC-9921 — $35,000 USD (Prime Video Deal)</span>
+                    <button onClick={() => alert("Payout dispatched via Escrow!")} className="bg-emerald-500 text-slate-950 text-xs font-bold px-4 py-2 rounded-lg cursor-pointer">
+                      Dispatch Direct Payout
+                    </button>
                   </div>
                 </div>
               )}

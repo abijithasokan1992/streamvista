@@ -139,19 +139,19 @@ test.describe('StreamVista Cloud X — End-to-End Testing Suite', () => {
 
   // TEST 4: UI Navigation & Workspace OS Accessibility
   test('4. Workspace OS Page Rendering & Navigation', async ({ page }) => {
-    await page.goto('http://localhost:5173/workspace?role=creator');
+    await page.goto('http://localhost:4173/workspace?role=creator');
     await expect(page.locator('h1')).toContainText('Creator Workspace');
 
     // Switch to Studio Workspace
-    await page.goto('http://localhost:5173/workspace?role=studio_producer');
+    await page.goto('http://localhost:4173/workspace?role=studio_producer');
     await expect(page.locator('h1')).toContainText('Studio / Producer Workspace');
 
     // Switch to Global Buyer Workspace
-    await page.goto('http://localhost:5173/workspace?role=global_buyer');
+    await page.goto('http://localhost:4173/workspace?role=global_buyer');
     await expect(page.locator('h1')).toContainText('Global Buyer Workspace');
 
     // Switch to Admin OS
-    await page.goto('http://localhost:5173/workspace?role=admin_os');
+    await page.goto('http://localhost:4173/workspace?role=admin_os');
     await expect(page.locator('h1')).toContainText('Admin OS');
   });
 

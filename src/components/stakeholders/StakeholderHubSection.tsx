@@ -1,18 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Film, 
-  Briefcase, 
-  Globe, 
-  Tv, 
-  DollarSign, 
-  Wrench, 
-  ArrowRight, 
-  ShieldCheck, 
   CheckCircle2, 
-  Sparkles,
-  Lock,
-  Play
+  ShieldCheck, 
+  Sparkles, 
+  ArrowRight 
 } from "lucide-react";
 
 export function StakeholderHubSection() {
@@ -22,15 +14,14 @@ export function StakeholderHubSection() {
   const personas = [
     {
       id: "creators",
-      icon: "🎬",
       title: "Creators & Directors",
-      badge: "IP Rights Vault & Anti-Piracy Shield",
+      badge: "IP Rights Vault & Anti-Piracy",
       roleParam: "creator",
       headline: "Protect your vision. Pitch directly to top global buyers.",
       subtext: "Upload vertical reels, scripts, or feature cuts. Every asset is cryptographically tagged with non-sublicensable legal protection.",
       metrics: [
         { label: "IP Protection", value: "100% Non-Sublicensable" },
-        { label: "Direct Access", value: "7 Global Buyer Networks" },
+        { label: "Direct Access", value: "7 Buyer Networks" },
         { label: "Revenue Split", value: "90% Net Producer Payout" }
       ],
       features: [
@@ -38,39 +29,37 @@ export function StakeholderHubSection() {
         "Forensic watermark protection on all screeners",
         "Real-time buyer view analytics & stats"
       ],
-      ctaText: "Launch Creator Ingestion Hub 🚀"
+      ctaText: "Launch Creator Vault"
     },
     {
       id: "studios",
-      icon: "🏢",
-      title: "Studios & Production Houses",
-      badge: "Slate Management & RAW Camera Vault",
+      title: "Studios & Production",
+      badge: "Slate Management & Camera RAW Vault",
       roleParam: "studio_producer",
       headline: "Manage multi-film slates with automated 10/90 & 50/50 splits.",
       subtext: "Store 4K/ProRes masters, censor board certificates, and chain-of-title contracts. Direct integration with Crayons Pictures Union.",
       metrics: [
         { label: "Storage Limit", value: "Up to 50 GB per Master" },
         { label: "Split Models", value: "10/90 Standard & 50/50 JV" },
-        { label: "Censor Clearance", value: "Automated Admin OS Verification" }
+        { label: "Censor Clearance", value: "Automated Admin OS" }
       ],
       features: [
         "Multi-film slate management dashboard",
         "Automated GST & platform fee calculator",
         "Direct bank escrow payout dispatches"
       ],
-      ctaText: "Manage Studio Slate Vault 🏢"
+      ctaText: "Manage Studio Slate"
     },
     {
       id: "ott_buyers",
-      icon: "🌐",
       title: "Global OTT Buyers",
       badge: "Rights-Cleared Catalog & Escrow Deal Room",
       roleParam: "global_buyer",
       headline: "Browse verified, rights-cleared cinema ready for global licensing.",
       subtext: "Screen watermarked 4K preview cuts with zero piracy risk. Submit Minimum Guarantee (MG) offers directly to producers.",
       metrics: [
-        { label: "Buyer Networks", value: "Netflix, Prime, Hotstar, Sony" },
-        { label: "Territory Avails", value: "North America, GCC, India, WW" },
+        { label: "Buyer Networks", value: "Netflix, Prime, Hotstar" },
+        { label: "Territory Avails", value: "North America, GCC, India" },
         { label: "Contract Security", value: "Locked Escrow Settlement" }
       ],
       features: [
@@ -78,19 +67,18 @@ export function StakeholderHubSection() {
         "Territory holdback & exclusivity matrix",
         "Digital B2B escrow contract sign-off"
       ],
-      ctaText: "Enter B2B Buyer Marketplace 🌐"
+      ctaText: "Enter Buyer Marketplace"
     },
     {
       id: "tv_channels",
-      icon: "📺",
       title: "TV Channels & Networks",
-      badge: "Satellite & Linear Windowing Portal",
+      badge: "Satellite & Broadcast Windowing",
       roleParam: "global_buyer",
       headline: "Acquire exclusive linear TV & satellite broadcast rights.",
       subtext: "Acquire Satellite, Cable, and FAST Channel rights with strict holdbacks from digital OTT release windows.",
       metrics: [
-        { label: "Rights Types", value: "Satellite, FAST, Cable, Linear" },
-        { label: "Language Stems", value: "Malayalam, Tamil, Hindi, Turkish" },
+        { label: "Rights Types", value: "Satellite, FAST, Cable" },
+        { label: "Language Stems", value: "Malayalam, Tamil, Hindi" },
         { label: "Window Holds", value: "Custom Holdback Schedules" }
       ],
       features: [
@@ -98,11 +86,10 @@ export function StakeholderHubSection() {
         "Audio dubbing stem verification",
         "Censor certificate compliance reports"
       ],
-      ctaText: "Browse Broadcast Satellite Rights 📺"
+      ctaText: "Browse Broadcast Rights"
     },
     {
       id: "investors",
-      icon: "💼",
       title: "Investors & Co-Producers",
       badge: "Transparent Yield & Waterfall Ledger",
       roleParam: "investor",
@@ -118,127 +105,120 @@ export function StakeholderHubSection() {
         "Audited transaction history export",
         "Portfolio yield & MG analytics"
       ],
-      ctaText: "View Investor Audit Ledgers 💼"
+      ctaText: "View Investor Audit Ledgers"
     },
     {
       id: "ancillary",
-      icon: "🛠️",
-      title: "Ancillary & Service Providers",
-      badge: "Stem Audio Exchange & Promo Boost Engine",
+      title: "Ancillary Services",
+      badge: "Audio Stem & Promo Boost Engine",
       roleParam: "creator",
-      headline: "Dubbing, subtitling, score stems, and promo boost marketing.",
+      headline: "Dubbing, subtitling, score stems, and promo marketing.",
       subtext: "Register audio dubbing stems (WAV), subtitle tracks (SRT), score stems, and purchase Matchmaker Promo Boost packages.",
       metrics: [
         { label: "Audio Stems", value: "5.1 Surround & Stereo WAV" },
-        { label: "Subtitles", value: "Multi-language SRT Verification" },
-        { label: "Promo Engine", value: "Matchmaker Targeted Placement" }
+        { label: "Subtitles", value: "Multi-language SRT" },
+        { label: "Promo Engine", value: "Matchmaker Targeted" }
       ],
       features: [
         "Audio dubbing stem ingestion vault",
         "Subtitle synchronization pre-check",
         "Matchmaker promo boost store"
       ],
-      ctaText: "Explore Ancillary Services Hub 🛠️"
+      ctaText: "Explore Ancillary Hub"
     }
   ];
 
   const current = personas.find(p => p.id === activePersona) || personas[0];
 
   return (
-    <section className="py-24 bg-slate-950 border-t border-slate-800 font-sans relative overflow-hidden">
-      {/* Subtle Glow Backgrounds */}
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 space-y-12 relative z-10">
+    <section className="py-20 bg-[#090D16] border-t border-slate-800/80 font-sans">
+      <div className="max-w-6xl mx-auto px-6 lg:px-12 space-y-10">
         
         {/* Section Header */}
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-black uppercase tracking-widest">
-            <Sparkles size={14} /> Ecosystem Architecture • Built For All 6 Personas
-          </div>
-          <h2 className="text-3xl lg:text-5xl font-black text-white">
-            Designed to Feel Exactly Like <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Your Home</span>
+        <div className="text-center space-y-3">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-400 block">
+            Ecosystem Architecture
+          </span>
+          <h2 className="text-3xl lg:text-4xl font-extrabold text-white">
+            Tailored B2B Workspace Portals
           </h2>
-          <p className="text-slate-400 text-sm max-w-3xl mx-auto font-medium leading-relaxed">
-            Whether you are a Creator protecting your IP, a Studio managing 4K slates, an OTT Buyer screening watermarked films, or an Investor tracking ROI — StreamVista Cloud X provides a specialized, persona-tailored B2B environment.
+          <p className="text-slate-400 text-sm max-w-2xl mx-auto font-medium">
+            A unified cinema marketplace customized for all key distribution personas.
           </p>
         </div>
 
-        {/* 6 Stakeholder Tab Switchers */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        {/* Persona Tabs (Clean Slate Palette) */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {personas.map((p) => (
             <button
               key={p.id}
               onClick={() => setActivePersona(p.id)}
-              className={`px-5 py-3 rounded-2xl text-xs font-black flex items-center gap-2.5 transition-all cursor-pointer ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activePersona === p.id
-                  ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/25 scale-105"
-                  : "bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800"
+                  ? "bg-amber-500 text-slate-950 font-extrabold shadow-md"
+                  : "bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800"
               }`}
             >
-              <span className="text-base">{p.icon}</span>
-              <span>{p.title}</span>
+              {p.title}
             </button>
           ))}
         </div>
 
-        {/* Active Stakeholder Persona Feature Card */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 lg:p-12 shadow-2xl backdrop-blur-xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        {/* Active Persona Feature Card */}
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 lg:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           
-          {/* Left Column: Headline, Subtext, Features */}
-          <div className="space-y-6">
-            <span className="inline-block text-xs font-extrabold uppercase tracking-widest text-cyan-400 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30">
+          <div className="space-y-5">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-amber-400 px-3 py-1 rounded-md bg-amber-500/10 border border-amber-500/20">
               {current.badge}
             </span>
 
-            <h3 className="text-2xl lg:text-4xl font-black text-white leading-tight">
+            <h3 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight">
               {current.headline}
             </h3>
 
-            <p className="text-sm lg:text-base text-slate-300 font-medium leading-relaxed">
+            <p className="text-sm text-slate-300 font-medium leading-relaxed">
               {current.subtext}
             </p>
 
-            <div className="space-y-3 pt-2">
+            <div className="space-y-2.5 pt-1">
               {current.features.map((feat, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-xs lg:text-sm text-slate-200 font-bold">
-                  <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+                <div key={idx} className="flex items-center gap-2.5 text-xs text-slate-300 font-semibold">
+                  <CheckCircle2 size={16} className="text-amber-400 shrink-0" />
                   <span>{feat}</span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-4">
+            <div className="pt-3">
               <button
                 onClick={() => navigate(`/workspace?role=${current.roleParam}`)}
-                className="bg-gradient-to-r from-cyan-500 to-emerald-400 hover:from-cyan-400 hover:to-emerald-300 text-slate-950 font-black text-xs lg:text-sm px-8 py-4 rounded-2xl flex items-center gap-3 shadow-xl shadow-cyan-500/25 transition-all cursor-pointer"
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-7 py-3.5 rounded-xl flex items-center gap-2 shadow-md transition-all cursor-pointer"
               >
-                {current.ctaText}
+                <span>{current.ctaText}</span>
+                <ArrowRight size={14} />
               </button>
             </div>
           </div>
 
-          {/* Right Column: 3 Metric Key Value Badges */}
           <div className="space-y-4">
             <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 space-y-4">
-              <span className="text-xs font-black text-cyan-400 uppercase tracking-widest block">
-                Target Persona Value Metrics
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Persona Value Metrics
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {current.metrics.map((m, idx) => (
-                  <div key={idx} className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
-                    <span className="text-[10px] font-extrabold text-slate-400 block uppercase">{m.label}</span>
-                    <span className="text-sm font-black text-white block">{m.value}</span>
+                  <div key={idx} className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 block uppercase">{m.label}</span>
+                    <span className="text-xs font-extrabold text-white block">{m.value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="p-5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs text-emerald-300 font-bold flex items-center gap-3">
-              <ShieldCheck size={20} className="text-emerald-400 shrink-0" />
-              <span>Governed by StreamVista OPC Pvt Ltd Non-Sublicensable Legal Mandate.</span>
+            <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-400 font-medium flex items-center gap-2.5">
+              <ShieldCheck size={18} className="text-amber-400 shrink-0" />
+              <span>StreamVista OPC Pvt Ltd Non-Sublicensable Governance Active.</span>
             </div>
           </div>
 

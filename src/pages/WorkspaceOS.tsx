@@ -23,6 +23,8 @@ import {
   UploadCloud
 } from "lucide-react";
 
+import { EscrowContractModal, QCReportModal } from "../components/EnterpriseB2BModals";
+
 export function WorkspaceOS() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -33,6 +35,10 @@ export function WorkspaceOS() {
 
   // Current Admin OS sub-role tab: legal | qc | matchmaker | finance
   const [adminTab, setAdminTab] = useState<"legal" | "qc" | "matchmaker" | "finance">("legal");
+
+  // Modals state
+  const [showEscrowModal, setShowEscrowModal] = useState(false);
+  const [showQCModal, setShowQCModal] = useState(false);
 
   // 4-Step Pipeline active step
   const [pipelineStep, setPipelineStep] = useState<1 | 2 | 3 | 4>(1);
@@ -422,8 +428,8 @@ export function WorkspaceOS() {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-2xl font-extrabold text-emerald-400 font-mono">$35,000 USD</span>
-                  <button onClick={() => alert("B2B Licensing Escrow Locked Successfully!")} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-md cursor-pointer">
-                    Review Terms & Lock Escrow
+                  <button onClick={() => setShowEscrowModal(true)} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-md cursor-pointer">
+                    Review Terms & Lock Escrow 🔒
                   </button>
                 </div>
               </div>
@@ -502,6 +508,9 @@ export function WorkspaceOS() {
                           <span className="text-xs text-slate-400 block">QC Spec: {t.qcStatus || 'pending'}</span>
                         </div>
                         <div className="flex gap-2">
+                          <button onClick={() => setShowQCModal(true)} className="bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer">
+                            View Report 📋
+                          </button>
                           <button onClick={() => handleQCAction(t.id, 'approved')} className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer">
                             Approve QC
                           </button>
@@ -531,6 +540,21 @@ export function WorkspaceOS() {
         )}
 
       </main>
+
+      {/* Interactive Enterprise Modals */}
+      <EscrowContractModal 
+        isOpen={showEscrowModal} 
+        onClose={() => setShowEscrowModal(false)} 
+        titleName="Jananam 1947 Pranayam Thudarunnu"
+        dealValueUSD={35000}
+        onConfirmLock={() => alert("B2B Licensing Contract Signed & Escrow Locked Successfully! 🔒")}
+      />
+
+      <QCReportModal 
+        isOpen={showQCModal} 
+        onClose={() => setShowQCModal(false)} 
+        titleName="Jananam 1947 Pranayam Thudarunnu"
+      />
     </div>
   );
 }

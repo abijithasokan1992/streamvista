@@ -16,10 +16,6 @@ test.describe('Notification System', () => {
   test('QC approval creates a notification that can be marked read', async ({ page }) => {
     const creatorId = "creator_test_123";
     
-    // Create a mock user in auth emulator just in case, or just login if not required.
-    // Actually, our app uses useAuth which talks to the auth emulator.
-    // Let's seed the auth emulator via REST, or just use the UI to register!
-    
     await page.goto('http://localhost:5173/login');
     
     // Register as creator
@@ -36,8 +32,6 @@ test.describe('Notification System', () => {
     await expect(page.locator('[data-testid="notification-bell"]')).toBeVisible({ timeout: 12000 });
     const bellButton = page.locator('[data-testid="notification-bell"]');
     
-    // We don't know the exact UID since we just registered, but let's grab it if we can.
-    // Or we just insert a notification for ALL users, or we find the user by email via admin SDK.
     const userRecord = await admin.auth().getUserByEmail('creator2@streamvista.com');
     const actualUid = userRecord.uid;
     
@@ -52,8 +46,6 @@ test.describe('Notification System', () => {
       data: { titleId: 'fake_title_123' }
     });
     
-    // Use the previously defined bellButton with test-id
-    // const bellButton = page.locator('button').filter({ has: page.locator('svg.lucide-bell') });
     await expect(bellButton).toBeVisible();
     await expect(bellButton.locator('[data-testid="notification-count"]')).toHaveText('1', { timeout: 5000 });
     
@@ -67,6 +59,6 @@ test.describe('Notification System', () => {
     await page.locator('text=Title Approved').click();
     
     // Badge should disappear
-    await expect(bellButton.locator('[data-testid="notification-count"]').toBeHidden();
+    await expect(bellButton.locator('[data-testid="notification-count"]')).toBeHidden();
   });
 });

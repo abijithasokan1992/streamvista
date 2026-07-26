@@ -9,7 +9,7 @@ interface LogContext {
 
 class Logger {
   private static instance: Logger;
-  private isDevelopment = import.meta.env.MODE === 'development';
+  private isDevelopment = typeof import.meta !== 'undefined' && import.meta?.env ? import.meta.env.MODE === 'development' : true;
 
   private constructor() {}
 

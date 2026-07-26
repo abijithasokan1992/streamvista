@@ -26,6 +26,7 @@ import {
 import { EscrowContractModal, QCReportModal } from "../components/EnterpriseB2BModals";
 import { ProducerVaultWorkspace } from "../components/workspace/ProducerVaultWorkspace";
 import { presignedUploadService, UploadProgress } from "../services/storage/presignedUploadService";
+import { LiveActivityTickerBar } from "../components/LiveActivityTickerBar";
 
 export function WorkspaceOS() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -145,6 +146,9 @@ export function WorkspaceOS() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
+      {/* 0. Live Activity Ticker Bar */}
+      <LiveActivityTickerBar />
+
       {/* 1. OS Top Bar */}
       <header className="h-20 bg-slate-900 border-b border-slate-800 px-6 lg:px-12 flex items-center justify-between sticky top-0 z-40 shadow-lg">
         <div className="flex items-center gap-6">

@@ -19,6 +19,7 @@ import {
   Award,
   Zap
 } from "lucide-react";
+import { LiveActivityTickerBar } from "../components/LiveActivityTickerBar";
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -118,6 +119,9 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500 selection:text-white">
+      {/* 0. Live Activity Ticker Bar */}
+      <LiveActivityTickerBar />
+
       {/* 1. Ultra-Premium Navigation Bar */}
       <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 px-6 lg:px-12 py-4 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate("/")}>

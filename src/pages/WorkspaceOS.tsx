@@ -19,7 +19,8 @@ import {
   ArrowLeft,
   XCircle,
   Clock,
-  Check
+  Check,
+  UploadCloud
 } from "lucide-react";
 
 export function WorkspaceOS() {
@@ -250,37 +251,68 @@ export function WorkspaceOS() {
 
             {/* New Asset Submission Modal/Form */}
             {showUploadForm && (
-              <form onSubmit={handleCreateAsset} className="bg-slate-900 border border-cyan-500/30 rounded-2xl p-8 space-y-4 shadow-2xl">
-                <h3 className="text-xl font-bold text-white">Submit New Title to Backend</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input 
-                    type="text" 
-                    placeholder="Title Name (e.g. Malayalam Thriller)" 
-                    value={newTitleName}
-                    onChange={(e) => setNewTitleName(e.target.value)}
-                    required 
-                    className="bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="Director Name" 
-                    value={newDirector}
-                    onChange={(e) => setNewDirector(e.target.value)}
-                    className="bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-                  />
-                  <select 
-                    value={newGenre} 
-                    onChange={(e) => setNewGenre(e.target.value)}
-                    className="bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-                  >
-                    <option value="Drama">Drama</option>
-                    <option value="Action">Action</option>
-                    <option value="Thriller">Thriller</option>
-                    <option value="Romance">Romance</option>
-                  </select>
+              <form onSubmit={handleCreateAsset} className="bg-slate-900 border border-cyan-500/40 rounded-2xl p-8 space-y-6 shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-black text-white">🎬 Asset Intake & File Upload Dropzone</h3>
+                  <span className="text-xs font-bold px-3 py-1 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-full">
+                    Mock Upload Active (Admin Rights Enabled)
+                  </span>
                 </div>
-                <button type="submit" className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold px-6 py-3 rounded-xl shadow cursor-pointer">
-                  Save & Submit for QC Clearance
+
+                {/* Drag and Drop File Input Box */}
+                <div className="border-2 border-dashed border-slate-700 hover:border-cyan-400 rounded-2xl p-8 text-center bg-slate-950/60 transition-all cursor-pointer">
+                  <UploadCloud className="mx-auto text-cyan-400 mb-3" size={36} />
+                  <p className="text-sm font-bold text-white">Click or drag video master, trailer, or script files here</p>
+                  <p className="text-xs text-slate-400 mt-1">Supports MP4, MOV, ProRes, PDF, WAV, and MP3 up to 50 GB</p>
+                  <input type="file" className="hidden" id="file-upload-input" onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      setNewTitleName(e.target.files[0].name.replace(/\.[^/.]+$/, ""));
+                    }
+                  }} />
+                  <label htmlFor="file-upload-input" className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs border border-slate-700 cursor-pointer">
+                    Browse Local Files 📂
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 block mb-1">Title Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="Title Name (e.g. Malayalam Thriller)" 
+                      value={newTitleName}
+                      onChange={(e) => setNewTitleName(e.target.value)}
+                      required 
+                      className="w-full bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 block mb-1">Director Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="Director Name" 
+                      value={newDirector}
+                      onChange={(e) => setNewDirector(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 block mb-1">Primary Genre</label>
+                    <select 
+                      value={newGenre} 
+                      onChange={(e) => setNewGenre(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 text-sm text-white rounded-xl px-4 py-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                    >
+                      <option value="Drama">Drama</option>
+                      <option value="Action">Action</option>
+                      <option value="Thriller">Thriller</option>
+                      <option value="Romance">Romance</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-black px-8 py-3.5 rounded-xl shadow-lg shadow-cyan-500/25 transition-all cursor-pointer">
+                  Save Asset & Submit to Admin OS for QC & Legal Clearance 🚀
                 </button>
               </form>
             )}

@@ -1,15 +1,20 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { UserProfile } from "../types/auth";
+import { UserProfile, UserRole } from "../types/auth";
 import { authService } from "../services/auth";
 
-export const MOCK_USER: UserProfile = {
-  uid: "creator_abijith",
-  email: "abijith@streamvista.in",
-  displayName: "Abijith Asokan (Founder & CEO)",
-  role: "super_admin",
-  createdAt: "2026-01-01T00:00:00.000Z",
-  updatedAt: new Date().toISOString()
+export const getMockUser = (): UserProfile => {
+  const storedRole = (typeof localStorage !== "undefined" ? localStorage.getItem("mock_user_role") : null) as UserRole;
+  return {
+    uid: "creator_abijith",
+    displayName: "Abijith Asokan",
+    email: "abijithasokan@crayonspictures.com",
+    role: storedRole || "admin",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: new Date().toISOString()
+  };
 };
+
+export const MOCK_USER: UserProfile = getMockUser();
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -22,15 +27,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(getMockUser());
+  const [loading, setLoading] = useState(false); // Resolve immediately so UI never blocks on loading
 
   const isMockMode = () => {
     if (typeof window === "undefined") return false;
     const envMock = import.meta.env.VITE_USE_MOCK_AUTH === "true";
     const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     const queryMock = window.location.search.includes("mockAuth=true");
-    return envMock || isLocalhost || queryMock;
+    const localStoreMock = localStorage.getItem("VITE_USE_MOCK_AUTH") === "true";
+    return envMock || isLocalhost || queryMock || localStoreMock;
   };
 
   useEffect(() => {
@@ -48,16 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Ignore localStorage errors
           }
 
-          setUser(MOCK_USER);
+          setUser(getMockUser());
           setLoading(false);
           return;
         }
 
         const currentUser = await authService.getCurrentUser();
-        setUser(currentUser || MOCK_USER);
+        setUser(currentUser || getMockUser());
       } catch (error) {
         console.warn("Auth initialization fallback to Mock User:", error);
-        setUser(MOCK_USER);
+        setUser(getMockUser());
       } finally {
         setLoading(false);
       }
@@ -70,17 +76,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (isMockMode()) {
         const mockProfile: UserProfile = {
-          ...MOCK_USER,
+          ...getMockUser(),
           email,
-          displayName: email.split('@')[0] || "StreamVista Partner"
+          displayName: email.split('@')[0] || "Abijith Asokan"
         };
         setUser(mockProfile);
         return;
       }
       const loggedInUser = await authService.login(email, password);
-      setUser(loggedInUser || MOCK_USER);
+      setUser(loggedInUser || getMockUser());
     } catch (err) {
-      setUser(MOCK_USER);
+      setUser(getMockUser());
     } finally {
       setLoading(false);
     }
@@ -91,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (isMockMode()) {
         const mockProfile: UserProfile = {
-          ...MOCK_USER,
+          ...getMockUser(),
           email,
           displayName: displayName || email.split('@')[0]
         };
@@ -99,9 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       const newUser = await authService.register(email, password, displayName);
-      setUser(newUser || MOCK_USER);
+      setUser(newUser || getMockUser());
     } catch (err) {
-      setUser(MOCK_USER);
+      setUser(getMockUser());
     } finally {
       setLoading(false);
     }
@@ -113,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isMockMode()) {
         await authService.logout();
       }
-      setUser(MOCK_USER); // Default back to mock user on localhost so user is never locked out
+      setUser(getMockUser()); // Default back to mock user on localhost so user is never locked out
     } finally {
       setLoading(false);
     }

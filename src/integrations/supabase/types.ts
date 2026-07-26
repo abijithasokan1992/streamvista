@@ -99,6 +99,36 @@ export type Database = {
         }
         Relationships: []
       }
+      title_edit_requests: {
+        Row: {
+          id: string
+          title_id: string
+          requester_id: string
+          requested_changes: Json
+          status: 'open' | 'approved' | 'rejected' | 'fulfilled' | 'cancelled'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title_id: string
+          requester_id: string
+          requested_changes: Json
+          status?: 'open' | 'approved' | 'rejected' | 'fulfilled' | 'cancelled'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title_id?: string
+          requester_id?: string
+          requested_changes?: Json
+          status?: 'open' | 'approved' | 'rejected' | 'fulfilled' | 'cancelled'
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       draft_titles: {
         Row: {
           id: string

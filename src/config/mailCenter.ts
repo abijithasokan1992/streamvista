@@ -30,6 +30,8 @@ export interface MailRoutingRule {
   senderDomains?: string[];
 }
 
+export const SARIN_NOTIFICATION_RECIPIENT = "support-bridge@crayonspictures.com";
+
 export const MAIL_IDENTITIES: MailIdentity[] = [
   {
     address: "abijithasokan@crayonspictures.com",
@@ -38,9 +40,9 @@ export const MAIL_IDENTITIES: MailIdentity[] = [
     canApprove: true,
   },
   {
-    address: "support-bridge@crayonspictures.com",
+    address: SARIN_NOTIFICATION_RECIPIENT,
     owner: "Sarin",
-    role: "Support / Crayons Bridge",
+    role: "Support / Crayons Bridge / Mandatory Event Notification",
     canApprove: false,
   },
   {
@@ -125,3 +127,17 @@ export const MAIL_ROUTING_RULES: MailRoutingRule[] = [
     senderDomains: ["linkedin.com", "substack.com", "medium.com", "smartbrief.com"],
   },
 ];
+
+export function notificationRecipientsForEvent(primaryAssignee?: string): string[] {
+  const recipients = new Set<string>([SARIN_NOTIFICATION_RECIPIENT]);
+
+  if (primaryAssignee === "Abijith Asokan") {
+    recipients.add("abijithasokan@crayonspictures.com");
+  }
+
+  if (primaryAssignee === "Aruna Sankar CA") {
+    recipients.add("finance-bridge@crayonspictures.com");
+  }
+
+  return [...recipients];
+}

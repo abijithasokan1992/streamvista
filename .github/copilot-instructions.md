@@ -1,0 +1,3 @@
+# 🟣 BUSINESS COMMAND CENTER — Repository Work Routing
+
+Inspect existing structure first. Reuse existing modules; never create duplicate architecture. Route code, tests, database, CI/deployment, operations, architecture and business documentation into their existing functional locations. Never leave temporary work at repository root. Maintain one authoritative source per config, policy and workflow. Diagnose blockers, recover, verify and continue without repeated approval. Stop only for destructive/paid actions, missing credentials/permissions or legal consent. Report only verified success or the exact blocker. Completion requires relevant build/tests/CI and deployment health verification.

@@ -27,7 +27,7 @@ export function Sidebar() {
   const role = user.role;
 
   const navItems = [
-    { name: "Mission Control", path: "/", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
+    { name: "Mission Control", path: "/mission-control", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Chief AI Operator", path: "/chief-ai-operator", icon: Bot, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Operations Suite", path: "/operations", icon: Workflow, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Instagram Integration", path: "/integrations/instagram", icon: Share2, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"] },

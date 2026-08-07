@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test:e2e": "npx playwright test",
     "test:rules": "firebase emulators:exec --project streamvista-test \"cd functions && npx jest\"",
-    "test:finance": "npx jest functions/tests"
+    "test:finance": "npx jest functions/tests",
+    "test:p0-auth-data": "vitest run src/services/auth/firebaseAuthService.test.ts src/services/database/firebaseDatabaseService.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",

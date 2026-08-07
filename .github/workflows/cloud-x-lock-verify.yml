@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: chore/cloud-x-lock-generator
 
       - name: Setup Node 22
         uses: actions/setup-node@v4
@@ -28,7 +30,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object factory/generated/cloud-x-lock/package-lock.json)" = "9ff68a5072d12002cddca08fdf1e0b60d7b0b8b5"
+          test "$(git hash-object factory/generated/cloud-x-lock/package-lock.json)" = "f40128e7bfad7bdbb883f6ba0a7bde9b67d9a87c"
           rm -rf .factory-tmp/cloud-x-frontend-verify
           mkdir -p .factory-tmp/cloud-x-frontend-verify
           cat > .factory-tmp/cloud-x-frontend-verify/package.json <<'JSON'

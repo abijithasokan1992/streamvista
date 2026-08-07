@@ -52,7 +52,7 @@ jobs:
               "@types/react-dom": "19.1.7",
               "@vitejs/plugin-react": "4.7.0",
               "typescript": "5.8.3",
-              "vite": "7.3.6"
+              "vite": "7.1.2"
             }
           }
           JSON
@@ -62,7 +62,7 @@ jobs:
           const fs = require('fs');
           const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
           const keep = new Set([
-            'name','version','resolved','integrity','dev','optional','devOptional','hasInstallScript',
+            'name','version','integrity','dev','optional','devOptional','hasInstallScript',
             'dependencies','optionalDependencies','peerDependencies','peerDependenciesMeta','bin','cpu','os'
           ]);
           for (const [path, pkg] of Object.entries(lock.packages || {})) {
@@ -100,6 +100,7 @@ jobs:
             lockfile_version: lock.lockfileVersion,
             package_count: Object.keys(lock.packages || {}).length,
             supabase_resolved: lock.packages?.['node_modules/@supabase/supabase-js']?.version || null,
+            vite_resolved: lock.packages?.['node_modules/vite']?.version || null,
             raw_bytes: raw.length,
             base64_bytes: b64.length,
             base64_chunk_size: chunkSize,
@@ -119,5 +120,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add factory/generated/cloud-x-lock
-          git commit -m "chore(factory): generate compact Cloud X lock [generated-cloud-x-lock]"
+          git commit -m "chore(factory): generate integrity-compact Cloud X lock [generated-cloud-x-lock]"
           git push origin HEAD:chore/cloud-x-lock-generator

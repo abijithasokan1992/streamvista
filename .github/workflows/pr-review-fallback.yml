@@ -43,19 +43,14 @@ jobs:
             git diff --check
           fi
 
-      - name: Reuse canonical PR #8 dependency lock for proof
+      - name: Verify adopted canonical dependency lock
         shell: bash
         run: |
           set -euo pipefail
-          CANONICAL_BRANCH="chore/factory-organisation"
-          CANONICAL_HEAD="73f4d4fef909242e49576133a8a321e8f4e22683"
           EXPECTED_PACKAGE_BLOB="a743ed1012accc0c8cafb3b49893cc61d53bccf8"
           EXPECTED_LOCK_BLOB="b74ea283fdffd4c8d4a6d329ceffc9e09611228e"
 
           test "$(git hash-object package.json)" = "$EXPECTED_PACKAGE_BLOB"
-          git fetch --no-tags origin "$CANONICAL_BRANCH"
-          test "$(git rev-parse FETCH_HEAD)" = "$CANONICAL_HEAD"
-          git show "$CANONICAL_HEAD:package-lock.json" > package-lock.json
           test "$(git hash-object package-lock.json)" = "$EXPECTED_LOCK_BLOB"
 
       - name: Install exact dependencies
@@ -79,18 +74,17 @@ jobs:
             echo
             echo "This gate is independent of Codex and Copilot review quotas."
             echo
-            echo "Dependency proof is intentionally stacked on the exact verified PR #8 lockfile."
-            echo "The job fails if PR #8 head, package.json blob, or lockfile blob drifts."
+            echo "PR #11 must carry the exact reviewed PR #8 dependency lock itself."
+            echo "The job fails if package.json or the adopted package-lock blob drifts."
             echo
             echo "Required evidence in this job:"
             echo "- base-aware repository diff integrity"
-            echo "- exact PR #8 dependency-lock reuse"
+            echo "- exact adopted canonical dependency lock"
             echo "- reproducible npm install via npm ci"
             echo "- lint"
             echo "- production build"
             echo "- npm high/critical vulnerability gate"
             echo
-            echo "A green run proves PR #11 + the pinned PR #8 lockfile combination only."
-            echo "PR #11 remains merge-held until that canonical lockfile is present on the merge target or is adopted into this branch and the gate is rerun."
+            echo "A green run proves PR #11 is self-contained on the reviewed lockfile."
             echo "AI review is advisory only."
           } >> "$GITHUB_STEP_SUMMARY"

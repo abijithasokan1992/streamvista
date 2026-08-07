@@ -1,0 +1,45 @@
+name: Cloud X Lock Base64 Pack
+
+on:
+  push:
+    branches:
+      - chore/cloud-x-lock-generator
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: chore/cloud-x-lock-generator
+          fetch-depth: 0
+
+      - name: Pack verified lock as Base64
+        shell: bash
+        run: |
+          set -euo pipefail
+          src='factory/generated/cloud-x-lock/package-lock.json'
+          expected='9ff68a5072d12002cddca08fdf1e0b60d7b0b8b5'
+          test "$(git hash-object "$src")" = "$expected"
+          base64 -w0 "$src" > factory/generated/cloud-x-lock/package-lock.b64
+          printf '\n' >> factory/generated/cloud-x-lock/package-lock.b64
+
+      - name: Commit Base64 transport when changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain -- factory/generated/cloud-x-lock/package-lock.b64)" ]]; then
+            echo 'Base64 transport already current'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add factory/generated/cloud-x-lock/package-lock.b64
+          git commit -m 'chore(factory): pack verified Cloud X lock as base64'
+          git pull --rebase origin chore/cloud-x-lock-generator
+          git push origin HEAD:chore/cloud-x-lock-generator

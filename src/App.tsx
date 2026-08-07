@@ -5,7 +5,7 @@ import { Topbar } from "./components/Topbar";
 import { RoleSwitcherWidget } from "./components/RoleSwitcherWidget";
 
 // Page Imports
-import { LandingPage } from "./pages/LandingPage";
+import { LandingPageV2 } from "./pages/LandingPageV2";
 import { WorkspaceOS } from "./pages/WorkspaceOS";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -58,8 +58,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* Public & Workspace OS Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/" element={<LandingPageV2 />} />
+          <Route path="/landing" element={<LandingPageV2 />} />
           <Route path="/workspace" element={<WorkspaceOS />} />
           <Route path="/login" element={<Login />} />
 

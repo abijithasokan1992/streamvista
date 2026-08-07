@@ -1,0 +1,100 @@
+name: Cloud X Lock Generator
+
+on:
+  push:
+    branches:
+      - chore/cloud-x-lock-generator
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: ${{ !contains(github.event.head_commit.message, '[generated-cloud-x-lock]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: chore/cloud-x-lock-generator
+          fetch-depth: 0
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate and verify lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .factory-tmp/cloud-x-frontend
+          mkdir -p .factory-tmp/cloud-x-frontend factory/generated/cloud-x-lock
+          cat > .factory-tmp/cloud-x-frontend/package.json <<'JSON'
+          {
+            "name": "streamvista-cloud-x-frontend",
+            "private": true,
+            "version": "0.1.0",
+            "type": "module",
+            "scripts": {
+              "dev": "vite",
+              "build": "tsc -b && vite build"
+            },
+            "dependencies": {
+              "@supabase/supabase-js": "^2.55.0",
+              "react": "19.1.1",
+              "react-dom": "19.1.1"
+            },
+            "devDependencies": {
+              "@types/react": "19.1.10",
+              "@types/react-dom": "19.1.7",
+              "@vitejs/plugin-react": "4.7.0",
+              "typescript": "5.8.3",
+              "vite": "7.1.2"
+            }
+          }
+          JSON
+          cd .factory-tmp/cloud-x-frontend
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          node - <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+          const path = require('path');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const canonical = JSON.stringify(lock);
+          const b64 = Buffer.from(canonical + '\n', 'utf8').toString('base64');
+          const chunkSize = 6000;
+          const out = path.resolve('../../factory/generated/cloud-x-lock');
+          fs.rmSync(out, { recursive: true, force: true });
+          fs.mkdirSync(out, { recursive: true });
+          const chunks = [];
+          for (let i = 0; i < b64.length; i += chunkSize) {
+            const piece = b64.slice(i, i + chunkSize);
+            const name = `chunk-${String(chunks.length).padStart(3, '0')}.txt`;
+            fs.writeFileSync(path.join(out, name), piece + '\n');
+            chunks.push(name);
+          }
+          const sha256 = crypto.createHash('sha256').update(canonical + '\n').digest('hex');
+          const supa = lock.packages?.['node_modules/@supabase/supabase-js']?.version || null;
+          fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify({
+            generated_with_node: process.version,
+            generated_with_npm: require('child_process').execFileSync('npm', ['--version'], {encoding:'utf8'}).trim(),
+            lockfile_version: lock.lockfileVersion,
+            package_count: Object.keys(lock.packages || {}).length,
+            supabase_resolved: supa,
+            base64_chunk_size: chunkSize,
+            chunks,
+            sha256
+          }, null, 2) + '\n');
+          NODE
+
+      - name: Commit generated evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add factory/generated/cloud-x-lock
+          git commit -m "chore(factory): generate Cloud X frontend lock [generated-cloud-x-lock]"
+          git push origin HEAD:chore/cloud-x-lock-generator

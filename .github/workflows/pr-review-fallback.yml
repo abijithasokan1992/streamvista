@@ -1,0 +1,67 @@
+name: PR Verification Fallback
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-verification-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deterministic-review-gate:
+    name: Deterministic review gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Repository diff integrity
+        run: git diff --check
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Dependency security gate
+        run: npm audit --audit-level=high
+
+      - name: Write verification summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## PR verification fallback"
+            echo
+            echo "This gate is independent of Codex and Copilot review quotas."
+            echo
+            echo "Required evidence in this job:"
+            echo "- repository diff integrity"
+            echo "- reproducible npm install via npm ci"
+            echo "- lint"
+            echo "- production build"
+            echo "- npm high/critical vulnerability gate"
+            echo
+            echo "AI review is advisory only; a green deterministic gate is the merge evidence."
+          } >> "$GITHUB_STEP_SUMMARY"

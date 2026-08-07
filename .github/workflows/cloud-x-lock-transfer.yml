@@ -1,0 +1,47 @@
+name: Cloud X Lock Transfer
+
+on:
+  push:
+    branches:
+      - chore/cloud-x-lock-generator
+
+permissions:
+  contents: write
+
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout FACTORY source
+        uses: actions/checkout@v4
+        with:
+          ref: chore/cloud-x-lock-generator
+
+      - name: Validate exact generated lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object factory/generated/cloud-x-lock/package-lock.json)" = "9ff68a5072d12002cddca08fdf1e0b60d7b0b8b5"
+
+      - name: Transfer lock to canonical Cloud X repair branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET_REPO='abijithasokan1992/streamvista-cloud-x'
+          TARGET_BRANCH='fix/frontend-lockfile-drift'
+          TARGET_PATH='frontend/package-lock.json'
+          EXPECTED_OLD_SHA='fbd863a153ea540c2a50c10329d32e1065c338f9'
+          target_json="$(gh api "repos/${TARGET_REPO}/contents/${TARGET_PATH}?ref=fix%2Ffrontend-lockfile-drift")"
+          target_sha="$(jq -r '.sha' <<<"$target_json")"
+          test "$target_sha" = "$EXPECTED_OLD_SHA"
+          source_b64="$(base64 -w0 factory/generated/cloud-x-lock/package-lock.json)"
+          jq -n \
+            --arg message 'fix(frontend): import audited Vite 7.3.6 lockfile' \
+            --arg content "$source_b64" \
+            --arg sha "$target_sha" \
+            --arg branch "$TARGET_BRANCH" \
+            '{message:$message,content:$content,sha:$sha,branch:$branch}' > /tmp/payload.json
+          gh api --method PUT "repos/${TARGET_REPO}/contents/${TARGET_PATH}" --input /tmp/payload.json

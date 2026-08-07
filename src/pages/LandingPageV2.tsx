@@ -21,7 +21,7 @@ const entryPoints = [
     subtitle: "Manage catalogues, territories, deliveries, licences and revenue.",
     icon: Globe2,
     action: "Open distributor workspace",
-    path: "/workspace?role=distributor",
+    path: "/distributor",
   },
   {
     title: "AI Workspace",
@@ -45,7 +45,7 @@ export function LandingPageV2() {
   return (
     <div className="min-h-screen bg-[#070A10] text-white">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070A10]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
           <button onClick={() => navigate("/")} className="flex items-center gap-3 text-left">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 font-black text-black">SV</div>
             <div>
@@ -54,10 +54,12 @@ export function LandingPageV2() {
             </div>
           </button>
 
-          <nav className="hidden items-center gap-6 text-sm text-slate-400 md:flex">
-            <button onClick={() => navigate("/buyer")} className="hover:text-white">Marketplace</button>
-            <button onClick={() => navigate("/workspace")} className="hover:text-white">FAST</button>
-            <button onClick={() => navigate("/workspace")} className="hover:text-white">Services</button>
+          <nav className="hidden items-center gap-5 text-sm text-slate-400 md:flex">
+            <button onClick={() => navigate("/marketplace")} className="hover:text-white">Marketplace</button>
+            <button onClick={() => navigate("/fast")} className="hover:text-white">FAST</button>
+            <button onClick={() => navigate("/services")} className="hover:text-white">Services</button>
+            <button onClick={() => navigate("/about")} className="hover:text-white">About</button>
+            <button onClick={() => navigate("/contact")} className="hover:text-white">Contact</button>
             <button onClick={() => navigate("/login")} className="rounded-xl border border-white/10 px-4 py-2 font-semibold text-white hover:bg-white/5">Login</button>
           </nav>
         </div>

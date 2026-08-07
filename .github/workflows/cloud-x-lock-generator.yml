@@ -70,6 +70,7 @@ jobs:
           const out = path.resolve('../../factory/generated/cloud-x-lock');
           fs.rmSync(out, { recursive: true, force: true });
           fs.mkdirSync(out, { recursive: true });
+          fs.writeFileSync(path.join(out, 'package-lock.json'), canonical + '\n');
           const chunks = [];
           for (let i = 0; i < b64.length; i += chunkSize) {
             const piece = b64.slice(i, i + chunkSize);

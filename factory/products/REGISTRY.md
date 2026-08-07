@@ -26,17 +26,19 @@ Each canonical record tracks:
 
 | Product | Canonical runtime | Current verified state | Active release work | Release blocker |
 |---|---|---|---|---|
-| StreamVista Website | `abijithasokan1992/streamvistacreator-com` | Runtime/routes exist; not yet independently production-green | PR #102 isolates non-Core-5 College ERP runtime and adds boundary test | GitHub Actions approval/execution required before build/regression/security evidence can be trusted |
-| Creator Cloud | `abijithasokan1992/streamvistacreator-com` | Creator V2 routes/modules exist; not yet independently production-green | PR #102 protects canonical creator entry surface; PR #101 contains security remediation | PR #101 and #102 must remain unmerged until Actions run and security/build/regression evidence is green |
-| Buyer Portal | `abijithasokan1992/streamvistacreator-com` | Buyer dashboard/marketplace modules exist; not yet independently production-green | PR #102 protects canonical buyer entry surface; PR #101 contains security remediation | Same shared-runtime Actions/security gate |
-| Admin Console | `abijithasokan1992/streamvistacreator-com` | Canonical `/admin/*` route source exists; not yet independently production-green | PR #102 documents shared logical boundary; PR #101 contains security remediation | Same shared-runtime Actions/security gate |
-| StreamVista Cloud X | `abijithasokan1992/streamvista-cloud-x` | Separate frontend/backend runtime exists; lockfile reproducibility not verified | Draft PR #57 adds isolated lockfile regeneration + `npm ci` + build + high/critical audit gate | `frontend/package.json` declares `@supabase/supabase-js` while current lockfile root dependency set does not; GitHub runner execution/evidence still required |
+| StreamVista Website | `abijithasokan1992/streamvistacreator-com` | **AMBER** — PR #102 Vercel production build/preview is READY; current production baseline has no Vercel runtime error clusters in the observed 24h window | PR #102 isolates non-Core-5 College ERP runtime, adds boundary test/docs | Required GitHub regression/security Actions have not produced green evidence |
+| Creator Cloud | `abijithasokan1992/streamvistacreator-com` | **AMBER** — PR #102 shared production build succeeds and creator chunks are emitted; not security-green | PR #102 protects canonical creator surface; PR #101 contains security remediation | PR #101/#102 Actions approval/execution; Semgrep/npm audit/OSV/regression evidence pending |
+| Buyer Portal | `abijithasokan1992/streamvistacreator-com` | **AMBER** — PR #102 shared production build/preview is READY; not security-green | PR #102 protects canonical buyer entry surface; PR #101 contains security remediation | Same shared-runtime Actions/security gate |
+| Admin Console | `abijithasokan1992/streamvistacreator-com` | **AMBER** — PR #102 shared production build/preview is READY; not security-green | PR #102 documents shared logical boundary; PR #101 contains security remediation | Same shared-runtime Actions/security gate |
+| StreamVista Cloud X | `abijithasokan1992/streamvista-cloud-x` | **RED** — separate frontend/backend runtime exists, but `package.json`/lockfile are not synchronized | Draft PR #57 adds lock regeneration, deterministic consistency check, `npm ci`, build and high/critical audit gate | GitHub runner has not produced synchronized lock/build/audit evidence |
+
+Detailed evidence: `factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`
 
 ## Active release-control PRs
 
-- `streamvistacreator-com#101` — security remediation. **Must remain open and unmerged** until Semgrep, npm audit, OSV, regression and build evidence are independently green.
-- `streamvistacreator-com#102` — Core 5 runtime-boundary cleanup. Draft/unmerged until build/regression/security checks are green.
-- `streamvista-cloud-x#57` — frontend lock/build repair. Draft/unmerged until synchronized lockfile plus `npm ci`, build and audit evidence are green.
+- `streamvistacreator-com#101` — security remediation. **Must remain open and unmerged** until Semgrep, npm audit, OSV, regression and build evidence are independently green. Current GitHub workflow conclusions are `action_required`; connector retry returned HTTP 403. Final-head Vercel preview is additionally rate-limit blocked.
+- `streamvistacreator-com#102` — Core 5 runtime-boundary cleanup. Vercel preview/build is verified READY, but PR remains draft/unmerged until required GitHub regression/security checks are green.
+- `streamvista-cloud-x#57` — frontend lock/build repair. Draft/unmerged until synchronized lockfile plus deterministic consistency check, `npm ci`, build and audit evidence are green.
 
 ## Canonical product records
 
@@ -44,68 +46,68 @@ Each canonical record tracks:
 - business_owner: Abijith Asokan
 - repository: `abijithasokan1992/streamvistacreator-com`
 - canonical_branch: `main`
-- deployment: UNVERIFIED
+- deployment: Vercel production baseline observed READY; exact product mapping remains evidence-controlled
 - domain: UNVERIFIED
 - database: UNVERIFIED
 - storage: UNVERIFIED
 - auth: UNVERIFIED
 - payment: UNVERIFIED
 - revenue_model: public product/company entry surface
-- implementation_status: runtime/routes verified in source; production-green verification pending
+- implementation_status: AMBER — PR #102 production build/preview READY; security/regression gates pending
 - golden_baseline_status: NOT VERIFIED
-- evidence_path: `factory/audit/IMPLEMENTATION_STATUS.md`
-- current_blockers: shared-runtime build/regression/security gates pending
-- next_revenue_action: verify production-safe public entry surface after release gates are green
+- evidence_path: `factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`
+- current_blockers: required GitHub regression/security Actions have not produced green evidence
+- next_revenue_action: preserve current production baseline; promote cleanup only after required checks pass
 
 ### SV-Creator-Cloud — StreamVista Creator Cloud
 - business_owner: Abijith Asokan
 - repository: `abijithasokan1992/streamvistacreator-com`
 - canonical_branch: `main`
-- deployment: UNVERIFIED
+- deployment: shared Vercel production baseline observed READY; exact product mapping remains evidence-controlled
 - domain: UNVERIFIED
 - database: UNVERIFIED
 - storage: UNVERIFIED
 - auth: UNVERIFIED
 - payment: UNVERIFIED
 - revenue_model: creator onboarding and content workflow
-- implementation_status: Creator V2 routes/modules exist; production-green verification pending
+- implementation_status: AMBER — PR #102 shared production build succeeds; security-green verification pending
 - golden_baseline_status: NOT VERIFIED
-- evidence_path: `factory/audit/IMPLEMENTATION_STATUS.md`
-- current_blockers: PR #101 and #102 build/regression/security evidence pending
-- next_revenue_action: verify creator submission path and canonical deployment mapping after gates pass
+- evidence_path: `factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`
+- current_blockers: PR #101/#102 Actions approval/execution; Semgrep/npm audit/OSV/regression evidence pending
+- next_revenue_action: verify creator submission path and promote only after shared-runtime gates pass
 
 ### SV-Buyer-Portal — StreamVista Buyer Portal
 - business_owner: Abijith Asokan
 - repository: `abijithasokan1992/streamvistacreator-com`
 - canonical_branch: `main`
-- deployment: UNVERIFIED
+- deployment: shared Vercel preview/build evidence READY; exact production mapping remains evidence-controlled
 - domain: UNVERIFIED
 - database: UNVERIFIED
 - storage: UNVERIFIED
 - auth: UNVERIFIED
 - payment: UNVERIFIED
 - revenue_model: buyer access and licensing marketplace
-- implementation_status: buyer dashboard/marketplace modules exist; production-green verification pending
+- implementation_status: AMBER — shared production build/preview READY; security-green verification pending
 - golden_baseline_status: NOT VERIFIED
-- evidence_path: `factory/audit/IMPLEMENTATION_STATUS.md`
-- current_blockers: shared-runtime PR #101/#102 security/build/regression gates pending
-- next_revenue_action: verify buyer licensing path and deployment after shared-runtime gates pass
+- evidence_path: `factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`
+- current_blockers: shared-runtime GitHub security/regression gates pending
+- next_revenue_action: verify buyer licensing path and promote after shared-runtime gates pass
 
 ### SV-Admin — StreamVista Admin Console
 - business_owner: Abijith Asokan
 - repository: `abijithasokan1992/streamvistacreator-com`
 - canonical_branch: `main`
-- deployment: UNVERIFIED
+- deployment: shared Vercel preview/build evidence READY; exact production mapping remains evidence-controlled
 - domain: UNVERIFIED
 - database: UNVERIFIED
 - storage: UNVERIFIED
 - auth: UNVERIFIED
 - payment: UNVERIFIED
 - revenue_model: operational control for licensing and creator/buyer workflows
-- implementation_status: canonical `/admin/*` route source exists; production-green verification pending
+- implementation_status: AMBER — canonical `/admin/*` source exists and shared preview/build is READY; security-green verification pending
 - golden_baseline_status: NOT VERIFIED
-- evidence_path: `factory/audit/IMPLEMENTATION_STATUS.md`
-- current_blockers: shared-runtime PR #101/#102 security/build/regression gates pending
+- evidence_path: `factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`
+- current_blockers: shared-runtime GitHub security/regression gates pending
 - next_revenue_action: verify admin-controlled licensing workflow after shared-runtime gates pass
 
 ### SV-Cloud-X — StreamVista Cloud X
@@ -119,10 +121,10 @@ Each canonical record tracks:
 - auth: UNVERIFIED
 - payment: UNVERIFIED
 - revenue_model: platform and content-licensing operations
-- implementation_status: separate frontend/backend runtime exists; reproducible build verification pending
+- implementation_status: RED — separate frontend/backend runtime exists; package/lock synchronization and reproducible build evidence pending
 - golden_baseline_status: NOT VERIFIED
-- evidence_path: `factory/audit/incidents/P0-2-streamvista-cloud-x-lockfile.md`
-- current_blockers: manifest/lockfile drift recorded; PR #57 runner evidence pending
+- evidence_path: `factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`
+- current_blockers: PR #57 runner has not produced synchronized lock/build/audit evidence
 - next_revenue_action: clear dependency/build gate, then verify deployable baseline
 
 ## Separate products after Core 5

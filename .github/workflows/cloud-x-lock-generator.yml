@@ -96,7 +96,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- factory/generated/cloud-x-lock && git diff --cached --quiet; then
+          if [[ -z "$(git status --porcelain -- factory/generated/cloud-x-lock)" ]]; then
             echo "Generated lock evidence already current"
             exit 0
           fi

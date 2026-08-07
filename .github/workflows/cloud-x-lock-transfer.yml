@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chore/cloud-x-lock-generator
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -22,7 +25,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object factory/generated/cloud-x-lock/package-lock.json)" = "9ff68a5072d12002cddca08fdf1e0b60d7b0b8b5"
+          test "$(git hash-object factory/generated/cloud-x-lock/package-lock.json)" = "f40128e7bfad7bdbb883f6ba0a7bde9b67d9a87c"
 
       - name: Transfer lock to canonical Cloud X repair branch
         env:

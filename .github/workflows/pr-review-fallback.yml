@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -42,6 +42,21 @@ jobs:
           else
             git diff --check
           fi
+
+      - name: Reuse canonical PR #8 dependency lock for proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANONICAL_BRANCH="chore/factory-organisation"
+          CANONICAL_HEAD="73f4d4fef909242e49576133a8a321e8f4e22683"
+          EXPECTED_PACKAGE_BLOB="a743ed1012accc0c8cafb3b49893cc61d53bccf8"
+          EXPECTED_LOCK_BLOB="b74ea283fdffd4c8d4a6d329ceffc9e09611228e"
+
+          test "$(git hash-object package.json)" = "$EXPECTED_PACKAGE_BLOB"
+          git fetch --no-tags origin "$CANONICAL_BRANCH"
+          test "$(git rev-parse FETCH_HEAD)" = "$CANONICAL_HEAD"
+          git show "$CANONICAL_HEAD:package-lock.json" > package-lock.json
+          test "$(git hash-object package-lock.json)" = "$EXPECTED_LOCK_BLOB"
 
       - name: Install exact dependencies
         run: npm ci
@@ -64,12 +79,18 @@ jobs:
             echo
             echo "This gate is independent of Codex and Copilot review quotas."
             echo
+            echo "Dependency proof is intentionally stacked on the exact verified PR #8 lockfile."
+            echo "The job fails if PR #8 head, package.json blob, or lockfile blob drifts."
+            echo
             echo "Required evidence in this job:"
             echo "- base-aware repository diff integrity"
+            echo "- exact PR #8 dependency-lock reuse"
             echo "- reproducible npm install via npm ci"
             echo "- lint"
             echo "- production build"
             echo "- npm high/critical vulnerability gate"
             echo
-            echo "AI review is advisory only; a green deterministic gate is the merge evidence."
+            echo "A green run proves PR #11 + the pinned PR #8 lockfile combination only."
+            echo "PR #11 remains merge-held until that canonical lockfile is present on the merge target or is adopted into this branch and the gate is rerun."
+            echo "AI review is advisory only."
           } >> "$GITHUB_STEP_SUMMARY"

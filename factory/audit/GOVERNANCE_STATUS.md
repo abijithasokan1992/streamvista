@@ -4,6 +4,8 @@ Verification timestamp: 2026-08-08 03:25 IST
 
 Repository: `abijithasokan1992/streamvista`
 Default branch: `main`
+Organisation PR: `#8`
+Organisation branch: `chore/factory-organisation`
 
 ## Verified repository metadata
 
@@ -15,10 +17,9 @@ Default branch: `main`
 - update-branch support is not enabled in the verified repository metadata
 - the pre-change `main` head verified for this organisation pass was `18e7a006cdccf3009e0fb83c3c8dc14bf2695aa9`
 - no pull-request workflow run was returned for that pre-change head commit
+- PR #8 was opened from `chore/factory-organisation` to `main`; it remains open and unmerged
 
 ## Governance implemented by organisation PR
-
-Branch: `chore/factory-organisation`
 
 The branch adds:
 
@@ -39,7 +40,7 @@ Required workflow gates defined by this branch:
 
 - PR-based workflow definition: IMPLEMENTED ON ORGANISATION BRANCH
 - CODEOWNERS definition: IMPLEMENTED ON ORGANISATION BRANCH
-- actual workflow result: PENDING PR RUN
+- actual workflow result: PENDING PR RUN / RECHECK AFTER SYNCHRONIZE EVENT
 - `main` branch protection/ruleset: UNVERIFIED — current connector does not expose branch-protection/ruleset read/write operations
 - PR-only enforcement: UNVERIFIED until branch protection/ruleset is directly confirmed
 - required-check enforcement: UNVERIFIED until branch protection/ruleset requires the named checks

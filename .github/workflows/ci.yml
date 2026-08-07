@@ -1,0 +1,38 @@
+name: StreamVista Production Verification
+
+on:
+  pull_request:
+    branches:
+      - antigravity/streamvista-complete-build
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck and build
+        run: npm run build
+
+      - name: Verify key routes are wired
+        run: |
+          grep -q 'path="/chief-ai-operator"' src/App.tsx
+          grep -q 'path="/operations"' src/App.tsx
+          grep -q 'path="/creator"' src/App.tsx
+          grep -q 'path="/buyer"' src/App.tsx
+          grep -q 'path="/finance"' src/App.tsx
+          grep -q 'path="/admin/audit"' src/App.tsx

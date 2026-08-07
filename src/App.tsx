@@ -9,6 +9,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { WorkspaceOS } from "./pages/WorkspaceOS";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ChiefAIOperator from "./pages/ChiefAIOperator";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import CreatorProfile from "./pages/CreatorProfile";
 import BuyerDashboard from "./pages/BuyerDashboard";
@@ -64,6 +65,7 @@ export default function App() {
 
           {/* Mission Control & Dashboard Routes */}
           <Route path="/mission-control" element={<AppLayout><Dashboard /></AppLayout>} />
+          <Route path="/chief-ai-operator" element={<AppLayout><ChiefAIOperator /></AppLayout>} />
           <Route path="/creator" element={<AppLayout><CreatorDashboard /></AppLayout>} />
           <Route path="/creator/profile" element={<AppLayout><CreatorProfile /></AppLayout>} />
           <Route path="/buyer" element={<AppLayout><BuyerDashboard /></AppLayout>} />

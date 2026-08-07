@@ -18,17 +18,19 @@ See [`docs/REPOSITORY_MAP.md`](docs/REPOSITORY_MAP.md) for ownership/classificat
 
 ## Canonical product map
 
-| Product | Canonical repository state | Implementation state |
+| Product | Canonical repository state | Verified release state |
 |---|---|---|
-| StreamVista Cloud X | `abijithasokan1992/streamvista-cloud-x` | prototype / partial; runtime verification pending |
-| StreamVista Creator Cloud | `abijithasokan1992/streamvistacreator-com` | working design; runtime verification pending |
+| StreamVista Website | `abijithasokan1992/streamvistacreator-com` | AMBER — build/preview evidence exists; GitHub security/regression gates pending |
+| StreamVista Creator Cloud | `abijithasokan1992/streamvistacreator-com` | AMBER — shared build evidence exists; security gates pending |
+| StreamVista Buyer Portal | `abijithasokan1992/streamvistacreator-com` | AMBER — shared build/preview evidence exists; security gates pending |
+| StreamVista Admin Console | `abijithasokan1992/streamvistacreator-com` | AMBER — shared build/preview evidence exists; security gates pending |
+| StreamVista Cloud X | `abijithasokan1992/streamvista-cloud-x` | RED — dependency lock/build evidence still gated in its release-control PR |
 | StreamVista AI Chat | canonical runtime repository not yet registered | draft + prototype |
-| StreamVista Buyer Portal | canonical runtime repository not yet registered | implementation verification pending |
 | Crayons Bridge | `abijithasokan1992/crayonsbridge-` | repository verified; runtime verification pending |
 | FAST / Crayons Loop | canonical runtime repository not yet promoted; related repository exists | implementation verification pending |
 | Union Auto Spares | `abijithasokan1992/union-auto-spares` | repository verified; runtime verification pending |
 
-The authoritative record is [`factory/products/REGISTRY.md`](factory/products/REGISTRY.md). Unknown deployment, domain, database, storage, authentication or payment mappings stay explicitly `UNVERIFIED` until evidence is attached.
+The authoritative record is [`factory/products/REGISTRY.md`](factory/products/REGISTRY.md). Unknown deployment, domain, database, storage, authentication or payment mappings stay explicitly `UNVERIFIED` until evidence is attached. Core 5 release evidence is recorded in [`factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`](factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md).
 
 ## FACTORY architecture
 
@@ -75,7 +77,8 @@ This repository now defines the required checks in `.github/workflows/factory-qu
 ## Evidence and source of truth
 
 - [`factory/audit/EVIDENCE_INDEX.md`](factory/audit/EVIDENCE_INDEX.md) — evidence index
-- [`factory/audit/IMPLEMENTATION_STATUS.md`](factory/audit/IMPLEMENTATION_STATUS.md) — implementation verification matrix
+- [`factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md`](factory/audit/CORE5_RELEASE_AUDIT_2026-08-08.md) — verified Core 5 release evidence and blockers
+- [`factory/audit/IMPLEMENTATION_STATUS.md`](factory/audit/IMPLEMENTATION_STATUS.md) — declared-vs-verified implementation status matrix
 - [`factory/audit/GOVERNANCE_STATUS.md`](factory/audit/GOVERNANCE_STATUS.md) — GitHub governance verification
 - [`factory/audit/GOLDEN_BASELINE.md`](factory/audit/GOLDEN_BASELINE.md) — release/baseline gate
 - [`factory/knowledge/MASTER_INVENTORY.md`](factory/knowledge/MASTER_INVENTORY.md) — declared ecosystem inventory

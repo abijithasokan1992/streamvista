@@ -4,6 +4,7 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { MainLayout } from "./layouts/MainLayout";
 
 // Pages
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
@@ -26,10 +27,11 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          
+
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/titles" element={<Titles />} />
             <Route path="/creator" element={<CreatorDashboard />} />
             <Route path="/buyer" element={<BuyerDashboard />} />
@@ -44,7 +46,6 @@ function App() {
             <Route path="/users" element={<Users />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            {/* Other routes will go here as they are built */}
             <Route path="*" element={
               <div className="flex items-center justify-center h-full text-slate-400">
                 <p>Page not found or under construction.</p>

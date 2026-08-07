@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object factory/generated/cloud-x-lock/package-lock.json)" = "fbd863a153ea540c2a50c10329d32e1065c338f9"
+          test "$(git hash-object factory/generated/cloud-x-lock/package-lock.json)" = "9ff68a5072d12002cddca08fdf1e0b60d7b0b8b5"
           rm -rf .factory-tmp/cloud-x-frontend-verify
           mkdir -p .factory-tmp/cloud-x-frontend-verify
           cat > .factory-tmp/cloud-x-frontend-verify/package.json <<'JSON'
@@ -51,7 +51,7 @@ jobs:
               "@types/react-dom": "19.1.7",
               "@vitejs/plugin-react": "4.7.0",
               "typescript": "5.8.3",
-              "vite": "7.1.2"
+              "vite": "7.3.6"
             }
           }
           JSON

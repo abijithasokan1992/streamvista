@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chore/cloud-x-lock-generator
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write

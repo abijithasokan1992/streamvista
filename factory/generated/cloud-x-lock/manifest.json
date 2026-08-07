@@ -1,0 +1,23 @@
+{
+  "generated_with_node": "v22.23.1",
+  "generated_with_npm": "10.9.8",
+  "lockfile_version": 3,
+  "package_count": 129,
+  "supabase_resolved": "2.112.2",
+  "base64_chunk_size": 6000,
+  "chunks": [
+    "chunk-000.txt",
+    "chunk-001.txt",
+    "chunk-002.txt",
+    "chunk-003.txt",
+    "chunk-004.txt",
+    "chunk-005.txt",
+    "chunk-006.txt",
+    "chunk-007.txt",
+    "chunk-008.txt",
+    "chunk-009.txt",
+    "chunk-010.txt",
+    "chunk-011.txt"
+  ],
+  "sha256": "ce8fa58ca695bb3fae8036a5c1c66a18b3f33d9cd3805c1160948e2bb1392b1c"
+}

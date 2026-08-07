@@ -1,0 +1,45 @@
+name: P0 Auth and Data Safety Gate
+
+on:
+  push:
+    branches:
+      - fix/p0-production-auth-data-safety
+  pull_request:
+    branches:
+      - antigravity/streamvista-complete-build
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0-auth-data-safety-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Fail-closed auth and persistence
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Run P0 acceptance tests
+        run: npm run test:p0-auth-data
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        env:
+          VITE_USE_FIREBASE_EMULATOR: "true"
+        run: npm run build

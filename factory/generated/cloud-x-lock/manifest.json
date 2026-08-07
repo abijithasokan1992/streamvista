@@ -4,6 +4,8 @@
   "lockfile_version": 3,
   "package_count": 129,
   "supabase_resolved": "2.112.2",
+  "raw_bytes": 44158,
+  "base64_bytes": 58880,
   "base64_chunk_size": 1800,
   "chunks": [
     "chunk-000.txt",
@@ -38,11 +40,7 @@
     "chunk-029.txt",
     "chunk-030.txt",
     "chunk-031.txt",
-    "chunk-032.txt",
-    "chunk-033.txt",
-    "chunk-034.txt",
-    "chunk-035.txt",
-    "chunk-036.txt"
+    "chunk-032.txt"
   ],
-  "sha256": "ce8fa58ca695bb3fae8036a5c1c66a18b3f33d9cd3805c1160948e2bb1392b1c"
+  "sha256": "cb0fb6c87ab62b61941dd4095428bea48c17c47efdc8a2133d51541d179127ec"
 }

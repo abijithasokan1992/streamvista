@@ -66,7 +66,7 @@ jobs:
           const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
           const canonical = JSON.stringify(lock);
           const b64 = Buffer.from(canonical + '\n', 'utf8').toString('base64');
-          const chunkSize = 6000;
+          const chunkSize = 1800;
           const out = path.resolve('../../factory/generated/cloud-x-lock');
           fs.rmSync(out, { recursive: true, force: true });
           fs.mkdirSync(out, { recursive: true });

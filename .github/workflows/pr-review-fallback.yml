@@ -33,7 +33,15 @@ jobs:
           cache: npm
 
       - name: Repository diff integrity
-        run: git diff --check
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git diff --check "origin/${{ github.base_ref }}...HEAD"
+          elif git rev-parse HEAD^ >/dev/null 2>&1; then
+            git diff --check HEAD^ HEAD
+          else
+            git diff --check
+          fi
 
       - name: Install exact dependencies
         run: npm ci
@@ -57,7 +65,7 @@ jobs:
             echo "This gate is independent of Codex and Copilot review quotas."
             echo
             echo "Required evidence in this job:"
-            echo "- repository diff integrity"
+            echo "- base-aware repository diff integrity"
             echo "- reproducible npm install via npm ci"
             echo "- lint"
             echo "- production build"

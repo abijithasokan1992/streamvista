@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Generate and verify lockfile
+      - name: Generate compact lock and verify npm ci
         shell: bash
         run: |
           set -euo pipefail
@@ -58,19 +58,35 @@ jobs:
           JSON
           cd .factory-tmp/cloud-x-frontend
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm ci --ignore-scripts --no-audit --no-fund
+          node - <<'NODE'
+          const fs = require('fs');
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const keep = new Set([
+            'name','version','resolved','integrity','dev','optional','devOptional','hasInstallScript',
+            'dependencies','optionalDependencies','peerDependencies','peerDependenciesMeta','bin','cpu','os'
+          ]);
+          for (const [path, pkg] of Object.entries(lock.packages || {})) {
+            if (path === '') continue;
+            for (const key of Object.keys(pkg)) {
+              if (!keep.has(key)) delete pkg[key];
+            }
+          }
+          fs.writeFileSync('package-lock.json', JSON.stringify(lock) + '\n');
+          NODE
+          rm -rf node_modules
+          npm ci --no-audit --no-fund
           node - <<'NODE'
           const fs = require('fs');
           const crypto = require('crypto');
           const path = require('path');
-          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
-          const canonical = JSON.stringify(lock);
-          const b64 = Buffer.from(canonical + '\n', 'utf8').toString('base64');
+          const raw = fs.readFileSync('package-lock.json');
+          const lock = JSON.parse(raw);
+          const b64 = raw.toString('base64');
           const chunkSize = 1800;
           const out = path.resolve('../../factory/generated/cloud-x-lock');
           fs.rmSync(out, { recursive: true, force: true });
           fs.mkdirSync(out, { recursive: true });
-          fs.writeFileSync(path.join(out, 'package-lock.json'), canonical + '\n');
+          fs.writeFileSync(path.join(out, 'package-lock.json'), raw);
           const chunks = [];
           for (let i = 0; i < b64.length; i += chunkSize) {
             const piece = b64.slice(i, i + chunkSize);
@@ -78,17 +94,17 @@ jobs:
             fs.writeFileSync(path.join(out, name), piece + '\n');
             chunks.push(name);
           }
-          const sha256 = crypto.createHash('sha256').update(canonical + '\n').digest('hex');
-          const supa = lock.packages?.['node_modules/@supabase/supabase-js']?.version || null;
           fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify({
             generated_with_node: process.version,
             generated_with_npm: require('child_process').execFileSync('npm', ['--version'], {encoding:'utf8'}).trim(),
             lockfile_version: lock.lockfileVersion,
             package_count: Object.keys(lock.packages || {}).length,
-            supabase_resolved: supa,
+            supabase_resolved: lock.packages?.['node_modules/@supabase/supabase-js']?.version || null,
+            raw_bytes: raw.length,
+            base64_bytes: b64.length,
             base64_chunk_size: chunkSize,
             chunks,
-            sha256
+            sha256: crypto.createHash('sha256').update(raw).digest('hex')
           }, null, 2) + '\n');
           NODE
 
@@ -103,5 +119,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add factory/generated/cloud-x-lock
-          git commit -m "chore(factory): generate Cloud X frontend lock [generated-cloud-x-lock]"
+          git commit -m "chore(factory): generate compact Cloud X lock [generated-cloud-x-lock]"
           git push origin HEAD:chore/cloud-x-lock-generator

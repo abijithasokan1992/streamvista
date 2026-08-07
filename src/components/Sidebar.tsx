@@ -1,22 +1,23 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { cn } from "../utils/cn";
-import { 
-  LayoutDashboard, 
-  Film, 
-  FileEdit, 
-  UploadCloud, 
-  Users, 
-  ShieldCheck, 
-  Scale, 
-  CreditCard, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Film,
+  FileEdit,
+  UploadCloud,
+  Users,
+  ShieldCheck,
+  Scale,
+  CreditCard,
+  BarChart3,
   Megaphone,
   Settings,
   ListVideo,
   Activity,
   Share2,
-  Bot
+  Bot,
+  Workflow,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -28,6 +29,7 @@ export function Sidebar() {
   const navItems = [
     { name: "Mission Control", path: "/", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Chief AI Operator", path: "/chief-ai-operator", icon: Bot, roles: ["platform_owner", "founder", "super_admin", "admin"] },
+    { name: "Operations Suite", path: "/operations", icon: Workflow, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Instagram Integration", path: "/integrations/instagram", icon: Share2, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"] },
     { name: "Creator Dashboard", path: "/creator", icon: LayoutDashboard, roles: ["creator_partner"] },
     { name: "My Profile", path: "/creator/profile", icon: Users, roles: ["creator_partner"] },
@@ -66,8 +68,8 @@ export function Sidebar() {
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                isActive 
-                  ? "bg-brand-gold/10 text-brand-gold" 
+                isActive
+                  ? "bg-brand-gold/10 text-brand-gold"
                   : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
               )
             }

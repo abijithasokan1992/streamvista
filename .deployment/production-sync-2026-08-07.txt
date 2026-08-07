@@ -1,0 +1,2 @@
+StreamVista production synchronization marker.
+Build verified by GitHub Actions before deployment trigger.

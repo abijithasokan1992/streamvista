@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - chore/cloud-x-lock-generator
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: write
@@ -26,7 +23,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Generate compact lock and verify npm ci
+      - name: Generate secure compact lock, npm ci, and audit
         shell: bash
         run: |
           set -euo pipefail
@@ -52,7 +49,7 @@ jobs:
               "@types/react-dom": "19.1.7",
               "@vitejs/plugin-react": "4.7.0",
               "typescript": "5.8.3",
-              "vite": "7.1.2"
+              "vite": "7.3.6"
             }
           }
           JSON
@@ -65,8 +62,8 @@ jobs:
             'name','version','integrity','dev','optional','devOptional','hasInstallScript',
             'dependencies','optionalDependencies','peerDependencies','peerDependenciesMeta','bin','cpu','os'
           ]);
-          for (const [path, pkg] of Object.entries(lock.packages || {})) {
-            if (path === '') continue;
+          for (const [pkgPath, pkg] of Object.entries(lock.packages || {})) {
+            if (pkgPath === '') continue;
             for (const key of Object.keys(pkg)) {
               if (!keep.has(key)) delete pkg[key];
             }
@@ -75,6 +72,7 @@ jobs:
           NODE
           rm -rf node_modules
           npm ci --no-audit --no-fund
+          npm audit --audit-level=high
           node - <<'NODE'
           const fs = require('fs');
           const crypto = require('crypto');
@@ -105,7 +103,9 @@ jobs:
             base64_bytes: b64.length,
             base64_chunk_size: chunkSize,
             chunks,
-            sha256: crypto.createHash('sha256').update(raw).digest('hex')
+            sha256: crypto.createHash('sha256').update(raw).digest('hex'),
+            npm_ci: 'PASS',
+            npm_audit_high: 'PASS'
           }, null, 2) + '\n');
           NODE
 
@@ -120,5 +120,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add factory/generated/cloud-x-lock
-          git commit -m "chore(factory): generate integrity-compact Cloud X lock [generated-cloud-x-lock]"
+          git commit -m "chore(factory): generate secure Vite 7.3.6 Cloud X lock [generated-cloud-x-lock]"
           git push origin HEAD:chore/cloud-x-lock-generator

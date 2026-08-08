@@ -1,152 +1,137 @@
-import { ArrowRight, Bot, BriefcaseBusiness, Film, Globe2, Search, ShieldCheck, Sparkles, Upload } from "lucide-react";
+import { ArrowRight, Bot, Film, Globe2, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const entryPoints = [
+const features = [
   {
-    title: "I am a Creator",
-    subtitle: "Upload content, manage rights, track reviews, deals and earnings.",
+    title: "Creators & Studios",
+    text: "Prepare titles, rights, assets and delivery readiness in one focused workspace.",
     icon: Film,
-    action: "Upload my content",
     path: "/creator",
+    action: "Open Creator",
   },
   {
-    title: "I am a Buyer",
-    subtitle: "Discover rights-cleared content, review availability and manage licensing.",
-    icon: Search,
-    action: "Find content",
-    path: "/buyer",
-  },
-  {
-    title: "I am a Distributor",
-    subtitle: "Manage catalogues, territories, deliveries, licences and revenue.",
+    title: "Buyers & Licensing",
+    text: "Discover rights-ready content and move through controlled review and licensing workflows.",
     icon: Globe2,
-    action: "Open distributor workspace",
-    path: "/distributor",
+    path: "/buyer",
+    action: "Open Buyer",
   },
   {
-    title: "AI Workspace",
-    subtitle: "Private command center for agents, platform health, incidents and approvals.",
+    title: "AI Operations",
+    text: "Use StreamVista's private operating layer for agents, platform health and controlled execution.",
     icon: Bot,
-    action: "Open AI Workspace",
     path: "/chief-ai-operator",
+    action: "Open AI Workspace",
   },
-];
-
-const quickActions = [
-  { label: "Upload My Content", icon: Upload, path: "/creator" },
-  { label: "Find Content", icon: Search, path: "/buyer" },
-  { label: "AI Workspace", icon: Bot, path: "/chief-ai-operator" },
-  { label: "Track My Deals", icon: BriefcaseBusiness, path: "/workspace" },
 ];
 
 export function LandingPageV2() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#070A10] text-white">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070A10]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 lg:px-8">
+    <div className="min-h-screen bg-[#060810] text-white">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-5 py-6 sm:px-6 lg:px-8">
+        <header className="flex items-center justify-between border-b border-white/10 pb-5">
           <button onClick={() => navigate("/")} className="flex items-center gap-3 text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 font-black text-black">SV</div>
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-400 font-black text-black">SV</div>
             <div>
-              <div className="text-lg font-extrabold tracking-tight">StreamVista</div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Create · License · Distribute · Operate</div>
+              <div className="font-bold tracking-tight">StreamVista</div>
+              <div className="mt-0.5 text-[10px] uppercase tracking-[0.22em] text-slate-500">Media Business Platform</div>
             </div>
           </button>
 
-          <nav className="hidden items-center gap-5 text-sm text-slate-400 md:flex">
-            <button onClick={() => navigate("/marketplace")} className="hover:text-white">Marketplace</button>
-            <button onClick={() => navigate("/fast")} className="hover:text-white">FAST</button>
-            <button onClick={() => navigate("/services")} className="hover:text-white">Services</button>
-            <button onClick={() => navigate("/about")} className="hover:text-white">About</button>
-            <button onClick={() => navigate("/contact")} className="hover:text-white">Contact</button>
-            <button onClick={() => navigate("/login")} className="rounded-xl border border-white/10 px-4 py-2 font-semibold text-white hover:bg-white/5">Login</button>
-          </nav>
-        </div>
-      </header>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate("/login")}
+              className="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/5"
+            >
+              Sign in
+            </button>
+            <button
+              onClick={() => navigate("/creator")}
+              className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-black transition hover:bg-slate-200"
+            >
+              Submit content
+            </button>
+          </div>
+        </header>
 
-      <main>
-        <section className="border-b border-white/10">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:py-20">
-            <div className="flex flex-col justify-center">
-              <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-300">
-                <Sparkles size={14} /> StreamVista Media Operating System
+        <main className="flex-1">
+          <section className="grid items-center gap-12 py-16 lg:grid-cols-[1.15fr_.85fr] lg:py-24">
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-300">
+                <ShieldCheck size={14} /> Rights-first media operations
               </div>
-              <h1 className="max-w-3xl text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-                Welcome to StreamVista
+              <h1 className="max-w-4xl text-5xl font-black leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+                Build. License. Distribute. Grow.
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-400">
-                Create. License. Distribute. Operate. Choose what you want to do and go directly to the right workflow.
+              <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-400">
+                StreamVista gives creators, studios, buyers and media teams one professional workspace for content readiness,
+                rights control, licensing workflows and operations.
               </p>
 
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {quickActions.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={() => navigate(item.path)}
-                    className="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4 text-left transition hover:border-amber-400/30 hover:bg-white/[0.06]"
-                  >
-                    <span className="flex items-center gap-3 font-semibold"><item.icon size={18} className="text-amber-300" />{item.label}</span>
-                    <ArrowRight size={17} className="text-slate-600 transition group-hover:translate-x-1 group-hover:text-white" />
-                  </button>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <button
+                  onClick={() => navigate("/workspace")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-sm font-bold text-black transition hover:bg-amber-300"
+                >
+                  Open Platform <ArrowRight size={16} />
+                </button>
+                <button
+                  onClick={() => navigate("/buyer")}
+                  className="rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold transition hover:bg-white/5"
+                >
+                  Explore Buyer Workspace
+                </button>
+              </div>
+
+              <p className="mt-5 max-w-2xl text-xs leading-5 text-slate-600">
+                Licensing, distribution and revenue remain subject to rights verification, QC, buyer review and written commercial terms.
+              </p>
+            </div>
+
+            <aside className="rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/30 sm:p-8">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">Platform flow</p>
+              <div className="mt-6 space-y-3">
+                {["Content & metadata", "Rights & legal", "QC & readiness", "Buyer & deal workflow", "Delivery & reporting"].map((item, index) => (
+                  <div key={item} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <span className="grid h-8 w-8 place-items-center rounded-full bg-amber-400/10 text-xs font-bold text-amber-300">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-sm font-medium text-slate-200">{item}</span>
+                  </div>
                 ))}
               </div>
+            </aside>
+          </section>
 
-              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-500">
-                <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-400" /> Rights-first workflows</span>
-                <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-emerald-400" /> Private AI operations</span>
-              </div>
-            </div>
+          <section className="grid gap-4 border-t border-white/10 py-10 md:grid-cols-3">
+            {features.map((feature) => (
+              <button
+                key={feature.title}
+                onClick={() => navigate(feature.path)}
+                className="group rounded-2xl border border-white/10 bg-white/[0.025] p-5 text-left transition hover:border-amber-400/30 hover:bg-white/[0.045]"
+              >
+                <feature.icon size={22} className="text-amber-300" />
+                <h2 className="mt-4 text-lg font-bold">{feature.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">{feature.text}</p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-amber-300">
+                  {feature.action} <ArrowRight size={14} className="transition group-hover:translate-x-1" />
+                </span>
+              </button>
+            ))}
+          </section>
+        </main>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {entryPoints.map((entry) => (
-                <button
-                  key={entry.title}
-                  onClick={() => navigate(entry.path)}
-                  className="group rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.055] to-white/[0.025] p-5 text-left shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-amber-400/30"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/20 text-amber-300">
-                    <entry.icon size={21} />
-                  </div>
-                  <h2 className="mt-5 text-xl font-bold">{entry.title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-400">{entry.subtitle}</p>
-                  <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-amber-300">
-                    {entry.action}<ArrowRight size={15} className="transition group-hover:translate-x-1" />
-                  </div>
-                </button>
-              ))}
-            </div>
+        <footer className="flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+          <span>StreamVista (OPC) Private Limited · Kerala, India</span>
+          <div className="flex gap-4">
+            <button onClick={() => navigate("/about")} className="hover:text-slate-300">About</button>
+            <button onClick={() => navigate("/services")} className="hover:text-slate-300">Services</button>
+            <button onClick={() => navigate("/contact")} className="hover:text-slate-300">Contact</button>
           </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-5 py-12 lg:px-8 lg:py-16">
-          <div className="mb-7 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">Choose a workflow, not a menu</p>
-              <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Everything starts with what you need to do today.</h2>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-              <div className="text-sm font-semibold text-white">Creator workflow</div>
-              <p className="mt-2 text-sm leading-6 text-slate-500">Upload → Rights → Review → Marketplace → Deals → Earnings</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-              <div className="text-sm font-semibold text-white">Buyer workflow</div>
-              <p className="mt-2 text-sm leading-6 text-slate-500">Discover → Filter rights → Request licence → Deal room → Delivery</p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-              <div className="text-sm font-semibold text-white">AI operations</div>
-              <p className="mt-2 text-sm leading-6 text-slate-500">Agents → Platform health → Incidents → Recovery → Verification</p>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-white/10 px-5 py-8 text-center text-xs text-slate-600 lg:px-8">
-        StreamVista · Media, licensing and AI operations in one workspace
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

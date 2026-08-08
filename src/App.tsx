@@ -20,6 +20,7 @@ import Analytics from "./pages/Analytics";
 import Campaigns from "./pages/Campaigns";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import CommandCenter from "./pages/CommandCenter";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/command-center" element={<CommandCenter />} />
           
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/" element={<Dashboard />} />

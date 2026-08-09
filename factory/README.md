@@ -5,9 +5,10 @@ This directory is the shared support layer for StreamVista software, tools, MCPs
 ## Governing rules
 1. Factory hierarchy
 2. Golden Baseline before production promotion
-3. Never rebuild. Always compose: Search -> Reuse -> Wire -> Verify -> Ship
-4. Revenue first
-5. Evidence only for completion claims
+3. **Mandatory Pre-Domain QA Gate:** no production domain mapping, DNS cutover, production promotion, or `live` claim until all intended production app pages and critical workflows are complete, correctly wired, pass the required QA gates, and have release evidence. See [`operations/MASTER_PRE_DOMAIN_QA_GATE.md`](operations/MASTER_PRE_DOMAIN_QA_GATE.md).
+4. Never rebuild. Always compose: Search -> Reuse -> Wire -> Verify -> Ship
+5. Revenue first
+6. Evidence only for completion claims
 
 ## Layers
 - `platform/` shared capabilities

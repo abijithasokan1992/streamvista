@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -8,6 +9,7 @@ import {
   CircleDollarSign,
   Cloud,
   Code2,
+  ExternalLink,
   Film,
   Gauge,
   GitBranch,
@@ -20,6 +22,9 @@ import {
   Target,
   Workflow,
 } from "lucide-react";
+
+const LOVABLE_BILLING_URL = "https://lovable.dev/settings/billing";
+const LOVABLE_BILLING_TEST_KEY = "lovable_billing_link_tested";
 
 const agents = [
   { name: "Chief Operator", role: "Priority + orchestration", status: "Active", icon: Sparkles },
@@ -86,6 +91,18 @@ function StatusPill({ children }: { children: React.ReactNode }) {
 }
 
 export default function ChiefAIOperator() {
+  const [lovableBillingTested, setLovableBillingTested] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(window.sessionStorage.getItem(LOVABLE_BILLING_TEST_KEY));
+  });
+
+  const recordLovableBillingNavigationTest = () => {
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(LOVABLE_BILLING_TEST_KEY, new Date().toISOString());
+    }
+    setLovableBillingTested(true);
+  };
+
   return (
     <div className="space-y-8 pb-10">
       <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-2xl shadow-black/20 backdrop-blur xl:p-8">
@@ -110,6 +127,40 @@ export default function ChiefAIOperator() {
               <div className="flex items-center gap-2 text-slate-400"><Target size={16} /> Top priority</div>
               <div className="mt-2 text-lg font-bold text-white">Revenue</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.045] p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 text-sm font-semibold text-amber-100">
+              <ShieldCheck size={18} /> Owner Action · Lovable Exit
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              Downgrade/cancel paid plan only. Do not delete account or projects.
+            </p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              This button records only that the billing page navigation was tested. It never marks the subscription as cancelled.
+            </p>
+          </div>
+
+          <div className="flex flex-col items-start gap-2 lg:items-end">
+            <a
+              href={LOVABLE_BILLING_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={recordLovableBillingNavigationTest}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm font-bold text-amber-100 transition hover:border-amber-200/50 hover:bg-amber-300/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/70"
+              aria-label="End Lovable Paid Plan — open Lovable billing settings in a new tab"
+            >
+              End Lovable Paid Plan <ExternalLink size={16} />
+            </a>
+            {lovableBillingTested && (
+              <div role="status" className="flex items-center gap-1.5 text-xs font-semibold text-emerald-300">
+                <CheckCircle2 size={14} /> Billing link opened — navigation test passed
+              </div>
+            )}
           </div>
         </div>
       </section>

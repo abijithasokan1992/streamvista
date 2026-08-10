@@ -9,6 +9,7 @@ This directory is the shared support layer for StreamVista software, tools, MCPs
 4. Never rebuild. Always compose: Search -> Reuse -> Wire -> Verify -> Ship
 5. Revenue first
 6. Evidence only for completion claims
+7. **Zero-Stall Blocker + Present/Future Revenue Law:** a blocker is a routing signal, not permission to idle. Stop repeating a dead path, immediately search a compatible verified capability, synthesize and execute a safe bypass/repair/replacement when needed, operate from present verified truth, use past failures as future intelligence, and begin revenue execution from the verified release moment. See [`knowledge/ZERO_STALL_BLOCKER_REVENUE_LAW.md`](knowledge/ZERO_STALL_BLOCKER_REVENUE_LAW.md).
 
 ## Layers
 - `platform/` shared capabilities

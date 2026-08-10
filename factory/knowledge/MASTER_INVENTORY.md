@@ -76,6 +76,9 @@ Invoice Agent; Payment Agent; Revenue Agent; Payout Agent; GST Agent; Settlement
 ## Analytics agents
 Business Intelligence Agent; Revenue Analytics; Marketing Analytics; Sales Analytics; Workspace Intelligence — designed.
 
+## Intelligence systems
+- StreamVista Intelligence Engine — designed. Canonical spec: `factory/knowledge/STREAMVISTA_INTELLIGENCE_ENGINE.md`. Independent public/authorised-source intelligence pipeline for company, OTT, buyer, distributor, studio, content-demand and rights/licensing signals; implementation/runtime verification pending.
+
 ## Film industry agents
 OTT Buyer Intelligence; Festival Intelligence; Content Acquisition; Rights Discovery; Buyer Matching; Film Network — draft.
 

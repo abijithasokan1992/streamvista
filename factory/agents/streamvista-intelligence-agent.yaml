@@ -1,10 +1,11 @@
 id: streamvista-intelligence-agent
 name: StreamVista Intelligence Agent
-version: 0.1.0
+version: 0.1.1
 status: draft
 owner: StreamVista FACTORY
 canonical_engine: factory/knowledge/STREAMVISTA_INTELLIGENCE_ENGINE.md
 spec: factory/agents/STREAMVISTA_INTELLIGENCE_AGENT.md
+knowledge_source_registry: factory/agents/streamvista-intelligence-knowledge-sources.yaml
 
 mission: >-
   Convert public or explicitly authorised company, OTT, buyer, distributor,
@@ -23,6 +24,7 @@ states:
 capabilities:
   - public_source_collection
   - authorised_source_ingest
+  - private_knowledge_binding
   - normalization
   - deduplication
   - snapshots
@@ -37,14 +39,23 @@ capabilities:
   - content_demand_intelligence
   - rights_intelligence
   - catalogue_matching
+  - creator_acquisition_intelligence
+  - funnel_intelligence
   - evidence_preservation
   - action_routing
+
+knowledge_sources:
+  - creator_acquisition_growth_system_2026
 
 routes:
   ott_buyer_intelligence: OTT Buyer Intelligence
   content_acquisition: Content Acquisition
   rights_discovery: Rights Discovery
   buyer_matching: Buyer Matching
+  creator_acquisition: Growth Agent
+  creator_onboarding: Creator AI
+  metadata: Metadata Agent
+  qc: QC Agent
   sales: Sales Agent
   crm: CRM Agent
   follow_up: Follow-up Agent
@@ -53,6 +64,7 @@ routes:
 
 safe_autonomous_actions:
   - read_public_or_authorised_sources
+  - read_approved_private_knowledge_sources
   - create_evidence_snapshots
   - deduplicate_signals
   - classify_signals
@@ -79,6 +91,7 @@ forbidden:
   - anti_bot_or_access_control_circumvention
   - vulnerability_exploitation_for_data_access
   - proprietary_private_source_code_copying
+  - copying_confidential_knowledge_raw_content_into_public_repository
 
 signal_contract:
   required:
@@ -99,6 +112,7 @@ promotion_gate:
   required_before_prototype_or_live:
     - runtime_implementation
     - connected_source_tests
+    - private_knowledge_access_tests
     - evidence_persistence_tests
     - routing_tests
     - safety_and_approval_tests

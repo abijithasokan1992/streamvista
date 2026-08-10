@@ -1,0 +1,90 @@
+name: PR Verification Fallback
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-verification-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deterministic-review-gate:
+    name: Deterministic review gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Repository diff integrity
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git diff --check "origin/${{ github.base_ref }}...HEAD"
+          elif git rev-parse HEAD^ >/dev/null 2>&1; then
+            git diff --check HEAD^ HEAD
+          else
+            git diff --check
+          fi
+
+      - name: Verify adopted canonical dependency lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_PACKAGE_BLOB="a743ed1012accc0c8cafb3b49893cc61d53bccf8"
+          EXPECTED_LOCK_BLOB="b74ea283fdffd4c8d4a6d329ceffc9e09611228e"
+
+          test "$(git hash-object package.json)" = "$EXPECTED_PACKAGE_BLOB"
+          test "$(git hash-object package-lock.json)" = "$EXPECTED_LOCK_BLOB"
+
+      - name: Install exact dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Dependency security gate
+        run: npm audit --audit-level=high
+
+      - name: Write verification summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## PR verification fallback"
+            echo
+            echo "This gate is independent of Codex and Copilot review quotas."
+            echo
+            echo "PR #11 must carry the exact reviewed PR #8 dependency lock itself."
+            echo "The job fails if package.json or the adopted package-lock blob drifts."
+            echo
+            echo "Required evidence in this job:"
+            echo "- base-aware repository diff integrity"
+            echo "- exact adopted canonical dependency lock"
+            echo "- reproducible npm install via npm ci"
+            echo "- lint"
+            echo "- production build"
+            echo "- npm high/critical vulnerability gate"
+            echo
+            echo "A green run proves PR #11 is self-contained on the reviewed lockfile."
+            echo "AI review is advisory only."
+          } >> "$GITHUB_STEP_SUMMARY"

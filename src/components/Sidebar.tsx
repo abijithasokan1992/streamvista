@@ -1,16 +1,16 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { cn } from "../utils/cn";
-import { 
-  LayoutDashboard, 
-  Film, 
-  FileEdit, 
-  UploadCloud, 
-  Users, 
-  ShieldCheck, 
-  Scale, 
-  CreditCard, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Film,
+  FileEdit,
+  UploadCloud,
+  Users,
+  ShieldCheck,
+  Scale,
+  CreditCard,
+  BarChart3,
   Megaphone,
   Settings,
   ListVideo
@@ -57,9 +57,13 @@ export function Sidebar() {
             className={({ isActive }) =>
               cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                isActive 
-                  ? "bg-brand-gold/10 text-brand-gold" 
-                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                isActive
+                  ? item.path === "/finance"
+                    ? "bg-[#C4B5FD]/10 text-[#C4B5FD] ring-1 ring-inset ring-[#C4B5FD]/10"
+                    : "bg-brand-gold/10 text-brand-gold"
+                  : item.path === "/finance"
+                    ? "text-violet-200/55 hover:bg-[#C4B5FD]/10 hover:text-[#D8CCFF]"
+                    : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
               )
             }
           >

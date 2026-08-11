@@ -16,7 +16,7 @@ const agents = read("src/security/agentPermissions.ts");
 const dmca = read("src/security/dmca.ts");
 const audit = read("src/security/audit.ts");
 const app = read("src/App.tsx");
-const firestore = read("firestore.rules");
+const packageJson = read("package.json");
 
 for (const role of ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"]) {
   assert(authTypes.includes(`\"${role}\"`), `role registry contains ${role}`);
@@ -29,9 +29,10 @@ assert(app.includes("allowedRoles"), "route-level RBAC is enforced");
 assert(app.includes("/finance") && app.includes("finance"), "finance route is role-scoped");
 assert(app.includes("/users") && app.includes("PLATFORM.slice()"), "user administration is platform-scoped");
 
-assert(firestore.includes("allow read, write: if false"), "Firestore defaults to deny-all");
-assert(firestore.includes("match /auditLogs/{logId}"), "audit log collection is protected");
-assert(firestore.includes("allow write: if false"), "sensitive server-only writes are denied to clients");
+for (const path of ["firebase.json", "firestore.rules", "firestore.indexes.json", "storage.rules", "src/lib/firebase.ts"]) {
+  assert(!fs.existsSync(path), `${path} is removed`);
+}
+assert(!packageJson.includes('"firebase"'), "Firebase SDK dependency is removed");
 
 assert(dmca.includes("RightsEvidence"), "rights evidence contract exists");
 assert(dmca.includes("DmcaCase"), "DMCA case contract exists");

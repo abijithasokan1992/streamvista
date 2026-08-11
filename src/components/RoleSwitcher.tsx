@@ -5,9 +5,6 @@ import { Users } from "lucide-react";
 
 export function RoleSwitcher() {
   const { user, switchMockRole } = useAuth();
-  
-  // Only show if we are in mock mode
-  if (import.meta.env.VITE_DATA_MODE === "firebase") return null;
 
   const roles: UserRole[] = [
     "platform_owner",

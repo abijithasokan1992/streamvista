@@ -8,13 +8,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, loading } = useAuth();
+  const [displayName, setDisplayName] = useState("");
+  const [createMode, setCreateMode] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const { login, signup, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
-    navigate("/dashboard");
+    setError("");setMessage("");
+    try {
+      if(createMode){const confirmationRequired=await signup(email,password,displayName);if(confirmationRequired){setMessage("Check your email to confirm the account, then sign in.");setCreateMode(false);return;}}
+      else await login(email, password);
+      navigate("/dashboard");
+    } catch(e){setError(e instanceof Error?e.message:"Authentication failed");}
   };
 
   return (
@@ -29,11 +37,12 @@ export default function Login() {
         
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access the platform.</CardDescription>
+            <CardTitle className="text-2xl">{createMode?"Create Account":"Sign In"}</CardTitle>
+            <CardDescription>{createMode?"Create your secure StreamVista account.":"Enter your credentials to access the platform."}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
+              {createMode&&<Input label="Display name" value={displayName} onChange={(e)=>setDisplayName(e.target.value)} required />}
               <Input
                 label="Email address"
                 type="email"
@@ -49,9 +58,12 @@ export default function Login() {
                 required
               />
               <Button type="submit" className="w-full mt-6" isLoading={loading}>
-                Sign In
+                {createMode?"Create Account":"Sign In"}
               </Button>
             </form>
+            {error&&<p className="mt-4 text-sm text-red-600" role="alert">{error}</p>}
+            {message&&<p className="mt-4 text-sm text-emerald-700" role="status">{message}</p>}
+            <button type="button" className="mt-4 w-full text-sm text-violet-700 hover:underline" onClick={()=>{setCreateMode(!createMode);setError("");setMessage("");}}>{createMode?"Already have an account? Sign in":"Don’t have an account? Create account"}</button>
             <p className="mt-6 text-center text-xs text-slate-500">Secure access · Credentials are never prefilled or displayed.</p>
           </CardContent>
         </Card>

@@ -24,6 +24,7 @@ export default function AIChat() {
     const value = text.trim();
     if (!value || loading) return;
 
+    const history = messages.slice(-20);
     setMessages((current) => [...current, { role: "user", text: value }]);
     setInput("");
     setLoading(true);
@@ -32,11 +33,11 @@ export default function AIChat() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: value }),
+        body: JSON.stringify({ message: value, history }),
       });
 
-      if (!response.ok) throw new Error(`Chat API unavailable (${response.status})`);
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Chat API unavailable (${response.status})`);
       const reply = data.reply || data.message;
       if (!reply) throw new Error("Chat API returned no reply");
       setMessages((current) => [...current, { role: "assistant", text: reply }]);

@@ -5,7 +5,7 @@ export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("glass-panel rounded-xl overflow-hidden", className)}
+      className={cn("surface-card overflow-hidden", className)}
       {...props}
     />
   )
@@ -27,7 +27,7 @@ export const CardTitle = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLHea
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("text-lg font-semibold leading-none tracking-tight text-white", className)}
+      className={cn("text-lg font-semibold leading-none tracking-tight text-slate-950", className)}
       {...props}
     />
   )
@@ -38,7 +38,7 @@ export const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<H
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn("text-sm text-slate-400", className)}
+      className={cn("text-sm text-slate-500", className)}
       {...props}
     />
   )

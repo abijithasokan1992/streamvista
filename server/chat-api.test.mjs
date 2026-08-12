@@ -27,13 +27,13 @@ test("sanitizeMessages limits individual message size", () => {
   assert.equal(result?.[0]?.content.length, 4000);
 });
 
-test("sanitizeMessages limits history to the most recent 20 messages", () => {
-  const input = Array.from({ length: 25 }, (_, index) => ({
+test("sanitizeMessages limits history to the most recent 6 messages", () => {
+  const input = Array.from({ length: 10 }, (_, index) => ({
     role: index % 2 === 0 ? "user" : "assistant",
     content: `message-${index}`,
   }));
   const result = sanitizeMessages(input);
-  assert.equal(result?.length, 20);
-  assert.equal(result?.[0]?.content, "message-5");
-  assert.equal(result?.at(-1)?.content, "message-24");
+  assert.equal(result?.length, 6);
+  assert.equal(result?.[0]?.content, "message-4");
+  assert.equal(result?.at(-1)?.content, "message-9");
 });

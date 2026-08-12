@@ -23,7 +23,8 @@ export function Sidebar() {
   const role = user.role;
 
   const navItems = [
-    { name: "Mission Control", path: "/", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
+    { name: "Workspace", path: "/dashboard", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
+    { name: "Founder Command", path: "/command", icon: ShieldCheck, roles: ["platform_owner", "founder", "super_admin"] },
     { name: "Creator Dashboard", path: "/creator", icon: LayoutDashboard, roles: ["creator_partner"] },
     { name: "Buyer Dashboard", path: "/buyer", icon: LayoutDashboard, roles: ["buyer"] },
     { name: "Titles", path: "/titles", icon: Film, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
@@ -42,10 +43,10 @@ export function Sidebar() {
   const visibleNavItems = navItems.filter(item => item.roles.includes(role));
 
   return (
-    <aside className="w-64 bg-brand-navy border-r border-white/5 flex flex-col h-full shrink-0">
-      <div className="h-16 flex items-center px-6 border-b border-white/5">
-        <span className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          <span className="w-6 h-6 rounded bg-brand-gold"></span>
+    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-full shrink-0">
+      <div className="h-16 flex items-center px-6 border-b border-slate-200">
+        <span className="text-xl font-bold tracking-tight text-slate-950 flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-violet-600"></span>
           StreamVista
         </span>
       </div>
@@ -58,8 +59,8 @@ export function Sidebar() {
               cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                 isActive 
-                  ? "bg-brand-gold/10 text-brand-gold" 
-                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                  ? "bg-violet-50 text-violet-700" 
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-950"
               )
             }
           >

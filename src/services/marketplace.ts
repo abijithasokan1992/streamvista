@@ -2,17 +2,31 @@ import { supabase } from "./supabase";
 
 export type TitleStatus = "draft" | "submitted" | "qc" | "approved" | "licensed" | "archived";
 export type FilmPayload = {
-  title: string; synopsis: string; trailer_url: string; film_path: string; language: string;
-  price: number; rights: { territory: string; duration: string }; workflow_version: "b2b-final-v1";
+  title: string;
+  synopsis: string;
+  trailer_url: string;
+  film_path: string;
+  language: string;
+  price: number;
+  rights: { territory: string; duration: string };
+  workflow_version: "b2b-final-v1";
   qc_note?: string;
 };
 export type MarketplaceTitle = { id: string; creator_owner_id: string; payload: FilmPayload; status: TitleStatus; created_at: string; updated_at: string };
 export type Deal = { id: string; title_id: string; buyer_id: string; status: string; contract_status: string; payment_status: string; price: number; revenue_split: number; created_at: string };
+export type ScreeningRequest = { id: string; buyer_id: string; title_id: string; status: "requested" | "approved" | "declined" | "watched"; created_at: string; title?: { payload?: FilmPayload } | null };
 
 function throwIf(error: { message: string } | null) { if (error) throw new Error(error.message); }
 
 export async function createTitleDraft(ownerId: string, payload: FilmPayload) {
   const { data, error } = await supabase.from("sv_app_titles").insert({ creator_owner_id: ownerId, payload, status: "draft" }).select("id,creator_owner_id,payload,status,created_at,updated_at").single();
+  throwIf(error); return data as MarketplaceTitle;
+}
+export async function updateTitleFilmPath(id: string, filmPath: string) {
+  const { data: row, error: readError } = await supabase.from("sv_app_titles").select("payload").eq("id", id).single();
+  throwIf(readError);
+  const payload = { ...(row?.payload || {}), film_path: filmPath };
+  const { data, error } = await supabase.from("sv_app_titles").update({ payload }).eq("id", id).select("id,creator_owner_id,payload,status,created_at,updated_at").single();
   throwIf(error); return data as MarketplaceTitle;
 }
 export async function listCreatorTitles(ownerId: string) {
@@ -33,7 +47,19 @@ export async function listTitlesByStatus(status: TitleStatus) {
   throwIf(error); return (data || []) as MarketplaceTitle[];
 }
 export async function requestScreening(buyerId: string, titleId: string) {
-  const { error } = await supabase.from("sv_screening_requests").insert({ buyer_id: buyerId, title_id: titleId, status: "requested" }); throwIf(error);
+  const { data, error } = await supabase.from("sv_screening_requests").insert({ buyer_id: buyerId, title_id: titleId, status: "requested" }).select("id,buyer_id,title_id,status,created_at").single();
+  throwIf(error); return data as ScreeningRequest;
+}
+export async function listScreeningRequests() {
+  const { data, error } = await supabase.from("sv_screening_requests").select("id,buyer_id,title_id,status,created_at,title:sv_app_titles(payload)").order("created_at", { ascending: false });
+  throwIf(error); return (data || []) as unknown as ScreeningRequest[];
+}
+export async function listMyScreenings(buyerId: string) {
+  const { data, error } = await supabase.from("sv_screening_requests").select("id,buyer_id,title_id,status,created_at").eq("buyer_id", buyerId).order("created_at", { ascending: false });
+  throwIf(error); return (data || []) as ScreeningRequest[];
+}
+export async function updateScreeningStatus(id: string, status: ScreeningRequest["status"]) {
+  const { error } = await supabase.from("sv_screening_requests").update({ status }).eq("id", id); throwIf(error);
 }
 export async function requestLicense(buyerId: string, title: MarketplaceTitle) {
   const { data, error } = await supabase.from("sv_marketplace_deals").insert({ buyer_id: buyerId, title_id: title.id, status: "requested", contract_status: "pending", payment_status: "unpaid", price: Number(title.payload.price || 0), revenue_split: 70 }).select("*").single();

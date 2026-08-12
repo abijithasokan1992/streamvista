@@ -3,9 +3,8 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { MainLayout } from "./layouts/MainLayout";
 
-// Pages
 import Chat from "./pages/Chat";
-import Home from "./pages/Home";
+import HomeWhite from "./pages/HomeWhite";
 import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
@@ -27,6 +26,24 @@ import FounderCommand from "./pages/FounderCommand";
 const PLATFORM = ["platform_owner", "founder", "super_admin"] as const;
 const ADMIN = [...PLATFORM, "admin"] as const;
 
+function isMarketingHost() {
+  if (typeof window === "undefined") return false;
+  return window.location.hostname === "www.streamvista.in" || window.location.hostname === "streamvista.in";
+}
+
+function RootRoute() {
+  if (isMarketingHost()) return <HomeWhite />;
+  return <ProtectedRoute><Chat /></ProtectedRoute>;
+}
+
+function ChatRoute() {
+  if (isMarketingHost()) {
+    window.location.replace("https://chat.streamvista.in/login");
+    return null;
+  }
+  return <ProtectedRoute><Chat /></ProtectedRoute>;
+}
+
 function LoginRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -38,9 +55,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-          <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<RootRoute />} />
+          <Route path="/chat" element={<ChatRoute />} />
+          <Route path="/home" element={<HomeWhite />} />
           <Route path="/login" element={<LoginRoute />} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
@@ -60,11 +77,7 @@ function App() {
             <Route path="/users" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><Users /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Settings /></ProtectedRoute>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="*" element={
-              <div className="flex items-center justify-center h-full text-slate-400">
-                <p>Page not found or under construction.</p>
-              </div>
-            } />
+            <Route path="*" element={<div className="flex h-full items-center justify-center text-slate-400"><p>Page not found or under construction.</p></div>} />
           </Route>
         </Routes>
       </BrowserRouter>

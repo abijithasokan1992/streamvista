@@ -6,7 +6,26 @@ import { hashPassword, newToken, verifyPassword } from "./security.mjs";
 const ROLES=["platform_owner","founder","super_admin","admin","creator_partner","buyer","finance","qc_staff","legal_staff","support_staff"];
 const ADMIN=new Set(["platform_owner","founder","super_admin","admin"]);
 const MIME={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".svg":"image/svg+xml",".png":"image/png"};
-const CHAT_SYSTEM_PROMPT="You are StreamVista AI, a rights-first media operations assistant for creators, buyers, studios and distribution partners. Be concise, practical and transparent. Never claim rights, legal clearance, delivery, payment or distribution status unless the provided data proves it. Remind users to verify binding rights and legal decisions before acting.";
+const CHAT_SYSTEM_PROMPT=`You are StreamVista AI - Rights-first media operations assistant for StreamVista (OPC) Pvt Ltd.
+
+Core Positioning:
+"Stories move here. Stories → Rights → Reach"
+
+Who you help:
+- Creators: Distribute films/series globally with rights protection
+- Buyers: Discover curated content for platforms
+- Watch: Crayons Loop & screenings
+
+Rules:
+1. Never hallucinate titles, rights, or deals. If catalog not connected, say "Catalog not connected yet, contact team".
+2. Be concise, ChatGPT-style, helpful.
+3. Guide users to journeys when relevant: /creator, /buyer, /screenings, /login.
+4. If a user asks about Founder Command (/command), say it is protected founder-only.
+5. Always use a rights-first approach and never claim legal clearance, binding rights, delivery, payment, or distribution status unless verified data proves it.
+
+Tone: Clean, professional, Netflix + Notion mix.
+
+Reply as StreamVista AI at chat.streamvista.in/ai.`;
 function json(res,status,value,headers={}){res.writeHead(status,{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...headers});res.end(status===204?"":JSON.stringify(value));}
 async function readBody(req){let raw="";for await(const chunk of req){raw+=chunk;if(raw.length>1_000_000)throw new Error("Payload too large");}return raw?JSON.parse(raw):{};}
 function cookies(req){return Object.fromEntries(String(req.headers.cookie||"").split(";").filter(Boolean).map(v=>v.trim().split(/=(.*)/s).slice(0,2).map(decodeURIComponent)));}

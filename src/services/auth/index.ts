@@ -1,4 +1,4 @@
 import { AuthService } from "./auth.types";
-import { mockAuthService } from "./mockAuthService";
+import { apiAuthService } from "./apiAuthService";
 
-export const authService: AuthService = mockAuthService;
+export const authService: AuthService = apiAuthService;

@@ -35,3 +35,11 @@
 - **Security concerns:** The application is running in mock mode, bypassing real authentication. The floating role switcher allows local role impersonation.
 - **Decisions required:** None currently.
 - **Exact next task:** Expand the placeholder pages (e.g., Title Management, Drafts, and Mission Control) into fully interactive UIs with mock state.
+# Production backend release candidate
+
+- Mock auth/database adapters replaced by same-origin API adapters.
+- Server uses scrypt password hashing, HttpOnly SameSite sessions, persistent SQLite, RBAC, and append-only audit events.
+- Health and database readiness endpoints are available.
+- Docker deployment requires a durable `/data` volume and HTTPS origin configuration.
+- Production deployment and live E2E remain evidence gates; code/build success alone is not a live claim.
+

@@ -5,6 +5,7 @@ import { MainLayout } from "./layouts/MainLayout";
 
 // Pages
 import Home from "./pages/Home";
+import AIChat from "./pages/AIChat";
 import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
@@ -32,6 +33,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/ai" element={<AIChat />} />
           <Route path="/login" element={<Login />} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>

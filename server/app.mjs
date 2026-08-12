@@ -6,9 +6,42 @@ import { hashPassword, newToken, verifyPassword } from "./security.mjs";
 const ROLES=["platform_owner","founder","super_admin","admin","creator_partner","buyer","finance","qc_staff","legal_staff","support_staff"];
 const ADMIN=new Set(["platform_owner","founder","super_admin","admin"]);
 const MIME={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".svg":"image/svg+xml",".png":"image/png"};
+const CHAT_SYSTEM_PROMPT=`You are StreamVista AI - Rights-first media operations assistant for StreamVista (OPC) Pvt Ltd.
+
+Core Positioning:
+"Stories move here. Stories → Rights → Reach"
+
+Who you help:
+- Creators: Distribute films/series globally with rights protection
+- Buyers: Discover curated content for platforms
+- Watch: Crayons Loop & screenings
+
+Rules:
+1. Never hallucinate titles, rights, or deals. If catalog not connected, say "Catalog not connected yet, contact team".
+2. Be concise, ChatGPT-style, helpful.
+3. Guide users to journeys when relevant: /creator, /buyer, /screenings, /login.
+4. If a user asks about Founder Command (/command), say it is protected founder-only.
+5. Always use a rights-first approach and never claim legal clearance, binding rights, delivery, payment, or distribution status unless verified data proves it.
+
+Tone: Clean, professional, Netflix + Notion mix.
+
+Reply as StreamVista AI at chat.streamvista.in/ai.`;
 function json(res,status,value,headers={}){res.writeHead(status,{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...headers});res.end(status===204?"":JSON.stringify(value));}
 async function readBody(req){let raw="";for await(const chunk of req){raw+=chunk;if(raw.length>1_000_000)throw new Error("Payload too large");}return raw?JSON.parse(raw):{};}
 function cookies(req){return Object.fromEntries(String(req.headers.cookie||"").split(";").filter(Boolean).map(v=>v.trim().split(/=(.*)/s).slice(0,2).map(decodeURIComponent)));}
+function normalizeHistory(value){if(value==null)return[];if(!Array.isArray(value))throw new Error("Invalid chat history");if(value.length>20)throw new Error("Chat history too long");return value.map(item=>{if(!item||!['user','assistant'].includes(item.role)||typeof item.text!=="string")throw new Error("Invalid chat history");const text=item.text.trim();if(!text||text.length>8000)throw new Error("Invalid chat history");return{role:item.role,content:text};});}
+async function providerChat({message,history}){
+ const baseUrl=String(process.env.AI_BASE_URL||"").replace(/\/$/,"");
+ const apiKey=process.env.AI_API_KEY;
+ const model=process.env.AI_MODEL;
+ if(!baseUrl||!apiKey||!model){const error=new Error("AI runtime not configured");error.code="AI_NOT_CONFIGURED";throw error;}
+ const response=await fetch(`${baseUrl}/chat/completions`,{method:"POST",headers:{"content-type":"application/json","authorization":`Bearer ${apiKey}`},body:JSON.stringify({model,messages:[{role:"system",content:CHAT_SYSTEM_PROMPT},...history,{role:"user",content:message}],temperature:0.2}),signal:AbortSignal.timeout(30000)});
+ if(!response.ok){const error=new Error(`AI provider error (${response.status})`);error.code="AI_PROVIDER_ERROR";throw error;}
+ const data=await response.json();
+ const reply=data?.choices?.[0]?.message?.content;
+ if(typeof reply!=="string"||!reply.trim()){const error=new Error("AI provider returned no reply");error.code="AI_PROVIDER_ERROR";throw error;}
+ return reply.trim();
+}
 
 export function createApp(options={}){
  const db=new DatabaseSync(options.databasePath||process.env.DATABASE_PATH||".data/streamvista.sqlite");
@@ -24,12 +57,21 @@ export function createApp(options={}){
  const current=req=>{const token=cookies(req).sv_session;if(!token)return null;return db.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>?").get(token,new Date().toISOString())||null;};
  const audit=(actor,action,target="")=>db.prepare("INSERT INTO audit_log(actor_id,action,target,created_at) VALUES(?,?,?,?)").run(actor||null,action,target,new Date().toISOString());
  const allowedOrigin=req=>!req.headers.origin||!(options.appOrigin||process.env.APP_ORIGIN)||req.headers.origin===(options.appOrigin||process.env.APP_ORIGIN);
+ const chatResponder=options.chatResponder||providerChat;
  return async(req,res)=>{try{
   const url=new URL(req.url,"http://localhost"),path=url.pathname;
   res.setHeader("x-content-type-options","nosniff");res.setHeader("x-frame-options","DENY");res.setHeader("referrer-policy","strict-origin-when-cross-origin");
   if(path==="/api/health")return json(res,200,{status:"ok"});
   if(path==="/api/ready"){db.prepare("SELECT 1").get();return json(res,200,{status:"ready",database:"connected"});}
   if(path.startsWith("/api/")&&!allowedOrigin(req))return json(res,403,{error:"Origin denied"});
+  if(path==="/api/chat"&&req.method==="POST"){
+   const input=await readBody(req),message=String(input.message||"").trim();
+   if(!message)return json(res,400,{error:"Message is required"});
+   if(message.length>8000)return json(res,413,{error:"Message too long"});
+   let history;try{history=normalizeHistory(input.history);}catch{return json(res,400,{error:"Invalid chat history"});}
+   try{return json(res,200,{reply:await chatResponder({message,history})});}
+   catch(error){if(error?.code==="AI_NOT_CONFIGURED")return json(res,503,{error:"AI runtime not configured"});console.error("chat provider failure",error);return json(res,502,{error:"AI runtime unavailable"});}
+  }
   if(path==="/api/auth/login"&&req.method==="POST"){const input=await readBody(req),row=db.prepare("SELECT * FROM users WHERE email=?").get(String(input.email||"").trim().toLowerCase());if(!row||!verifyPassword(String(input.password||""),row.password_hash)){audit(null,"auth.login_failed",String(input.email||""));return json(res,401,{error:"Invalid email or password"});}const token=newToken(),expires=new Date(Date.now()+28_800_000).toISOString();db.prepare("INSERT INTO sessions VALUES(?,?,?)").run(token,row.id,expires);audit(row.id,"auth.login");return json(res,200,{user:safeUser(row)},{"set-cookie":`sv_session=${encodeURIComponent(token)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800${process.env.NODE_ENV==="production"?"; Secure":""}`});}
   if(path==="/api/auth/logout"&&req.method==="POST"){const token=cookies(req).sv_session;if(token)db.prepare("DELETE FROM sessions WHERE token=?").run(token);return json(res,204,{},{"set-cookie":"sv_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0"});}
   const user=current(req);

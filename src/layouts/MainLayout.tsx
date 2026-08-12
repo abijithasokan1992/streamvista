@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
-import { RoleSwitcher } from "../components/RoleSwitcher";
 
 export function MainLayout() {
   return (
@@ -15,7 +14,6 @@ export function MainLayout() {
           </div>
         </main>
       </div>
-      <RoleSwitcher />
     </div>
   );
 }

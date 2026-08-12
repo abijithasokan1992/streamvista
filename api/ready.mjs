@@ -1,4 +1,5 @@
-const url = "https://ohumdxxhtgabpefrgsxr.supabase.co/rest/v1/sv_app_profiles?select=id&limit=0";
+const url =
+  "https://ohumdxxhtgabpefrgsxr.supabase.co/rest/v1/rpc/sv_app_readiness";
 const key = "sb_publishable_ruAIHadjsZvJbLkOp0kF7Q_nfMuFU4d";
 
 export default async function handler(_request, response) {
@@ -6,10 +7,15 @@ export default async function handler(_request, response) {
 
   try {
     const result = await fetch(url, {
-      headers: { apikey: key },
+      method: "POST",
+      headers: {
+        apikey: key,
+        "content-type": "application/json",
+      },
+      body: "{}",
     });
 
-    if (!result.ok) {
+    if (!result.ok || (await result.json()) !== true) {
       return response.status(503).json({
         status: "not_ready",
         database: "unavailable",

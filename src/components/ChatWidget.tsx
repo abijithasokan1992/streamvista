@@ -25,7 +25,8 @@ export function ChatWidget() {
     const text = input.trim();
     if (!text || sending) return;
 
-    const nextMessages: AIMessage[] = [...messages, { role: "user", content: text }].slice(-6);
+    const userMessage: AIMessage = { role: "user", content: text };
+    const nextMessages: AIMessage[] = [...messages, userMessage].slice(-6);
     setMessages(nextMessages);
     setInput("");
     setSending(true);
@@ -33,7 +34,8 @@ export function ChatWidget() {
 
     try {
       const reply = await sendChatMessages(nextMessages);
-      setMessages((current) => [...current, { role: "assistant", content: reply }].slice(-6));
+      const assistantMessage: AIMessage = { role: "assistant", content: reply };
+      setMessages((current) => [...current, assistantMessage].slice(-6));
       const match = reply.match(NAVIGATION_PATTERN);
       if (match?.[1]) {
         navigate(match[1]);

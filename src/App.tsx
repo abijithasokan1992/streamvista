@@ -4,6 +4,7 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { MainLayout } from "./layouts/MainLayout";
 
 // Pages
+import Chat from "./pages/Chat";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
@@ -31,7 +32,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Chat />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>

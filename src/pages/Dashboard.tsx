@@ -1,50 +1,6 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/Card";
+import { listTitlesByStatus, setTitleStatus, type MarketplaceTitle } from "../services/marketplace";
 
-export default function Dashboard() {
-  const { user } = useAuth();
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="eyebrow">Product workspace</p>
-          <h1 className="display-title mt-2">Welcome back, {user?.displayName}</h1>
-          <p className="text-slate-400">Here's what's happening with your titles today.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Titles</CardTitle>
-            <CardDescription>Published and active titles</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-slate-950">21</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Drafts</CardTitle>
-            <CardDescription>Titles currently in preparation</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-brand-gold">139</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Screenings</CardTitle>
-            <CardDescription>Awaiting buyer activity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-brand-orange">34</p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
+export default function Dashboard(){const{user}=useAuth();const[pending,setPending]=useState<MarketplaceTitle[]>([]);const[approvedNew,setApprovedNew]=useState(0);async function refresh(){const q=await listTitlesByStatus("qc");const a=await listTitlesByStatus("approved");setPending(q);setApprovedNew(a.filter(t=>t.payload?.workflow_version==="b2b-final-v1").length);}useEffect(()=>{void refresh().catch(()=>undefined);},[]);return <div className="space-y-6"><div><p className="eyebrow">Product workspace</p><h1 className="display-title mt-2">Welcome back, {user?.displayName}</h1><p className="text-slate-400">Here's what's happening with your titles today.</p></div><div className="grid grid-cols-1 gap-6 md:grid-cols-3"><Card><CardHeader><CardTitle>Total Titles</CardTitle><CardDescription>Published and active titles</CardDescription></CardHeader><CardContent><p className="text-4xl font-bold text-slate-950">{21+approvedNew}</p></CardContent></Card><Card><CardHeader><CardTitle>Active Drafts</CardTitle><CardDescription>Titles currently in preparation</CardDescription></CardHeader><CardContent><p className="text-4xl font-bold text-brand-gold">139</p></CardContent></Card><Card><CardHeader><CardTitle>Pending Screenings</CardTitle><CardDescription>Awaiting buyer activity</CardDescription></CardHeader><CardContent><p className="text-4xl font-bold text-brand-orange">34</p></CardContent></Card></div><section className="space-y-3"><h2 className="text-xl font-bold text-slate-950">Founder approval</h2>{pending.map(t=><div key={t.id} className="flex items-center justify-between rounded-xl border bg-white p-4"><div><b>{t.payload.title}</b><p className="text-xs text-slate-500">QC approved · ready for Founder decision</p></div><button onClick={()=>void setTitleStatus(t.id,"approved").then(refresh)} className="rounded-lg bg-[#FFC700] px-3 py-2 text-sm font-bold">Approve → Ready for OTT</button></div>)}{!pending.length&&<p className="rounded-xl bg-white p-4 text-sm text-slate-500">No titles awaiting Founder approval.</p>}</section></div>}

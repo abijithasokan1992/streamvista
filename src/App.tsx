@@ -21,6 +21,7 @@ import Analytics from "./pages/Analytics";
 import Campaigns from "./pages/Campaigns";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import FounderCommand from "./pages/FounderCommand";
 
 const PLATFORM = ["platform_owner", "founder", "super_admin"] as const;
 const ADMIN = [...PLATFORM, "admin"] as const;
@@ -35,6 +36,7 @@ function App() {
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/command" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><FounderCommand /></ProtectedRoute>} />
             <Route path="/titles" element={<Titles />} />
             <Route path="/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><CreatorDashboard /></ProtectedRoute>} />
             <Route path="/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><BuyerDashboard /></ProtectedRoute>} />

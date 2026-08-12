@@ -8,7 +8,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome back, {user?.displayName}</h1>
+          <p className="eyebrow">Product workspace</p><h1 className="display-title mt-2">Welcome back, {user?.displayName}</h1>
           <p className="text-slate-400">Here's what's happening with your titles today.</p>
         </div>
       </div>
@@ -20,7 +20,7 @@ export default function Dashboard() {
             <CardDescription>Published and active titles</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-white">21</p>
+            <p className="text-4xl font-bold text-slate-950">21</p>
           </CardContent>
         </Card>
         

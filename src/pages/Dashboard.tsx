@@ -1,4 +1,3 @@
-import { Bot, ExternalLink } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/Card";
 
@@ -13,14 +12,6 @@ export default function Dashboard() {
           <h1 className="display-title mt-2">Welcome back, {user?.displayName}</h1>
           <p className="text-slate-400">Here's what's happening with your titles today.</p>
         </div>
-        <a
-          href="https://chat.streamvista.in/"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#FFC700] px-5 py-3 text-sm font-bold text-black transition hover:brightness-95"
-        >
-          <Bot size={17} />
-          Open StreamVista AI
-          <ExternalLink size={14} />
-        </a>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">

@@ -1,113 +1,26 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Film, ShieldCheck, Sparkles, Workflow } from "lucide-react";
+import { ArrowRight, Bot, Clapperboard, Film, Tv } from "lucide-react";
 
-const pillars = [
-  {
-    icon: Film,
-    title: "Create & Prepare",
-    text: "Organize titles, metadata, media assets, QC and delivery readiness in one professional workspace.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Control Rights",
-    text: "Keep rights, documents, approvals and access decisions visible before commercial activity begins.",
-  },
-  {
-    icon: Workflow,
-    title: "License & Deliver",
-    text: "Move approved content through buyer review, deal coordination and secure delivery workflows.",
-  },
+const journeys = [
+  { icon: Clapperboard, label: "Create & distribute", sub: "For creators and studios", to: "/creator", accent: "bg-[#8757e7]" },
+  { icon: Film, label: "Find content", sub: "For buyers and partners", to: "/buyer", accent: "bg-[#ff792c]" },
+  { icon: Tv, label: "Watch", sub: "Crayons Loop", to: "/screenings", accent: "bg-[#1c0b44]" },
 ];
 
 export default function Home() {
-  return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-8 lg:px-10">
-        <header className="flex items-center justify-between border-b border-white/10 pb-6">
-          <div>
-            <p className="text-sm font-semibold tracking-[0.28em] text-sky-400">STREAMVISTA</p>
-            <p className="mt-1 text-xs text-slate-400">Media Business Platform</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="rounded-xl border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/5"
-            >
-              Sign in
-            </Link>
-            <a
-              href="https://www.crayonsloop.com/login"
-              className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-            >
-              Submit content
-            </a>
-          </div>
-        </header>
+  return <main className="min-h-screen overflow-hidden bg-[#f7f5f0] text-[#160d23]">
+    <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-7 lg:px-10">
+      <Link to="/" className="flex items-center gap-3 text-xl font-black tracking-[-.05em]"><span className="h-8 w-8 rounded-full bg-violet-600"/>STREAMVISTA</Link>
+      <nav className="hidden items-center gap-8 text-sm text-slate-600 md:flex"><a href="#journeys">Explore</a><Link to="/buyer">For buyers</Link><Link to="/creator">For creators</Link></nav>
+      <Link to="/login" className="rounded-full bg-[#150b20] px-5 py-2.5 text-sm font-semibold text-white">Sign in</Link>
+    </header>
 
-        <section className="grid flex-1 items-center gap-12 py-16 lg:grid-cols-[1.2fr_0.8fr] lg:py-24">
-          <div>
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1.5 text-xs font-medium text-sky-300">
-              <Sparkles size={14} />
-              One workspace from content to commercial readiness
-            </div>
-            <h1 className="max-w-4xl text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
-              Build. License. Distribute. Grow.
-            </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300">
-              StreamVista gives creators, studios, rights holders and media teams a secure operating layer for preparing,
-              controlling and moving content through professional distribution workflows.
-            </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300"
-              >
-                Open platform <ArrowRight size={16} />
-              </Link>
-              <a
-                href="mailto:support-bridge@crayonspictures.com?subject=StreamVista%20Business%20Enquiry"
-                className="rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/5"
-              >
-                Business enquiry
-              </a>
-            </div>
-            <p className="mt-5 text-xs text-slate-500">
-              Licensing, distribution and revenue are subject to rights, QC, buyer review and written commercial terms.
-            </p>
-          </div>
+    <section className="relative mx-auto grid min-h-[610px] max-w-7xl items-center gap-12 px-6 py-14 lg:grid-cols-[1fr_.86fr] lg:px-10 lg:py-20">
+      <div className="relative z-10"><p className="eyebrow">Stories · Rights · Reach</p><h1 className="mt-5 max-w-4xl text-6xl font-black leading-[.88] tracking-[-.075em] sm:text-7xl lg:text-[104px]">Stories <em className="font-serif font-normal">move</em><br/>here.</h1><p className="mt-8 max-w-xl text-lg leading-8 text-slate-600">One clear path for media: create, discover, distribute and reach the right audience.</p><Link to="/command" className="primary-action mt-9">Talk to StreamVista AI <ArrowRight size={16}/></Link><p className="mt-5 text-sm text-slate-500">Already have an account? <Link className="font-semibold text-violet-700" to="/login">Sign in</Link></p></div>
+      <div className="relative mx-auto h-[390px] w-[390px] max-w-full"><div className="absolute inset-[8%] rounded-full bg-[radial-gradient(circle_at_32%_28%,#ff8b49_0%,#824ce3_43%,#20103d_74%)] shadow-[0_38px_90px_rgba(95,55,180,.32)]"/><div className="absolute inset-[21%] rounded-full border border-white/30"/><div className="absolute bottom-4 right-2 flex h-20 w-20 items-center justify-center rounded-full bg-white/85 shadow-xl backdrop-blur"><Bot className="text-violet-700"/></div></div>
+    </section>
 
-          <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-sky-950/30 backdrop-blur sm:p-8">
-            <p className="text-xs font-semibold tracking-[0.2em] text-slate-400">PLATFORM FLOW</p>
-            <div className="mt-6 space-y-4">
-              {["Content & metadata", "Rights & legal", "QC & readiness", "Buyer & deal workflow", "Delivery & reporting"].map(
-                (item, index) => (
-                  <div key={item} className="flex items-center gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-400/10 text-xs font-bold text-sky-300">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="text-sm font-medium text-slate-200">{item}</span>
-                  </div>
-                ),
-              )}
-            </div>
-          </aside>
-        </section>
-
-        <section className="grid gap-4 border-t border-white/10 py-10 md:grid-cols-3">
-          {pillars.map(({ icon: Icon, title, text }) => (
-            <article key={title} className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
-              <Icon className="text-sky-300" size={22} />
-              <h2 className="mt-4 text-lg font-semibold">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">{text}</p>
-            </article>
-          ))}
-        </section>
-
-        <footer className="flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>StreamVista (OPC) Private Limited · Kerala, India</span>
-          <span>Secure media operations · Rights-first distribution</span>
-        </footer>
-      </div>
-    </main>
-  );
+    <section id="journeys" className="mx-auto max-w-7xl px-6 pb-14 lg:px-10"><div className="grid overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm md:grid-cols-3">{journeys.map((j,i)=><Link key={j.label} to={j.to} className={`group flex min-h-44 items-center gap-5 p-7 transition hover:bg-slate-50 ${i ? "border-t md:border-l md:border-t-0 border-slate-200" : ""}`}><span className={`flex h-14 w-14 items-center justify-center rounded-full text-white ${j.accent}`}><j.icon/></span><span className="min-w-0 flex-1"><strong className="block text-xl">{j.label}</strong><small className="mt-1 block text-sm text-slate-500">{j.sub}</small></span><ArrowRight className="transition group-hover:translate-x-1"/></Link>)}</div></section>
+    <footer className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-slate-200 px-6 py-7 text-xs text-slate-500 sm:flex-row sm:justify-between lg:px-10"><span>StreamVista (OPC) Private Limited · Kerala, India</span><span>Rights-first media operations</span></footer>
+  </main>;
 }

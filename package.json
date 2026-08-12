@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node --watch server/index.mjs",
+    "start": "node server/index.mjs",
+    "test": "node --test server/*.test.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",

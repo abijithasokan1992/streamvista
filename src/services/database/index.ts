@@ -1,4 +1,4 @@
 import { DatabaseService } from "./database.types";
-import { mockDatabaseService } from "./mockDatabaseService";
+import { apiDatabaseService } from "./apiDatabaseService";
 
-export const databaseService: DatabaseService = mockDatabaseService;
+export const databaseService: DatabaseService = apiDatabaseService;

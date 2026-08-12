@@ -1,6 +1,10 @@
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_CHARS = 4000;
 const MAX_TOTAL_CHARS = 24000;
+const DEFAULT_MODEL = "gemini-3.5-flash-lite";
+
+const SYSTEM_INSTRUCTION =
+  "You are StreamVista AI, the Opportunity Desk for StreamVista (OPC) Pvt Ltd. Help creators and rights holders understand content distribution, licensing, studio services and partnerships. Be concise, practical and rights-first. Never invent titles, rights, deals, approvals, pricing, payments, delivery or distribution status. If verified catalog or rights data is unavailable, say so clearly and direct the user to the StreamVista team. Important legal, rights, commercial and financial decisions require human verification.";
 
 export function sanitizeMessages(value) {
   if (!Array.isArray(value)) return null;
@@ -28,18 +32,21 @@ export function sanitizeMessages(value) {
   return bounded.length ? bounded : null;
 }
 
-function extractOutputText(payload) {
-  if (typeof payload?.output_text === "string" && payload.output_text.trim()) {
-    return payload.output_text.trim();
-  }
+function toGeminiContents(messages) {
+  return messages.map((message) => ({
+    role: message.role === "assistant" ? "model" : "user",
+    parts: [{ text: message.content }],
+  }));
+}
 
-  const text = payload?.output
-    ?.flatMap((item) => item?.content ?? [])
-    ?.map((item) => item?.text)
-    ?.filter((item) => typeof item === "string")
-    ?.join("\n")
-    ?.trim();
-
+function extractReply(payload) {
+  const parts = payload?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return null;
+  const text = parts
+    .map((part) => (typeof part?.text === "string" ? part.text : ""))
+    .filter(Boolean)
+    .join("\n")
+    .trim();
   return text || null;
 }
 
@@ -51,7 +58,7 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
     return response.status(503).json({ error: "StreamVista AI is not configured." });
   }
@@ -61,29 +68,39 @@ export default async function handler(request, response) {
     return response.status(400).json({ error: "A valid conversation is required." });
   }
 
+  const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_MODEL;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+
   try {
-    const upstream = await fetch("https://api.openai.com/v1/responses", {
+    const upstream = await fetch(endpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL?.trim() || "gpt-5-mini",
-        instructions:
-          "You are StreamVista AI, the public conversational assistant for StreamVista. Be concise, practical and accurate. Help with content creation, licensing, distribution, studio services and partnerships. Never claim a deal, right, price, availability, approval or production action is confirmed unless the user supplied verified evidence. For legal, rights, commercial or financial commitments, clearly recommend human verification before action.",
-        input: messages,
-        max_output_tokens: 1200,
+        contents: toGeminiContents(messages),
+        systemInstruction: {
+          parts: [{ text: SYSTEM_INSTRUCTION }],
+        },
+        generationConfig: {
+          maxOutputTokens: 1200,
+          temperature: 0.2,
+        },
       }),
     });
 
     const payload = await upstream.json().catch(() => null);
     if (!upstream.ok) {
-      console.error("OpenAI response error", upstream.status, payload?.error?.type || "unknown");
-      return response.status(502).json({ error: "StreamVista AI is temporarily unavailable." });
+      console.error("Gemini response error", upstream.status, payload?.error?.status || "unknown");
+      const status = upstream.status === 429 ? 429 : 502;
+      const message = upstream.status === 429
+        ? "StreamVista AI free-tier quota is temporarily exhausted. Please try again later."
+        : "StreamVista AI is temporarily unavailable.";
+      return response.status(status).json({ error: message });
     }
 
-    const reply = extractOutputText(payload);
+    const reply = extractReply(payload);
     if (!reply) {
       return response.status(502).json({ error: "StreamVista AI returned an empty response." });
     }

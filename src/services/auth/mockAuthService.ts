@@ -56,6 +56,12 @@ class MockAuthService implements AuthService {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
+  async signup(email: string): Promise<{ user: UserProfile; confirmationRequired: boolean }> {
+    const user = { ...MOCK_USERS.creator_partner, uid: crypto.randomUUID(), email };
+    this.currentUser = user;
+    return { user, confirmationRequired: false };
+  }
+
   async switchMockRole(role: UserRole): Promise<UserProfile> {
     await new Promise(resolve => setTimeout(resolve, 300));
     const user = MOCK_USERS[role];

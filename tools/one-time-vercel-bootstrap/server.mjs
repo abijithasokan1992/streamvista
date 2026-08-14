@@ -7,8 +7,6 @@ const TEAM_ID = 'team_RZTE8Xin6e0xeDOCwU2JXy4K';
 const SOURCE_DEPLOYMENT_ID = 'dpl_FHEHVCriUSuMstijrvMfzgnm3coW';
 const EXPECTED_MAIN_SHA = '9ed1dca438dd0906ffd97bb1fade70cf92c2df7c';
 const SUPABASE_URL = 'https://uakpqqardziifcwzvgfx.supabase.co';
-// This is the browser publishable/legacy anon key, never a service-role key.
-const SUPABASE_PUBLISHABLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVha3BxcWFyZHppaWZjd3p2Z2Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MDY4MTAsImV4cCI6MjA2NjM4MjgxMH0.5on-OVA740CVGbI9xCjZQmeOZzhMsh2z45zJNjDqVuI';
 const READY_URL = 'https://streamvista-black.vercel.app/api/ready';
 const EXPECTED_READY = {
   status: 'ready',
@@ -16,10 +14,18 @@ const EXPECTED_READY = {
   project_ref: 'uakpqqardziifcwzvgfx',
 };
 
+function requiredEnv(name) {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`${name} is unavailable. No mutation was attempted.`);
+  return value;
+}
+
 function getToken() {
-  const token = process.env.VERCEL_TOKEN?.trim();
-  if (!token) throw new Error('VERCEL_TOKEN repository secret is unavailable. No mutation was attempted.');
-  return token;
+  return requiredEnv('VERCEL_TOKEN');
+}
+
+function getPublishableKey() {
+  return requiredEnv('STREAMVISTA_SUPABASE_PUBLISHABLE_KEY');
 }
 
 async function vercelFetch(path, init = {}) {
@@ -58,6 +64,7 @@ async function verifyLockedProductionSource() {
 }
 
 async function upsertEnv() {
+  const publishableKey = getPublishableKey();
   const body = [
     {
       key: 'VITE_SUPABASE_URL',
@@ -68,7 +75,7 @@ async function upsertEnv() {
     },
     {
       key: 'VITE_SUPABASE_PUBLISHABLE_KEY',
-      value: SUPABASE_PUBLISHABLE_KEY,
+      value: publishableKey,
       type: 'encrypted',
       target: ['production', 'preview'],
       comment: 'Canonical StreamVista browser publishable key',
@@ -121,6 +128,7 @@ async function verifyReadiness() {
 
 async function runBootstrap() {
   getToken();
+  getPublishableKey();
   const source = await verifyLockedProductionSource();
   const env = await upsertEnv();
   const redeploy = await redeployLockedSource();
@@ -133,13 +141,13 @@ async function runBootstrap() {
     env,
     redeploy: { id: redeploy.id, state: deployment.state, url: deployment.url || redeploy.url },
     readiness,
-    vercelTokenPersisted: false,
+    credentialsPersisted: false,
   };
 }
 
 const TOOL = {
   name: 'bind_streamvista_env_and_redeploy',
-  description: 'One-time StreamVista bootstrap: verify locked production main source, upsert canonical Supabase Vite vars into Vercel Production+Preview, redeploy, and verify /api/ready. Requires VERCEL_TOKEN only in process environment.',
+  description: 'One-time StreamVista bootstrap: verify locked production main source, upsert canonical Supabase Vite vars into Vercel Production+Preview, redeploy, and verify /api/ready. Requires VERCEL_TOKEN and STREAMVISTA_SUPABASE_PUBLISHABLE_KEY only in process environment.',
   inputSchema: { type: 'object', properties: {}, additionalProperties: false },
 };
 
@@ -152,7 +160,7 @@ async function handle(message) {
   const id = message.id;
   try {
     if (message.method === 'initialize') {
-      send({ jsonrpc: '2.0', id, result: { protocolVersion: '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'streamvista-one-time-vercel-bootstrap', version: '1.1.0' } } });
+      send({ jsonrpc: '2.0', id, result: { protocolVersion: '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'streamvista-one-time-vercel-bootstrap', version: '1.2.0' } } });
       return;
     }
     if (message.method === 'tools/list') {

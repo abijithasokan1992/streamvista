@@ -10,6 +10,9 @@ export type UserRole =
   | "legal_staff"
   | "support_staff";
 
+export type PublicSignupRole = "creator" | "buyer";
+export type VerificationStatus = "pending" | "verified" | "rejected" | "suspended";
+
 export interface User {
   uid: string;
   email: string;
@@ -19,6 +22,8 @@ export interface User {
 
 export interface UserProfile extends User {
   role: UserRole;
+  verificationStatus: VerificationStatus;
+  organizationName?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,5 +1,7 @@
 -- StreamVista creator reactivation: read-only legacy draft access.
 -- This migration does not move or rewrite legacy draft data.
+-- Recovery is fail-closed: the legacy account must first be claimed by the
+-- authenticated user and resolve to the canonical database role `creator`.
 
 create or replace function public.sv_my_legacy_drafts()
 returns table(
@@ -36,7 +38,9 @@ as $$
   join public.legacy_accounts a
     on a.legacy_id::text = d.legacy_uploader_id
   where auth.uid() is not null
+    and public.sv_current_role() = 'creator'
     and a.is_active = true
+    and a.claimed_user_id = auth.uid()
     and lower(a.email) = lower(coalesce(auth.jwt()->>'email', ''))
   order by d.legacy_updated_at desc nulls last, d.legacy_draft_id;
 $$;

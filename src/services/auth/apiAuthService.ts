@@ -1,5 +1,5 @@
 import { AuthService } from "./auth.types";
-import { UserProfile, UserRole } from "../../types/auth";
+import { PublicSignupRole, UserProfile, UserRole, VerificationStatus } from "../../types/auth";
 import { assertSupabaseConfigured, supabase } from "../supabase";
 
 type ProfileRow = {
@@ -7,6 +7,8 @@ type ProfileRow = {
   email: string;
   display_name: string;
   app_role: string;
+  verification_status: VerificationStatus;
+  organization_name?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -20,14 +22,15 @@ function normalizeRole(role: string): UserRole {
     case "finance": return "finance";
     case "qc": return "qc_staff";
     case "legal": return "legal_staff";
-    case "operations": return "support_staff";
+    case "operations":
+    case "support": return "support_staff";
     case "creator":
     case "studio":
     case "licensing":
     case "investor":
       return "creator_partner";
     default:
-      return "support_staff";
+      throw new Error("Unsupported StreamVista role. Access has been denied.");
   }
 }
 
@@ -36,6 +39,8 @@ const mapProfile = (profile: ProfileRow): UserProfile => ({
   email: profile.email,
   displayName: profile.display_name,
   role: normalizeRole(profile.app_role),
+  verificationStatus: profile.verification_status,
+  organizationName: profile.organization_name || undefined,
   createdAt: profile.created_at,
   updatedAt: profile.updated_at,
 });
@@ -76,18 +81,36 @@ class ApiAuthService implements AuthService {
     return getProfile();
   }
 
-  async signup(email: string, password: string, displayName: string) {
+  async signup(
+    email: string,
+    password: string,
+    displayName: string,
+    role: PublicSignupRole,
+    organizationName?: string,
+  ) {
     assertSupabaseConfigured();
+    if (role !== "creator" && role !== "buyer") {
+      throw new Error("Only Creator Partner and Buyer are available for public sign up.");
+    }
+
     const emailRedirectTo =
       typeof window === "undefined"
         ? undefined
         : new URL("/login", window.location.origin).toString();
+    const normalizedOrganization = organizationName?.trim() || undefined;
 
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
       options: {
-        data: { full_name: displayName.trim(), display_name: displayName.trim() },
+        data: {
+          full_name: displayName.trim(),
+          display_name: displayName.trim(),
+          signup_role: role,
+          ...(role === "buyer" && normalizedOrganization
+            ? { organization_name: normalizedOrganization }
+            : {}),
+        },
         emailRedirectTo,
       },
     });

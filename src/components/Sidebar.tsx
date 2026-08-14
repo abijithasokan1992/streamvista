@@ -14,6 +14,7 @@ import {
   Megaphone,
   Settings,
   ListVideo,
+  Handshake,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -25,6 +26,7 @@ export function Sidebar() {
   const navItems = [
     { name: "Workspace", path: "/dashboard", icon: LayoutDashboard, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Founder Command", path: "/command", icon: ShieldCheck, roles: ["platform_owner", "founder", "super_admin"] },
+    { name: "Sales Agent", path: "/sales", icon: Handshake, roles: ["platform_owner", "founder", "super_admin", "admin"] },
     { name: "Titles", path: "/titles", icon: Film, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
     { name: "Drafts", path: "/drafts", icon: FileEdit, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
     { name: "Uploads", path: "/uploads", icon: UploadCloud, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },

@@ -1,6 +1,6 @@
-import { supabase } from "./supabase";
+import { assertSupabaseConfigured, supabase } from "./supabase";
 
-const FILM_BUCKET = "streamvista-films";
+const FILM_BUCKET = "sv-masters";
 
 export interface StorageProvider {
   upload(file: File, path: string): Promise<string>;
@@ -11,22 +11,25 @@ export interface StorageProvider {
 
 export class SupabaseStorage implements StorageProvider {
   async upload(file: File, path: string) {
+    assertSupabaseConfigured();
     const { error } = await supabase.storage.from(FILM_BUCKET).upload(path, file, { upsert: false, contentType: file.type || undefined });
     if (error) throw new Error(error.message);
     return path;
   }
 
   getUrl(path: string) {
-    return supabase.storage.from(FILM_BUCKET).getPublicUrl(path).data.publicUrl;
+    return path;
   }
 
   async getSignedUrl(path: string, expiresIn = 3600) {
+    assertSupabaseConfigured();
     const { data, error } = await supabase.storage.from(FILM_BUCKET).createSignedUrl(path, expiresIn);
     if (error || !data?.signedUrl) throw new Error(error?.message || "Could not create secure screener URL");
     return data.signedUrl;
   }
 
   async delete(path: string) {
+    assertSupabaseConfigured();
     const { error } = await supabase.storage.from(FILM_BUCKET).remove([path]);
     if (error) throw new Error(error.message);
   }

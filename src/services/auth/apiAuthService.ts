@@ -1,46 +1,67 @@
 import { AuthService } from "./auth.types";
 import { UserProfile, UserRole } from "../../types/auth";
-import { supabase } from "../supabase";
+import { assertSupabaseConfigured, supabase } from "../supabase";
 
 type ProfileRow = {
   id: string;
   email: string;
   display_name: string;
-  app_role: UserRole;
+  app_role: string;
   created_at: string;
   updated_at: string;
 };
+
+function normalizeRole(role: string): UserRole {
+  switch (role) {
+    case "founder": return "founder";
+    case "super_admin": return "super_admin";
+    case "admin": return "admin";
+    case "buyer": return "buyer";
+    case "finance": return "finance";
+    case "qc": return "qc_staff";
+    case "legal": return "legal_staff";
+    case "operations": return "support_staff";
+    case "creator":
+    case "studio":
+    case "licensing":
+    case "investor":
+      return "creator_partner";
+    default:
+      return "support_staff";
+  }
+}
 
 const mapProfile = (profile: ProfileRow): UserProfile => ({
   uid: profile.id,
   email: profile.email,
   displayName: profile.display_name,
-  role: profile.app_role,
+  role: normalizeRole(profile.app_role),
   createdAt: profile.created_at,
   updatedAt: profile.updated_at,
 });
 
-async function getProfile(id: string) {
-  const { data, error } = await supabase
-    .from("sv_app_profiles")
-    .select("id,email,display_name,app_role,created_at,updated_at")
-    .eq("id", id)
-    .single();
-
+async function getProfile() {
+  assertSupabaseConfigured();
+  const { data, error } = await supabase.rpc("sv_session_profile");
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Authenticated StreamVista profile was not found.");
   return mapProfile(data as ProfileRow);
 }
 
 class ApiAuthService implements AuthService {
   async getCurrentUser(): Promise<UserProfile | null> {
+    assertSupabaseConfigured();
     const {
       data: { user },
+      error,
     } = await supabase.auth.getUser();
 
-    return user ? getProfile(user.id) : null;
+    if (error) throw new Error(error.message);
+    return user ? getProfile() : null;
   }
 
   async login(email: string, password?: string): Promise<UserProfile> {
+    assertSupabaseConfigured();
     if (!password) throw new Error("Password is required");
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -52,10 +73,11 @@ class ApiAuthService implements AuthService {
       throw new Error(error?.message || "Invalid email or password");
     }
 
-    return getProfile(data.user.id);
+    return getProfile();
   }
 
   async signup(email: string, password: string, displayName: string) {
+    assertSupabaseConfigured();
     const emailRedirectTo =
       typeof window === "undefined"
         ? undefined
@@ -65,7 +87,7 @@ class ApiAuthService implements AuthService {
       email: email.trim().toLowerCase(),
       password,
       options: {
-        data: { display_name: displayName.trim() },
+        data: { full_name: displayName.trim(), display_name: displayName.trim() },
         emailRedirectTo,
       },
     });
@@ -74,12 +96,13 @@ class ApiAuthService implements AuthService {
 
     const confirmed = Boolean(data.session && data.user);
     return {
-      user: confirmed && data.user ? await getProfile(data.user.id) : null,
+      user: confirmed && data.user ? await getProfile() : null,
       confirmationRequired: !confirmed,
     };
   }
 
   async logout(): Promise<void> {
+    assertSupabaseConfigured();
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
   }

@@ -4,8 +4,7 @@ import readline from 'node:readline';
 const PROJECT_ID = 'prj_9LRd7XDa1zJaGzADQd9uh7QtON6c';
 const PROJECT_NAME = 'streamvista';
 const TEAM_ID = 'team_RZTE8Xin6e0xeDOCwU2JXy4K';
-const SOURCE_DEPLOYMENT_ID = 'dpl_FHEHVCriUSuMstijrvMfzgnm3coW';
-const EXPECTED_MAIN_SHA = '9ed1dca438dd0906ffd97bb1fade70cf92c2df7c';
+const GITHUB_MAIN_API = 'https://api.github.com/repos/abijithasokan1992/streamvista/commits/main';
 const EXPECTED_SUPABASE_PROJECT_REF = 'uakpqqardziifcwzvgfx';
 const SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 const KEY_DISCOVERY_ORIGIN = 'https://streamvista-ai-chat.vercel.app';
@@ -110,16 +109,39 @@ function deploymentSha(deployment) {
   return deployment?.meta?.githubCommitSha || deployment?.gitSource?.sha || deployment?.source?.sha || '';
 }
 
-async function verifyLockedProductionSource() {
-  const source = await vercelFetch(`/v13/deployments/${SOURCE_DEPLOYMENT_ID}?teamId=${TEAM_ID}`);
-  const sha = deploymentSha(source);
-  if (source?.projectId && source.projectId !== PROJECT_ID) {
-    throw new Error('Locked source belongs to a different Vercel project. No mutation was attempted.');
+async function currentGitHubMainSha() {
+  const response = await fetch(GITHUB_MAIN_API, {
+    headers: {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'streamvista-one-time-vercel-bootstrap',
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Could not resolve current GitHub main (HTTP ${response.status}). No mutation was attempted.`);
   }
-  if (source?.name !== PROJECT_NAME || source?.target !== 'production' || sha !== EXPECTED_MAIN_SHA) {
-    throw new Error('Locked production source no longer matches canonical main. No mutation was attempted.');
+  const data = await response.json();
+  if (!data?.sha) throw new Error('GitHub main returned no commit SHA. No mutation was attempted.');
+  return data.sha;
+}
+
+async function resolveCurrentProductionSource() {
+  const mainSha = await currentGitHubMainSha();
+  const data = await vercelFetch(`/v6/deployments?projectId=${PROJECT_ID}&target=production&limit=10&teamId=${TEAM_ID}`);
+  const deployments = Array.isArray(data?.deployments) ? data.deployments : [];
+  const source = deployments.find((deployment) => {
+    const state = deployment?.readyState || deployment?.state || deployment?.status;
+    const ref = deployment?.meta?.githubCommitRef;
+    return deployment?.name === PROJECT_NAME && deployment?.target === 'production' && state === 'READY' && ref === 'main' && deploymentSha(deployment) === mainSha;
+  });
+
+  if (!source) {
+    throw new Error('Current Vercel production is not an exact READY deployment of current GitHub main. No mutation was attempted.');
   }
-  return { id: source.id || source.uid || SOURCE_DEPLOYMENT_ID, sha };
+
+  return {
+    id: source.id || source.uid,
+    sha: mainSha,
+  };
 }
 
 async function upsertEnv(publishableKey) {
@@ -151,13 +173,13 @@ async function upsertEnv(publishableKey) {
   };
 }
 
-async function redeployLockedSource() {
+async function redeployProductionSource(sourceId) {
   const created = await vercelFetch(`/v13/deployments?teamId=${TEAM_ID}`, {
     method: 'POST',
     body: JSON.stringify({
       name: PROJECT_NAME,
       project: PROJECT_ID,
-      deploymentId: SOURCE_DEPLOYMENT_ID,
+      deploymentId: sourceId,
       target: 'production',
     }),
   });
@@ -166,12 +188,18 @@ async function redeployLockedSource() {
   return { id, url: created.url || null };
 }
 
-async function waitForDeployment(id, timeoutMs = 8 * 60 * 1000) {
+async function waitForDeployment(id, expectedSha, timeoutMs = 8 * 60 * 1000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const deployment = await vercelFetch(`/v13/deployments/${encodeURIComponent(id)}?teamId=${TEAM_ID}`);
     const state = deployment?.readyState || deployment?.status || deployment?.state;
-    if (state === 'READY') return { state, url: deployment.url || null };
+    if (state === 'READY') {
+      const sha = deploymentSha(deployment);
+      if (sha && sha !== expectedSha) {
+        throw new Error('Redeployed production SHA does not match the verified current main SHA.');
+      }
+      return { state, url: deployment.url || null };
+    }
     if (['ERROR', 'CANCELED'].includes(state)) throw new Error(`Deployment ended in ${state}.`);
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }
@@ -197,11 +225,11 @@ async function waitForReadiness(timeoutMs = 3 * 60 * 1000) {
 
 async function runBootstrap() {
   getToken();
+  const source = await resolveCurrentProductionSource();
   const publishableKey = await discoverPublishableKey();
-  const source = await verifyLockedProductionSource();
   const env = await upsertEnv(publishableKey);
-  const redeploy = await redeployLockedSource();
-  const deployment = await waitForDeployment(redeploy.id);
+  const redeploy = await redeployProductionSource(source.id);
+  const deployment = await waitForDeployment(redeploy.id, source.sha);
   const readiness = await waitForReadiness();
 
   return {
@@ -221,7 +249,7 @@ async function runBootstrap() {
 
 const TOOL = {
   name: 'bind_streamvista_env_and_redeploy',
-  description: 'One-time StreamVista bootstrap: validate a canonical browser publishable key, verify the locked production main source, upsert Supabase Vite variables into Vercel Production+Preview, redeploy, and verify /api/ready. Requires VERCEL_TOKEN only in process environment.',
+  description: 'One-time StreamVista bootstrap: require existing Vercel authorization, prove current Vercel production is the exact READY deployment of current GitHub main, validate the canonical browser publishable key, upsert Supabase Vite variables into Production+Preview, redeploy current production, and verify /api/ready.',
   inputSchema: { type: 'object', properties: {}, additionalProperties: false },
 };
 
@@ -245,7 +273,7 @@ async function handle(message) {
         result: {
           protocolVersion: '2025-03-26',
           capabilities: { tools: {} },
-          serverInfo: { name: 'streamvista-one-time-vercel-bootstrap', version: '2.0.0' },
+          serverInfo: { name: 'streamvista-one-time-vercel-bootstrap', version: '2.1.0' },
         },
       });
       return;

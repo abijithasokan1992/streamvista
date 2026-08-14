@@ -27,19 +27,19 @@ export function Sidebar() {
     { name: "Founder Command", path: "/command", icon: ShieldCheck, roles: ["platform_owner", "founder", "super_admin"] },
     { name: "Titles", path: "/titles", icon: Film, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
     { name: "Drafts", path: "/drafts", icon: FileEdit, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
-    { name: "Uploads", path: "/uploads", icon: UploadCloud, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner"] },
-    { name: "Screenings", path: "/screenings", icon: ListVideo, roles: ["platform_owner", "founder", "super_admin", "admin", "buyer", "creator_partner"] },
+    { name: "Uploads", path: "/uploads", icon: UploadCloud, roles: ["platform_owner", "founder", "super_admin", "admin"] },
+    { name: "Screenings", path: "/screenings", icon: ListVideo, roles: ["platform_owner", "founder", "super_admin", "admin", "buyer"] },
     { name: "QC Review", path: "/qc", icon: ShieldCheck, roles: ["platform_owner", "founder", "super_admin", "admin", "qc_staff"] },
     { name: "Legal", path: "/legal", icon: Scale, roles: ["platform_owner", "founder", "super_admin", "admin", "legal_staff"] },
-    { name: "Payments & Revenue", path: "/finance", icon: CreditCard, roles: ["platform_owner", "founder", "super_admin", "admin", "finance"] },
+    { name: "Payments & Revenue", path: "/finance", icon: CreditCard, roles: ["platform_owner", "founder", "super_admin", "admin", "finance", "creator_partner"] },
     { name: "Analytics", path: "/analytics", icon: BarChart3, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer"] },
     { name: "Campaigns", path: "/campaigns", icon: Megaphone, roles: ["platform_owner", "founder", "super_admin", "admin", "buyer"] },
     { name: "Users", path: "/users", icon: Users, roles: ["platform_owner", "founder", "super_admin", "admin"] },
-    { name: "Settings", path: "/settings", icon: Settings, roles: ["platform_owner", "founder", "super_admin", "admin", "creator_partner", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"] },
+    { name: "Settings", path: "/settings", icon: Settings, roles: ["platform_owner", "founder", "super_admin", "admin", "buyer", "finance", "qc_staff", "legal_staff", "support_staff"] },
   ];
 
   const workspaceMenu = location.pathname.startsWith("/workspace/creator")
-    ? new Set(["Titles", "Drafts", "Uploads", "Screenings"])
+    ? new Set(["Titles", "Drafts", "Payments & Revenue", "Analytics"])
     : location.pathname.startsWith("/workspace/buyer")
       ? new Set(["Screenings", "Analytics", "Campaigns"])
       : location.pathname.startsWith("/workspace/studio")
@@ -47,7 +47,7 @@ export function Sidebar() {
         : null;
 
   const visibleNavItems = navItems.filter((item) => {
-    if (workspaceMenu) return workspaceMenu.has(item.name);
+    if (workspaceMenu) return workspaceMenu.has(item.name) && item.roles.includes(role);
     return item.roles.includes(role);
   });
 

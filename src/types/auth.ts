@@ -22,7 +22,7 @@ export interface User {
 
 export interface UserProfile extends User {
   role: UserRole;
-  verificationStatus: VerificationStatus;
+  verificationStatus?: VerificationStatus;
   organizationName?: string;
   createdAt: string;
   updatedAt: string;

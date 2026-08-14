@@ -46,9 +46,10 @@
 
 # 2026-08-15 — StreamVista Sales Agent command surface
 
-Status: **IMPLEMENTED ON REVIEW BRANCH / NOT PRODUCTION-PROMOTED**
+Status: **IMPLEMENTED + BRANCH BUILD VERIFIED / NOT PRODUCTION-PROMOTED**
 
 Branch: `chatgpt/sales-agent-command-v1`
+Draft PR: `#47`
 
 Implemented:
 - Added a protected `/sales` Founder/Admin workspace.
@@ -65,10 +66,17 @@ Security / evidence:
 - No production data was changed or copied into the repository.
 - No credentials or secrets were committed.
 
-Verification pending:
-- GitHub CI/typecheck/lint/production build on the branch head.
-- Automatic Vercel Preview verification if Git integration creates a preview.
-- Authenticated `/sales` E2E after the RLS bridge is separately approved and applied.
+Verification evidence on application head `5e43b6c63c92a1186e35e019c1250d62853c2dee`:
+- GitHub Rule 77 run `31840770336` / run #92: **SUCCESS**.
+- `npm ci`: **SUCCESS**.
+- `npm run verify:rule77`: **SUCCESS**.
+- `npm run build`: **SUCCESS**.
+- Automatic Vercel Preview deployment `dpl_HvRZBwegT4J66ip6KGqmeC8qzXb4`: **READY**.
+- Vercel build executed `tsc -b && vite build` successfully.
+- Direct `/sales` HTTP inspection is still blocked by Vercel Preview SSO before app-level authentication; this is not treated as authenticated Sales E2E evidence.
+
+Remaining verification gate:
+- Apply the reviewed Sales RLS bridge only with Founder approval, then verify one authenticated Founder/Admin session can read `/sales` while a non-admin remains denied.
 
 Explicit non-actions:
 - No production Supabase migration applied.

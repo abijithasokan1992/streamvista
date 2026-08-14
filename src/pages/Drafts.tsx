@@ -116,8 +116,8 @@ export default function Drafts() {
                 <CardHeader>
                   <div className="mb-2 flex flex-wrap gap-2">
                     <Badge>{draft.content_type || "Draft"}</Badge>
-                    {draft.current_tab && <Badge variant="secondary">Continue: {draft.current_tab}</Badge>}
-                    {isRequested && <Badge variant="secondary">Opened from your email</Badge>}
+                    {draft.current_tab && <Badge variant="outline">Continue: {draft.current_tab}</Badge>}
+                    {isRequested && <Badge variant="warning">Opened from your email</Badge>}
                   </div>
                   <CardTitle>{draft.title || "Untitled draft"}</CardTitle>
                   <CardDescription>

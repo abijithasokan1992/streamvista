@@ -1,32 +1,40 @@
 import { createClient } from "@supabase/supabase-js";
 
 const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-const supabasePublishableKey = (
+const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
+const configuredUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+const configuredPublishableKey = (
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
 )?.trim();
 
-if (!supabaseUrl || !supabasePublishableKey) {
-  throw new Error(
-    "StreamVista Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in the deployment environment.",
-  );
+function getProjectRef(value?: string) {
+  if (!value) return "";
+  try {
+    return new URL(value).hostname.split(".")[0] || "";
+  } catch {
+    return "";
+  }
 }
 
-let configuredProjectRef = "";
-try {
-  configuredProjectRef = new URL(supabaseUrl).hostname.split(".")[0] || "";
-} catch {
-  throw new Error("StreamVista Supabase URL is invalid.");
-}
+export const SUPABASE_CONFIG_ERROR = !configuredUrl || !configuredPublishableKey
+  ? "StreamVista backend is not configured for this deployment."
+  : getProjectRef(configuredUrl) !== EXPECTED_SUPABASE_PROJECT_REF
+    ? `StreamVista backend binding mismatch. Expected project ${EXPECTED_SUPABASE_PROJECT_REF}.`
+    : null;
 
-if (configuredProjectRef !== EXPECTED_SUPABASE_PROJECT_REF) {
-  throw new Error(
-    `StreamVista Supabase binding mismatch. Expected project ${EXPECTED_SUPABASE_PROJECT_REF}.`,
-  );
-}
+export const SUPABASE_URL =
+  configuredUrl && getProjectRef(configuredUrl) === EXPECTED_SUPABASE_PROJECT_REF
+    ? configuredUrl
+    : CANONICAL_SUPABASE_URL;
 
-export const SUPABASE_URL = supabaseUrl;
-export const SUPABASE_PUBLISHABLE_KEY = supabasePublishableKey;
+// A non-secret placeholder keeps the public shell renderable when a Preview deployment
+// is missing its browser publishable key. All data/auth calls remain fail-closed through
+// assertSupabaseConfigured().
+export const SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey || "streamvista-unconfigured";
+
+export function assertSupabaseConfigured() {
+  if (SUPABASE_CONFIG_ERROR) throw new Error(SUPABASE_CONFIG_ERROR);
+}
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },

@@ -26,6 +26,7 @@ import WorkspaceLanding from "./pages/WorkspaceLanding";
 
 const PLATFORM = ["platform_owner", "founder", "super_admin"] as const;
 const ADMIN = [...PLATFORM, "admin"] as const;
+const CREATOR = [...ADMIN, "creator_partner"] as const;
 
 function isMarketingHost() {
   if (typeof window === "undefined") return false;
@@ -78,19 +79,19 @@ function App() {
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/workspace/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><WorkspaceLanding type="creator" /></ProtectedRoute>} />
+            <Route path="/workspace/creator" element={<ProtectedRoute allowedRoles={CREATOR.slice()}><WorkspaceLanding type="creator" /></ProtectedRoute>} />
             <Route path="/workspace/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><WorkspaceLanding type="buyer" /></ProtectedRoute>} />
             <Route path="/workspace/studio" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><WorkspaceLanding type="studio" /></ProtectedRoute>} />
             <Route path="/command" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><FounderCommand /></ProtectedRoute>} />
-            <Route path="/titles" element={<Titles />} />
-            <Route path="/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><CreatorDashboard /></ProtectedRoute>} />
+            <Route path="/titles" element={<ProtectedRoute allowedRoles={CREATOR.slice()}><Titles /></ProtectedRoute>} />
+            <Route path="/creator" element={<ProtectedRoute allowedRoles={CREATOR.slice()}><CreatorDashboard /></ProtectedRoute>} />
             <Route path="/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><BuyerDashboard /></ProtectedRoute>} />
-            <Route path="/drafts" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Drafts /></ProtectedRoute>} />
-            <Route path="/uploads" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Uploads /></ProtectedRoute>} />
-            <Route path="/screenings" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer", "creator_partner"]}><Screenings /></ProtectedRoute>} />
+            <Route path="/drafts" element={<ProtectedRoute allowedRoles={CREATOR.slice()}><Drafts /></ProtectedRoute>} />
+            <Route path="/uploads" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Uploads /></ProtectedRoute>} />
+            <Route path="/screenings" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Screenings /></ProtectedRoute>} />
             <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "qc_staff"]}><QC /></ProtectedRoute>} />
             <Route path="/legal" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><Legal /></ProtectedRoute>} />
-            <Route path="/finance" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance"]}><Payments /></ProtectedRoute>} />
+            <Route path="/finance" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance", "creator_partner"]}><Payments /></ProtectedRoute>} />
             <Route path="/payments" element={<Navigate to="/finance" replace />} />
             <Route path="/analytics" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance", "creator_partner", "buyer"]}><Analytics /></ProtectedRoute>} />
             <Route path="/campaigns" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Campaigns /></ProtectedRoute>} />

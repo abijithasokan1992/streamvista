@@ -132,8 +132,8 @@ export default function Login() {
           </h1>
           <p className="mt-3 text-sm leading-6 text-zinc-400">
             {createMode
-              ? "Your media assistant path starts with one email — no password to remember."
-              : "We’ll email a secure magic link. One tap opens your workspace."}
+              ? "Your media path starts with one email — no password to remember."
+              : "We email a secure magic link. One tap opens your workspace."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5" autoComplete="off">
@@ -156,10 +156,10 @@ export default function Login() {
 
                 <fieldset className="block">
                   <legend className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-500">
-                    How you’ll use StreamVista
+                    How you will use StreamVista
                   </legend>
                   <p className="mb-3 text-xs leading-5 text-zinc-500">
-                    Your assistant uses this to open the right workspace. Admin roles stay invite-only.
+                    Opens the right workspace. Admin roles stay invite-only.
                   </p>
                   <div className="grid gap-2">
                     {PUBLIC_ROLES.map((role) => {
@@ -254,7 +254,7 @@ export default function Login() {
               disabled={loading}
               className="flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-violet-400 to-orange-400 px-5 text-sm font-black text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Sending…” : “Email me a magic link”}
+              {loading ? "Sending..." : "Email me a magic link"}
             </button>
           </form>
 
@@ -283,8 +283,8 @@ export default function Login() {
           </button>
 
           <div className="mt-8 space-y-2 border-t border-white/10 pt-5 text-xs text-zinc-500">
-            <p>No password. Your assistant guides the path — Supabase verifies the link.</p>
-            <p>AI never holds your credentials. Role and access stay server-enforced.</p>
+            <p>No password. Guidance in chat — Supabase verifies the link.</p>
+            <p>AI never holds credentials. Role and access stay server-enforced.</p>
           </div>
         </section>
       </div>

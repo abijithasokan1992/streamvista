@@ -1,32 +1,37 @@
-# React + TypeScript + Vite
+# StreamVista
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Content licensing & distribution **web app** — rights, titles, screenings, creator/buyer workspaces.
 
-Currently, two official plugins are available:
+[![Vercel Production](https://img.shields.io/github/deployments/abijithasokan1992/streamvista/Production?style=flat&logo=vercel&label=vercel%20production)](https://streamvista-ai-chat.vercel.app)
+[![GitHub main](https://img.shields.io/badge/main-streamvista-111111?style=flat&logo=github)](https://github.com/abijithasokan1992/streamvista/tree/main)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Production host:** [streamvista-ai-chat.vercel.app](https://streamvista-ai-chat.vercel.app)  
+**Canonical domain (when mapped):** [streamvista.in](https://streamvista.in)
 
-## React Compiler
+| Check | URL |
+|--------|-----|
+| Health | [/api/ready](https://streamvista-ai-chat.vercel.app/api/ready) |
+| Login | [/login](https://streamvista-ai-chat.vercel.app/login) |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Auth (MVP)
 
-## Expanding the Oxlint configuration
+- Magic link only (no password on public UI)
+- Join → role once (creator / buyer / investor / studio)
+- Session → Dashboard
+- Mail: Hostinger SMTP via Supabase (not Resend)
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Stack
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+React + TypeScript + Vite · Supabase Auth/RLS · Vercel
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Deploy
+
+Vercel project **streamvista-ai-chat** · Git branch **`main`** · Root Directory = repo root.
+
+Badge reflects GitHub **Production** deployment environment status for this repo. Confirm live UI on the host after each deploy.
+
+## P0 gate (unchanged)
+
+SQL #54 apply → Magic link → Dashboard → Title → Poster → Isolation → E2E → Certified → READY
+
+Deployment badge green ≠ P0 certified.

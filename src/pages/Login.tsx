@@ -32,6 +32,8 @@ const PUBLIC_ROLES: {
   },
 ];
 
+const ROLE_IDS: PublicSignupRole[] = ["creator", "buyer", "investor", "studio"];
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -48,9 +50,19 @@ export default function Login() {
   const next = params.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
   const fromMagic = params.get("magic") === "1";
+  const joinParam = params.get("join") === "1";
+  const roleParam = params.get("role");
 
   const needsOrg =
     signupRole === "buyer" || signupRole === "studio" || signupRole === "investor";
+
+  useEffect(() => {
+    if (joinParam) setCreateMode(true);
+    if (roleParam && ROLE_IDS.includes(roleParam as PublicSignupRole)) {
+      setSignupRole(roleParam as PublicSignupRole);
+      setCreateMode(true);
+    }
+  }, [joinParam, roleParam]);
 
   useEffect(() => {
     if (user) navigate(safeNext, { replace: true });
@@ -58,7 +70,7 @@ export default function Login() {
 
   useEffect(() => {
     if (fromMagic && !user && !loading) {
-      setMessage("Finishing secure sign-in… If this hangs, request a new magic link.");
+      setMessage("Finishing secure sign-in… You will land on your dashboard.");
     }
   }, [fromMagic, user, loading]);
 
@@ -69,7 +81,7 @@ export default function Login() {
 
     try {
       if (createMode) {
-        if (!["creator", "buyer", "investor", "studio"].includes(signupRole)) {
+        if (!ROLE_IDS.includes(signupRole)) {
           setError("Select a valid account role.");
           return;
         }
@@ -90,21 +102,14 @@ export default function Login() {
           organizationName: needsOrg ? organizationName : undefined,
         });
 
-        const roleHint =
-          signupRole === "buyer" || signupRole === "investor"
-            ? " After you open the link, access may stay pending until verification."
-            : signupRole === "studio"
-              ? " Studio workspace unlocks after paid plan activation."
-              : "";
-
         setMessage(
-          `Magic link sent to ${email.trim().toLowerCase()}. Open it to enter StreamVista — no password.${roleHint}`,
+          `Magic link sent to ${email.trim().toLowerCase()}. Open it to enter your dashboard — no password.`,
         );
         return;
       }
 
       await requestMagicLink({ email, create: false });
-      setMessage(`Magic link sent to ${email.trim().toLowerCase()}. Open it to continue — no password.`);
+      setMessage(`Magic link sent to ${email.trim().toLowerCase()}. Open it to continue to your dashboard.`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not send magic link");
     }
@@ -114,11 +119,11 @@ export default function Login() {
     <main className="min-h-screen bg-[#05050a] px-5 py-8 text-zinc-100">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col">
         <header className="flex items-center justify-between">
-          <Link to="/home" className="flex items-center gap-3 font-black tracking-[-0.04em] text-white">
+          <Link to="/" className="flex items-center gap-3 font-black tracking-[-0.04em] text-white">
             <span className="h-8 w-8 rounded-full bg-[radial-gradient(circle_at_30%_25%,#ff8b49,#8757e7_46%,#25103e_78%)]" />
             STREAMVISTA
           </Link>
-          <Link to="/home" className="text-sm font-medium text-zinc-500 hover:text-white">
+          <Link to="/" className="text-sm font-medium text-zinc-500 hover:text-white">
             Return home
           </Link>
         </header>
@@ -132,8 +137,8 @@ export default function Login() {
           </h1>
           <p className="mt-3 text-sm leading-6 text-zinc-400">
             {createMode
-              ? "Your media path starts with one email — no password to remember."
-              : "We email a secure magic link. One tap opens your workspace."}
+              ? "Name, role, email — then open your mail. Dashboard opens after the link."
+              : "We email a secure magic link. One tap opens your dashboard."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5" autoComplete="off">
@@ -159,7 +164,7 @@ export default function Login() {
                     How you will use StreamVista
                   </legend>
                   <p className="mb-3 text-xs leading-5 text-zinc-500">
-                    Opens the right workspace. Admin roles stay invite-only.
+                    Opens the right dashboard. Admin roles stay invite-only.
                   </p>
                   <div className="grid gap-2">
                     {PUBLIC_ROLES.map((role) => {
@@ -283,8 +288,8 @@ export default function Login() {
           </button>
 
           <div className="mt-8 space-y-2 border-t border-white/10 pt-5 text-xs text-zinc-500">
-            <p>No password. Guidance in chat — Supabase verifies the link.</p>
-            <p>AI never holds credentials. Role and access stay server-enforced.</p>
+            <p>No password. Hostinger can deliver mail when SMTP is set.</p>
+            <p>After the link: secure session → dashboard. RBAC stays on the server.</p>
           </div>
         </section>
       </div>

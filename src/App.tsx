@@ -4,6 +4,7 @@ import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { MainLayout } from "./layouts/MainLayout";
 
 import Chat from "./pages/Chat";
+import Home from "./pages/Home";
 import HomeWhite from "./pages/HomeWhite";
 import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
@@ -34,17 +35,27 @@ function isMarketingHost() {
   return window.location.hostname === "www.streamvista.in" || window.location.hostname === "streamvista.in";
 }
 
+/** Logged-out: Rocket home with chat. Logged-in: Dashboard. */
 function RootRoute() {
-  if (isMarketingHost()) return <HomeWhite />;
-  return <ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>;
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (isMarketingHost() && !user) return <HomeWhite />;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Home />;
 }
 
+/** Chat is open for guidance; account creation stays magic-link on /login */
 function ChatRoute() {
-  if (isMarketingHost()) {
-    window.location.replace("https://chat.streamvista.in/login?next=/chat");
-    return null;
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) {
+    return (
+      <ProtectedRoute>
+        <Chat />
+      </ProtectedRoute>
+    );
   }
-  return <ProtectedRoute><Chat /></ProtectedRoute>;
+  return <Chat />;
 }
 
 function LoginRoute() {
@@ -60,9 +71,11 @@ function LegacyAuthRedirect() {
   const [params] = useSearchParams();
   const next = params.get("next");
   const theme = params.get("theme");
+  const join = params.get("join");
   const target = new URLSearchParams();
   if (next?.startsWith("/") && !next.startsWith("//")) target.set("next", next);
   if (theme) target.set("theme", theme);
+  if (join === "1") target.set("join", "1");
   const query = target.toString();
   return <Navigate to={`/login${query ? `?${query}` : ""}`} replace />;
 }
@@ -74,7 +87,7 @@ function App() {
         <Routes>
           <Route path="/" element={<RootRoute />} />
           <Route path="/chat" element={<ChatRoute />} />
-          <Route path="/home" element={<HomeWhite />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<LoginRoute />} />
           <Route path="/auth" element={<LegacyAuthRedirect />} />
 

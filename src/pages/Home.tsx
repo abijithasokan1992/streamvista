@@ -3,16 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowUp, Clapperboard, Film, Tv } from "lucide-react";
 
 const chips = [
-  { label: "I create and license titles", prompt: "I create films and want to license them on StreamVista" },
-  { label: "I buy content for my platform", prompt: "I buy content for an OTT / channel and need screenings" },
-  { label: "I'm a studio (paid plans)", prompt: "I'm a studio looking at paid StreamVista plans" },
-  { label: "Just exploring rights and reach", prompt: "Explain how StreamVista helps with rights and distribution" },
+  { label: "I create and license titles", prompt: "I create films and want to license them on StreamVista", joinRole: "creator" },
+  { label: "I buy content for my platform", prompt: "I buy content for an OTT / channel and need screenings", joinRole: "buyer" },
+  { label: "I'm a studio (paid plans)", prompt: "I'm a studio looking at paid StreamVista plans", joinRole: "studio" },
+  { label: "Just exploring rights and reach", prompt: "Explain how StreamVista helps with rights and distribution", joinRole: "" },
 ];
 
 const journeys = [
-  { icon: Clapperboard, label: "Create & distribute", sub: "Creators and studios", to: "/creator", accent: "bg-[#8757e7]" },
-  { icon: Film, label: "Find content", sub: "Buyers and partners", to: "/buyer", accent: "bg-[#ff792c]" },
-  { icon: Tv, label: "Screenings", sub: "Approved titles path", to: "/screenings", accent: "bg-[#1c0b44]" },
+  { icon: Clapperboard, label: "Create & distribute", sub: "Creators and studios", to: "/login?join=1&role=creator&next=/dashboard", accent: "bg-[#8757e7]" },
+  { icon: Film, label: "Find content", sub: "Buyers and partners", to: "/login?join=1&role=buyer&next=/dashboard", accent: "bg-[#ff792c]" },
+  { icon: Tv, label: "Screenings", sub: "After you enter", to: "/login?next=/dashboard", accent: "bg-[#1c0b44]" },
 ];
 
 export default function Home() {
@@ -22,6 +22,12 @@ export default function Home() {
   const openAssistant = (text?: string) => {
     const q = (text ?? draft).trim();
     navigate(q ? `/chat?q=${encodeURIComponent(q)}` : "/chat");
+  };
+
+  const goJoin = (role?: string) => {
+    const params = new URLSearchParams({ join: "1", next: "/dashboard" });
+    if (role) params.set("role", role);
+    navigate(`/login?${params.toString()}`);
   };
 
   const onSubmit = (e: FormEvent) => {
@@ -38,12 +44,15 @@ export default function Home() {
         </Link>
         <nav className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
           <a href="#journeys">Explore</a>
-          <Link to="/buyer">For buyers</Link>
-          <Link to="/creator">For creators</Link>
+          <button type="button" className="hover:text-slate-900" onClick={() => goJoin("buyer")}>
+            For buyers
+          </button>
+          <button type="button" className="hover:text-slate-900" onClick={() => goJoin("creator")}>
+            For creators
+          </button>
         </nav>
-        {/* Soft: one door — not Create Account */}
         <Link
-          to="/login"
+          to="/login?next=/dashboard"
           className="rounded-full border border-black/10 bg-white px-5 py-2.5 text-sm font-semibold text-[#160d23] shadow-sm transition hover:border-black/20"
         >
           Enter
@@ -56,10 +65,9 @@ export default function Home() {
           Stories <em className="font-serif font-normal">move</em> here.
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-          One calm path for media. Ask anything — then enter with a magic link when you're ready.
+          Type what you need. When you are ready, one email opens your workspace — no password.
         </p>
 
-        {/* Rocket-style open chat box */}
         <form
           onSubmit={onSubmit}
           className="mx-auto mt-10 overflow-hidden rounded-3xl border border-black/8 bg-white text-left shadow-[0_20px_60px_rgba(22,13,35,0.08)]"
@@ -72,11 +80,11 @@ export default function Home() {
             rows={3}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Describe what you need — license a title, find content, or understand StreamVista…"
+            placeholder="Describe what you need — license a title, find content, or join as creator…"
             className="w-full resize-none border-0 bg-transparent px-5 pb-2 pt-5 text-[15px] leading-6 text-[#160d23] outline-none placeholder:text-slate-400"
           />
           <div className="flex items-center justify-between gap-3 px-4 pb-4">
-            <span className="text-xs text-slate-400">Guided assistant · no password on this step</span>
+            <span className="text-xs text-slate-400">Chat guides · account stays magic link</span>
             <button
               type="submit"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-[#150b20] text-white transition hover:opacity-90"
@@ -92,7 +100,13 @@ export default function Home() {
             <button
               key={c.label}
               type="button"
-              onClick={() => openAssistant(c.prompt)}
+              onClick={() => {
+                if (c.joinRole) {
+                  goJoin(c.joinRole);
+                  return;
+                }
+                openAssistant(c.prompt);
+              }}
               className="rounded-full border border-black/10 bg-white/80 px-3.5 py-2 text-left text-xs font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:text-violet-900"
             >
               {c.label}
@@ -100,12 +114,18 @@ export default function Home() {
           ))}
         </div>
 
-        <p className="mt-8 text-sm text-slate-500">
-          Ready for your workspace?{" "}
-          <Link className="font-semibold text-violet-700 hover:underline" to="/login">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-sm">
+          <button
+            type="button"
+            onClick={() => goJoin("creator")}
+            className="rounded-full bg-[#150b20] px-5 py-2.5 font-semibold text-white"
+          >
+            Create account
+          </button>
+          <Link className="font-semibold text-violet-700 hover:underline" to="/login?next=/dashboard">
             Email me a magic link
           </Link>
-        </p>
+        </div>
       </section>
 
       <section id="journeys" className="mx-auto max-w-7xl px-6 pb-14 pt-8 lg:px-10">
@@ -132,7 +152,7 @@ export default function Home() {
 
       <footer className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-slate-200 px-6 py-7 text-xs text-slate-500 sm:flex-row sm:justify-between lg:px-10">
         <span>StreamVista (OPC) Private Limited · Kerala, India</span>
-        <span>Home invites · magic link admits · RBAC protects · AI guides</span>
+        <span>Chat invites · magic link admits · dashboard launches</span>
       </footer>
     </main>
   );

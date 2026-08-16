@@ -1,45 +1,95 @@
-# Implementation Status
+# StreamVista Implementation Status
 
-*Last updated: Phase 7 (Documentation Setup)*
+*Last verified: 2026-08-15*
 
-- **Current branch:** `main`
-- **Latest commit:** `b7147ff feat: complete local mock implementation phases 1-6` (Pre-docs commit)
-- **Completed features:**
-  - Vite + React + TypeScript base configuration.
-  - Tailwind CSS setup with cinematic enterprise design system.
-  - Core role-based authentication and routing with mock data layer.
-  - Floating Mock Role Switcher for local development.
-  - Placeholders for all requested pages (Mission Control, Titles, Drafts, Uploads, Creator, Buyer, Screenings, QC, Legal, Payments, Analytics, Campaigns, Users, Settings).
-  - Firebase rules and environment structure definitions.
-- **Incomplete features:**
-  - Fully interactive UI for managing titles/drafts.
-  - Real Firebase integration.
-  - Live data import.
-- **Files created:**
-  - `docs/IMPLEMENTATION_STATUS.md`
-  - `docs/ROUTE_MATRIX.md`
-  - `docs/ROLE_PERMISSION_MATRIX.md`
-  - `docs/FIREBASE_REQUIREMENTS.md`
-  - `docs/MIGRATION_REQUIREMENTS.md`
-  - `docs/TEST_MATRIX.md`
-- **Files modified:**
-  - N/A for this phase.
-- **Commands run:**
-  - `New-Item -ItemType Directory -Force -Path "docs"`
-  - `git log -1`
-- **Typecheck result:** Pass (`tsc -b`)
-- **Lint result:** Pass (Using relaxed rules for local demo)
-- **Test result:** Manual verification pass (Routes correctly protect against unauthorized access).
-- **Build result:** Pass (`vite build`)
-- **Known errors:** None.
-- **Security concerns:** The application is running in mock mode, bypassing real authentication. The floating role switcher allows local role impersonation.
-- **Decisions required:** None currently.
-- **Exact next task:** Expand the placeholder pages (e.g., Title Management, Drafts, and Mission Control) into fully interactive UIs with mock state.
-# Production backend release candidate
+## Canonical source of truth
 
-- Mock auth/database adapters replaced by same-origin API adapters.
-- Server uses scrypt password hashing, HttpOnly SameSite sessions, persistent SQLite, RBAC, and append-only audit events.
-- Health and database readiness endpoints are available.
-- Docker deployment requires a durable `/data` volume and HTTPS origin configuration.
-- Production deployment and live E2E remain evidence gates; code/build success alone is not a live claim.
+- Repository: `abijithasokan1992/streamvista`
+- Default branch: `main`
+- Current verified `main`: `3dc43a6a093d8713a7c73a848ed69c0cf510ff38`
+- Canonical production web target: Vercel
+- Canonical backend: Supabase project `uakpqqardziifcwzvgfx`
+- Product Design → Build Supervisor operating contract: `docs/PRODUCT_DESIGN_BUILD_HANDOFF.md`
 
+Legacy Firebase/mock/SQLite material may still exist in the repository for historical or local purposes. It is not current production truth unless explicitly promoted and independently verified.
+
+## Verified GREEN evidence
+
+### Supabase
+
+- Project `uakpqqardziifcwzvgfx` is `ACTIVE_HEALTHY` in `ap-south-1`.
+- `public.sv_app_readiness()` currently returns:
+  - `database=connected`
+  - `status=ACTIVE_HEALTHY`
+- RLS is enabled on the inspected StreamVista application, marketplace, sales, finance, social, and private-document tables.
+- Current production migration history includes the StreamVista auth/RBAC release hardening and later operational migrations.
+
+### Vercel source binding
+
+- Vercel project `streamvista` is connected to GitHub repository `abijithasokan1992/streamvista`.
+- Production deployment `dpl_4ixV2yAqfMu1NBzNNoqDt87BnMeK` is `READY` and was built from exact current `main` SHA `3dc43a6a093d8713a7c73a848ed69c0cf510ff38`.
+- The separate `streamvista-ai-chat` Vercel surface currently returns `/api/ready` with HTTP 200 and `status=ready`, `database=connected`, proving the canonical Supabase backend can be reached from a correctly configured StreamVista deployment.
+
+### Hostinger Mail
+
+- Current Hostinger API access can directly manage mailbox `abijithasokan@crayonspictures.com`.
+- Verified mailbox organization includes the revenue/content/licensing lanes plus:
+  - `11 StreamVista`
+  - `12 Union Auto Spares`
+  - `13 Company Admin`
+  - `98 Automation Log`
+  - `99 Newsletters`
+- Hostinger Mail remains a connector inside StreamVista/Command Center rather than a separate app.
+
+## P0 blocker
+
+The Vercel production alias `streamvista-black.vercel.app/api/ready` currently returns HTTP 503:
+
+```json
+{"status":"not_ready","database":"unconfigured"}
+```
+
+This is a **Vercel production environment binding problem**, not evidence of a Supabase database failure.
+
+Required production variables are:
+
+- `VITE_SUPABASE_URL=https://uakpqqardziifcwzvgfx.supabase.co`
+- `VITE_SUPABASE_PUBLISHABLE_KEY=<canonical publishable key>`
+
+The key must remain in Vercel environment configuration and must not be committed to GitHub documentation or source.
+
+PR #46 (`chore(vercel): one-time canonical Supabase env bootstrap`) already contains a fail-closed implementation path for this binding. Its previous automated attempt did not mutate Vercel because the repository `VERCEL_TOKEN` secret was unavailable.
+
+## Open release gates
+
+### PR #43 — public signup roles and Buyer approval
+
+PR #43 remains open/draft. It introduces explicit Creator/Buyer public signup, pending Buyer gating, and the migration `supabase/migrations/20260814_public_signup_roles_and_buyer_approval.sql`.
+
+The migration has **not** been applied to canonical production Supabase. Required evidence before merge/promotion:
+
+1. apply the reviewed migration only with explicit Founder approval
+2. Creator signup succeeds
+3. Buyer signup lands in pending state
+4. Founder/Admin approval transition succeeds
+5. approved Buyer gains access while unapproved Buyer remains denied
+
+### Product Design
+
+Product Design is now defined as a StreamVista department/workflow, not an application. Full visual ideation/prototype/design-QA work must use the Product Design visual workflow when available. Engineering must not claim design-QA completion without a selected visual target and rendered comparison evidence.
+
+## Safety / explicit non-actions in this verification pass
+
+- no production Vercel environment variable changed
+- no production deployment triggered or promoted
+- no domain/DNS changed
+- no Supabase migration applied
+- no production data mutated
+- no authentication account created
+- no Hostinger email sent, moved, deleted, or reclassified
+- no mailbox/webhook secret created or rotated
+- no pull request merged
+
+## Exact next production action
+
+With explicit Founder approval, bind the canonical Supabase URL and publishable key to the Vercel `streamvista` Production + Preview environments, redeploy the exact approved `main` source, and require `/api/ready` to return HTTP 200 with `status=ready`, `database=connected`, and canonical project ref before any later migration or release promotion.

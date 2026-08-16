@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { UserProfile } from "../types/auth";
 import { authService } from "../services/auth";
-import type { SignupInput } from "../services/auth/auth.types";
+import type { MagicLinkInput, SignupInput } from "../services/auth/auth.types";
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password?: string) => Promise<void>;
+  requestMagicLink: (input: MagicLinkInput) => Promise<void>;
   signup: (input: SignupInput) => Promise<boolean>;
   logout: () => Promise<void>;
 }
@@ -20,6 +21,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function loadUser() {
       try {
+        // Complete magic-link redirect if present
+        const fromLink = await authService.exchangeMagicLinkSession();
+        if (fromLink) {
+          setUser(fromLink);
+          return;
+        }
         const currentUser = await authService.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
@@ -36,6 +43,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const loggedInUser = await authService.login(email, password);
       setUser(loggedInUser);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const requestMagicLink = async (input: MagicLinkInput) => {
+    setLoading(true);
+    try {
+      await authService.requestMagicLink(input);
     } finally {
       setLoading(false);
     }
@@ -63,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, requestMagicLink, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

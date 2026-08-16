@@ -8,6 +8,8 @@
     "dev:server": "node --watch server/index.mjs",
     "start": "node server/index.mjs",
     "test": "node --test server/*.test.mjs",
+    "test:e2e:smoke": "playwright test e2e/smoke.spec.ts",
+    "test:e2e:rls": "node scripts/e2e-p0-rls.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",

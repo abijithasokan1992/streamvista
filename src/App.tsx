@@ -23,6 +23,7 @@ import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import FounderCommand from "./pages/FounderCommand";
 import WorkspaceLanding from "./pages/WorkspaceLanding";
+import GlobalBusinessCenter from "./pages/GlobalBusinessCenter";
 
 const PLATFORM = ["platform_owner", "founder", "super_admin"] as const;
 const ADMIN = [...PLATFORM, "admin"] as const;
@@ -78,6 +79,7 @@ function App() {
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/business-center" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><GlobalBusinessCenter /></ProtectedRoute>} />
             <Route path="/workspace/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><WorkspaceLanding type="creator" /></ProtectedRoute>} />
             <Route path="/workspace/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><WorkspaceLanding type="buyer" /></ProtectedRoute>} />
             <Route path="/workspace/studio" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><WorkspaceLanding type="studio" /></ProtectedRoute>} />

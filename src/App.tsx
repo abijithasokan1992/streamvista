@@ -22,6 +22,7 @@ import Campaigns from "./pages/Campaigns";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import FounderCommand from "./pages/FounderCommand";
+import SalesCommand from "./pages/SalesCommand";
 import WorkspaceLanding from "./pages/WorkspaceLanding";
 import GlobalBusinessCenter from "./pages/GlobalBusinessCenter";
 
@@ -84,6 +85,7 @@ function App() {
             <Route path="/workspace/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><WorkspaceLanding type="buyer" /></ProtectedRoute>} />
             <Route path="/workspace/studio" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><WorkspaceLanding type="studio" /></ProtectedRoute>} />
             <Route path="/command" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><FounderCommand /></ProtectedRoute>} />
+            <Route path="/sales" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><SalesCommand /></ProtectedRoute>} />
             <Route path="/titles" element={<Titles />} />
             <Route path="/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><CreatorDashboard /></ProtectedRoute>} />
             <Route path="/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><BuyerDashboard /></ProtectedRoute>} />

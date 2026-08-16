@@ -1,4 +1,4 @@
-import { AuthService, PublicSignupRole, SignupInput } from "./auth.types";
+import { AuthService, MagicLinkInput, PublicSignupRole, SignupInput } from "./auth.types";
 import { UserProfile, UserRole } from "../../types/auth";
 import { assertSupabaseConfigured, supabase } from "../supabase";
 
@@ -37,7 +37,6 @@ function normalizeRole(role: string): UserRole {
     case "support_staff":
       return "support_staff";
     case "investor":
-      // Map to scoped partner until dedicated investor workspace ships
       return "creator_partner";
     case "studio":
       return "creator_partner";
@@ -67,6 +66,31 @@ async function getProfile() {
   return mapProfile(data as ProfileRow);
 }
 
+function appOrigin() {
+  if (typeof window === "undefined") return undefined;
+  return window.location.origin;
+}
+
+function buildMetadata(input: {
+  displayName?: string;
+  signupRole?: PublicSignupRole;
+  organizationName?: string;
+}) {
+  const metadata: Record<string, string> = {};
+  if (input.displayName?.trim()) {
+    metadata.full_name = input.displayName.trim();
+    metadata.display_name = input.displayName.trim();
+  }
+  if (input.signupRole && ALLOWED_PUBLIC.includes(input.signupRole)) {
+    metadata.signup_role = input.signupRole;
+    metadata.plan_tier = input.signupRole === "studio" ? "paid_required" : "standard";
+  }
+  if (input.organizationName?.trim()) {
+    metadata.organization_name = input.organizationName.trim();
+  }
+  return metadata;
+}
+
 class ApiAuthService implements AuthService {
   async getCurrentUser(): Promise<UserProfile | null> {
     assertSupabaseConfigured();
@@ -79,63 +103,69 @@ class ApiAuthService implements AuthService {
     return user ? getProfile() : null;
   }
 
-  async login(email: string, password?: string): Promise<UserProfile> {
-    assertSupabaseConfigured();
-    if (!password) throw new Error("Password is required");
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
-
-    if (error || !data.user) {
-      throw new Error(error?.message || "Invalid email or password");
-    }
-
-    return getProfile();
+  async login(email: string, _password?: string): Promise<UserProfile> {
+    // Public MVP is magic-link only — use requestMagicLink from UI
+    await this.requestMagicLink({ email, create: false });
+    throw new Error("Magic link sent. Open the link in your email to continue — no password required.");
   }
 
-  async signup(input: SignupInput) {
+  async requestMagicLink(input: MagicLinkInput): Promise<{ sent: true }> {
     assertSupabaseConfigured();
+    const email = input.email.trim().toLowerCase();
+    if (!email) throw new Error("Email is required");
 
-    if (!ALLOWED_PUBLIC.includes(input.signupRole)) {
-      throw new Error("A valid public signup role is required.");
+    if (input.create) {
+      if (!input.signupRole || !ALLOWED_PUBLIC.includes(input.signupRole)) {
+        throw new Error("Select a valid account role.");
+      }
+      if (!input.displayName?.trim()) {
+        throw new Error("Display name is required to create an account.");
+      }
     }
 
-    const signupRole = input.signupRole;
-    const emailRedirectTo =
-      typeof window === "undefined"
-        ? undefined
-        : new URL("/login", window.location.origin).toString();
+    const emailRedirectTo = `${appOrigin()}/login?magic=1`;
+    const data = input.create
+      ? buildMetadata({
+          displayName: input.displayName,
+          signupRole: input.signupRole,
+          organizationName: input.organizationName,
+        })
+      : undefined;
 
-    const metadata: Record<string, string> = {
-      full_name: input.displayName.trim(),
-      display_name: input.displayName.trim(),
-      signup_role: signupRole,
-      // Studio: never free — plan gate is product rule until billing is wired
-      plan_tier: signupRole === "studio" ? "paid_required" : "standard",
-    };
-
-    if ((signupRole === "buyer" || signupRole === "studio" || signupRole === "investor") && input.organizationName?.trim()) {
-      metadata.organization_name = input.organizationName.trim();
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email: input.email.trim().toLowerCase(),
-      password: input.password,
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
       options: {
-        data: metadata,
         emailRedirectTo,
+        shouldCreateUser: input.create !== false,
+        data,
       },
     });
 
     if (error) throw new Error(error.message);
+    return { sent: true };
+  }
 
-    const confirmed = Boolean(data.session && data.user);
-    return {
-      user: confirmed && data.user ? await getProfile() : null,
-      confirmationRequired: !confirmed,
-    };
+  async signup(input: SignupInput) {
+    await this.requestMagicLink({
+      email: input.email,
+      create: true,
+      displayName: input.displayName,
+      signupRole: input.signupRole,
+      organizationName: input.organizationName,
+    });
+    return { user: null, confirmationRequired: true };
+  }
+
+  async exchangeMagicLinkSession(): Promise<UserProfile | null> {
+    assertSupabaseConfigured();
+    // Supabase JS picks up tokens from URL hash/query when detectSessionInUrl is default true
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+    if (error) throw new Error(error.message);
+    if (!session?.user) return null;
+    return getProfile();
   }
 
   async logout(): Promise<void> {

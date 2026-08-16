@@ -9,17 +9,30 @@ import { UserProfile } from "../../types/auth";
  */
 export type PublicSignupRole = "creator" | "buyer" | "investor" | "studio";
 
-export type SignupInput = {
+/** Passwordless magic-link request (create or return). */
+export type MagicLinkInput = {
   email: string;
-  password: string;
+  /** Required when creating a first-time profile intent */
+  create?: boolean;
+  displayName?: string;
+  signupRole?: PublicSignupRole;
+  organizationName?: string;
+};
+
+export type SignupInput = MagicLinkInput & {
+  /** @deprecated password auth removed from public MVP — kept optional for adapters */
+  password?: string;
   displayName: string;
   signupRole: PublicSignupRole;
-  organizationName?: string;
 };
 
 export interface AuthService {
   getCurrentUser(): Promise<UserProfile | null>;
+  /** Prefer magic link; password path may throw on public MVP */
   login(email: string, password?: string): Promise<UserProfile>;
+  requestMagicLink(input: MagicLinkInput): Promise<{ sent: true }>;
   signup(input: SignupInput): Promise<{ user: UserProfile | null; confirmationRequired: boolean }>;
   logout(): Promise<void>;
+  /** Complete session after user opens email link */
+  exchangeMagicLinkSession(): Promise<UserProfile | null>;
 }

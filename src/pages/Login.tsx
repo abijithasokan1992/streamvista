@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import type { PublicSignupRole } from "../services/auth/auth.types";
@@ -34,7 +34,6 @@ const PUBLIC_ROLES: {
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [signupRole, setSignupRole] = useState<PublicSignupRole>("creator");
@@ -42,15 +41,26 @@ export default function Login() {
   const [createMode, setCreateMode] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const { login, signup, loading } = useAuth();
+  const { user, requestMagicLink, loading } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
 
   const next = params.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+  const fromMagic = params.get("magic") === "1";
 
   const needsOrg =
     signupRole === "buyer" || signupRole === "studio" || signupRole === "investor";
+
+  useEffect(() => {
+    if (user) navigate(safeNext, { replace: true });
+  }, [user, navigate, safeNext]);
+
+  useEffect(() => {
+    if (fromMagic && !user && !loading) {
+      setMessage("Finishing secure sign-in… If this hangs, request a new magic link.");
+    }
+  }, [fromMagic, user, loading]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -63,81 +73,74 @@ export default function Login() {
           setError("Select a valid account role.");
           return;
         }
-
         if (signupRole === "studio" && !studioPaidAck) {
           setError("Studio accounts require a paid plan. Confirm to continue — no free Studio start.");
           return;
         }
+        if (!displayName.trim()) {
+          setError("Display name is required.");
+          return;
+        }
 
-        const confirmationRequired = await signup({
+        await requestMagicLink({
           email,
-          password,
+          create: true,
           displayName,
           signupRole,
           organizationName: needsOrg ? organizationName : undefined,
         });
 
-        if (confirmationRequired) {
-          const roleMsg =
-            signupRole === "buyer"
-              ? "Check your email to confirm. Buyer access stays pending until admin verification."
-              : signupRole === "studio"
-                ? "Check your email to confirm. Studio workspace unlocks after paid plan activation — no free tier."
-                : signupRole === "investor"
-                  ? "Check your email to confirm. Investor access stays pending until verification."
-                  : "Check your email to confirm the account, then sign in.";
-          setMessage(roleMsg);
-          setCreateMode(false);
-          setPassword("");
-          setStudioPaidAck(false);
-          return;
-        }
+        const roleHint =
+          signupRole === "buyer" || signupRole === "investor"
+            ? " After you open the link, access may stay pending until verification."
+            : signupRole === "studio"
+              ? " Studio workspace unlocks after paid plan activation."
+              : "";
 
-        if (signupRole === "studio") {
-          setMessage("Studio account created. Activate a paid plan before production workspace access.");
-        } else if (signupRole === "buyer" || signupRole === "investor") {
-          setMessage("Account created. Access unlocks after verification.");
-        }
-      } else {
-        await login(email, password);
+        setMessage(
+          `Magic link sent to ${email.trim().toLowerCase()}. Open it to enter StreamVista — no password.${roleHint}`,
+        );
+        return;
       }
-      navigate(safeNext, { replace: true });
+
+      await requestMagicLink({ email, create: false });
+      setMessage(`Magic link sent to ${email.trim().toLowerCase()}. Open it to continue — no password.`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Authentication failed");
+      setError(cause instanceof Error ? cause.message : "Could not send magic link");
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#F9F6F0] px-5 py-8 text-[#111111]">
+    <main className="min-h-screen bg-[#05050a] px-5 py-8 text-zinc-100">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col">
         <header className="flex items-center justify-between">
-          <Link to="/home" className="flex items-center gap-3 font-black tracking-[-0.04em] text-[#1E4FC7]">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1E4FC7] text-sm font-black text-white">
-              S
-            </span>
+          <Link to="/home" className="flex items-center gap-3 font-black tracking-[-0.04em] text-white">
+            <span className="h-8 w-8 rounded-full bg-[radial-gradient(circle_at_30%_25%,#ff8b49,#8757e7_46%,#25103e_78%)]" />
             STREAMVISTA
           </Link>
-          <Link to="/home" className="text-sm font-medium text-zinc-600 hover:text-black">
+          <Link to="/home" className="text-sm font-medium text-zinc-500 hover:text-white">
             Return home
           </Link>
         </header>
 
         <section className="mx-auto my-auto w-full max-w-md py-12">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-500">Secure access</p>
-          <h1 className="text-4xl font-black tracking-[-0.05em]">
-            {createMode ? "Create Account" : "Sign in"}
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-violet-400/90">
+            Passwordless · Magic link
+          </p>
+          <h1 className="text-4xl font-black tracking-[-0.05em] text-white">
+            {createMode ? "Join StreamVista" : "Enter StreamVista"}
           </h1>
-          <p className="mt-3 text-sm leading-6 text-zinc-600">
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
             {createMode
-              ? "Create your secure StreamVista account."
-              : "Access your StreamVista workspace for content, rights and distribution."}
+              ? "Your media assistant path starts with one email — no password to remember."
+              : "We’ll email a secure magic link. One tap opens your workspace."}
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5" autoComplete="off">
             {createMode && (
               <>
                 <label className="block">
-                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-500">
                     Display name
                   </span>
                   <input
@@ -147,16 +150,16 @@ export default function Login() {
                     name="displayName"
                     autoComplete="name"
                     placeholder="Your name"
-                    className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
+                    className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-violet-400/50"
                   />
                 </label>
 
                 <fieldset className="block">
-                  <legend className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">
-                    Account role
+                  <legend className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-500">
+                    How you’ll use StreamVista
                   </legend>
                   <p className="mb-3 text-xs leading-5 text-zinc-500">
-                    Choose how you use StreamVista. Admin, QC, Legal and Finance stay invite-only.
+                    Your assistant uses this to open the right workspace. Admin roles stay invite-only.
                   </p>
                   <div className="grid gap-2">
                     {PUBLIC_ROLES.map((role) => {
@@ -166,8 +169,8 @@ export default function Login() {
                           key={role.id}
                           className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition ${
                             selected
-                              ? "border-black bg-white shadow-sm"
-                              : "border-black/10 bg-white/70 hover:border-black/25"
+                              ? "border-violet-400/40 bg-violet-500/10"
+                              : "border-white/10 bg-white/[0.03] hover:border-white/20"
                           }`}
                         >
                           <input
@@ -183,9 +186,9 @@ export default function Login() {
                           />
                           <span className="min-w-0 flex-1">
                             <span className="flex flex-wrap items-center gap-2">
-                              <span className="text-sm font-bold">{role.label}</span>
+                              <span className="text-sm font-bold text-zinc-100">{role.label}</span>
                               {role.badge && (
-                                <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#FFC700]">
+                                <span className="rounded-full bg-[#FFC700] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
                                   {role.badge}
                                 </span>
                               )}
@@ -199,7 +202,7 @@ export default function Login() {
                 </fieldset>
 
                 {signupRole === "studio" && (
-                  <label className="flex items-start gap-3 rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                  <label className="flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
                     <input
                       type="checkbox"
                       checked={studioPaidAck}
@@ -207,18 +210,15 @@ export default function Login() {
                       className="mt-1"
                     />
                     <span>
-                      <strong>No free Studio start.</strong> Studio access requires a paid StreamVista plan.
-                      Account can be created now; production workspace unlocks after plan activation.
+                      <strong>No free Studio start.</strong> Paid plan required before production workspace.
                     </span>
                   </label>
                 )}
 
                 {needsOrg && (
                   <label className="block">
-                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">
-                      {signupRole === "investor"
-                        ? "Fund / firm (optional)"
-                        : "Company / studio / OTT"}
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-500">
+                      {signupRole === "investor" ? "Fund / firm (optional)" : "Company / studio / OTT"}
                     </span>
                     <input
                       value={organizationName}
@@ -226,20 +226,15 @@ export default function Login() {
                       name="organizationName"
                       autoComplete="organization"
                       placeholder="Optional"
-                      className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
+                      className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-violet-400/50"
                     />
-                    {(signupRole === "buyer" || signupRole === "investor") && (
-                      <span className="mt-2 block text-xs text-zinc-500">
-                        Access stays pending until StreamVista verification.
-                      </span>
-                    )}
                   </label>
                 )}
               </>
             )}
 
             <label className="block">
-              <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">
+              <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-500">
                 Email address
               </span>
               <input
@@ -250,67 +245,46 @@ export default function Login() {
                 name="email"
                 autoComplete="email"
                 placeholder="you@company.com"
-                className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">Password</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                minLength={8}
-                name="password"
-                autoComplete={createMode ? "new-password" : "current-password"}
-                placeholder="Minimum 8 characters"
-                className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
+                className="h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-violet-400/50"
               />
             </label>
 
             <button
               type="submit"
               disabled={loading}
-              className="flex h-12 w-full items-center justify-center rounded-xl bg-[#FFC700] px-5 text-sm font-black text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-12 w-full items-center justify-center rounded-xl bg-gradient-to-r from-violet-400 to-orange-400 px-5 text-sm font-black text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Please wait…" : createMode ? "Create Account" : "Sign in"}
+              {loading ? "Sending…” : “Email me a magic link”}
             </button>
           </form>
 
           {error && (
-            <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+            <p className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200" role="alert">
               {error}
             </p>
           )}
           {message && (
-            <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700" role="status">
+            <p className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100" role="status">
               {message}
             </p>
           )}
 
           <button
             type="button"
-            className="mt-5 w-full text-sm font-semibold text-[#1E4FC7] hover:underline"
+            className="mt-5 w-full text-sm font-semibold text-violet-300 hover:text-white"
             onClick={() => {
               setCreateMode((value) => !value);
               setError("");
               setMessage("");
-              setPassword("");
               setStudioPaidAck(false);
             }}
           >
-            {createMode ? "Already have an account? Sign in" : "Don’t have an account? Create Account"}
+            {createMode ? "Already with us? Email a sign-in link" : "New here? Join with a magic link"}
           </button>
 
-          <div className="mt-8 space-y-2 border-t border-black/10 pt-5 text-xs text-zinc-500">
-            <p>Secure access · Credentials are never prefilled or displayed.</p>
-            <div className="flex items-center justify-between">
-              <span>Studio = paid plans only · no free start</span>
-              <a href="mailto:hello@streamvista.in" className="font-semibold text-zinc-700 hover:text-black">
-                Need help?
-              </a>
-            </div>
+          <div className="mt-8 space-y-2 border-t border-white/10 pt-5 text-xs text-zinc-500">
+            <p>No password. Your assistant guides the path — Supabase verifies the link.</p>
+            <p>AI never holds your credentials. Role and access stay server-enforced.</p>
           </div>
         </section>
       </div>

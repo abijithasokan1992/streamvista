@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bot,
+  Clapperboard,
   Menu,
   MessageSquarePlus,
   Send,
@@ -25,10 +26,10 @@ interface ChatThread {
 
 const STORAGE_KEY = "streamvista-ai-chat-history-v1";
 const starterPrompts = [
-  "I have content to distribute",
-  "I need content to license",
-  "I need studio services",
-  "I want to partner with StreamVista",
+  "I have a film ready to license",
+  "I need content for my OTT platform",
+  "How does StreamVista QC and legal work?",
+  "I want to partner as a creator or studio",
 ];
 
 function newThread(): ChatThread {
@@ -157,24 +158,24 @@ export default function Chat() {
   const messages = activeThread?.messages ?? [];
 
   return (
-    <main className="flex h-[100dvh] overflow-hidden bg-[#09090b] text-zinc-100">
+    <main className="flex h-[100dvh] overflow-hidden bg-[#05050a] text-zinc-100">
       {sidebarOpen && (
         <button
-          className="fixed inset-0 z-30 bg-black/65 md:hidden"
+          className="fixed inset-0 z-30 bg-black/70 md:hidden"
           aria-label="Close conversation history"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-[286px] flex-col border-r border-white/10 bg-[#111113] transition-transform md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[300px] flex-col border-r border-white/10 bg-[#0c0c12] transition-transform md:static md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
           <a href="https://www.streamvista.in" className="flex items-center gap-2.5 font-black tracking-[-0.04em]">
-            <span className="h-7 w-7 rounded-full bg-[radial-gradient(circle_at_30%_25%,#ff8b49,#8757e7_46%,#25103e_78%)]" />
-            STREAMVISTA AI
+            <span className="h-7 w-7 rounded-full bg-[radial-gradient(circle_at_30%_25%,#ff8b49,#8757e7_46%,#25103e_78%)] shadow-[0_0_24px_rgba(135,87,231,.35)]" />
+            STREAMVISTA
           </a>
           <button className="rounded-lg p-2 text-zinc-400 hover:bg-white/5 md:hidden" onClick={() => setSidebarOpen(false)}>
             <X size={18} />
@@ -184,7 +185,7 @@ export default function Chat() {
         <div className="p-3">
           <button
             onClick={createConversation}
-            className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-3 text-sm font-semibold transition hover:bg-white/[0.08]"
+            className="flex w-full items-center gap-3 rounded-xl border border-violet-400/20 bg-violet-500/10 px-3.5 py-3 text-sm font-semibold text-violet-100 transition hover:bg-violet-500/20"
           >
             <MessageSquarePlus size={17} /> New chat
           </button>
@@ -220,49 +221,60 @@ export default function Chat() {
         </div>
 
         <div className="border-t border-white/10 p-4 text-xs leading-5 text-zinc-600">
-          Public guidance. Verify important business, legal and commercial decisions before acting.
+          Media guidance only. Rights, deals and approvals stay human-verified in StreamVista workspaces.
         </div>
       </aside>
 
-      <section className="relative flex min-w-0 flex-1 flex-col bg-[radial-gradient(circle_at_50%_-20%,rgba(124,58,237,.16),transparent_34%),#09090b]">
+      <section className="relative flex min-w-0 flex-1 flex-col bg-[radial-gradient(ellipse_at_50%_-10%,rgba(124,58,237,.22),transparent_42%),radial-gradient(ellipse_at_90%_10%,rgba(255,122,60,.08),transparent_28%),#05050a]">
         <header className="flex h-16 shrink-0 items-center justify-between border-b border-white/[0.07] px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button className="rounded-lg p-2 text-zinc-400 hover:bg-white/5 md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} />
             </button>
             <div>
-              <p className="text-sm font-semibold">StreamVista AI</p>
+              <p className="flex items-center gap-2 text-sm font-semibold tracking-tight">
+                <Clapperboard size={15} className="text-violet-300" />
+                StreamVista · Media OS
+              </p>
               <p className="flex items-center gap-1.5 text-[11px] text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.8)]" /> Online guidance
               </p>
             </div>
           </div>
-          <a
-            href="https://www.streamvista.in"
-            className="rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white"
-          >
-            Main site
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href="/login"
+              className="rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-300 transition hover:bg-white/5 hover:text-white"
+            >
+              Sign in
+            </a>
+            <a
+              href="https://www.streamvista.in"
+              className="hidden rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white sm:inline-flex"
+            >
+              Main site
+            </a>
+          </div>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 pb-36 pt-8 sm:px-6">
             {messages.length === 0 ? (
               <div className="my-auto flex flex-col items-center py-12 text-center">
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-500/10 text-violet-300 shadow-[0_0_45px_rgba(139,92,246,.14)]">
-                  <Sparkles size={26} />
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-violet-400/25 bg-violet-500/10 text-violet-200 shadow-[0_0_60px_rgba(139,92,246,.25)]">
+                  <Sparkles size={28} />
                 </div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-violet-400">Start here</p>
-                <h1 className="max-w-xl text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">What can we move for you?</h1>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-violet-400">Content · Rights · Reach</p>
+                <h1 className="max-w-xl text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">What should we move next?</h1>
                 <p className="mt-4 max-w-lg text-sm leading-6 text-zinc-500 sm:text-base">
-                  Tell StreamVista AI what you need. Get clear guidance for content, licensing, studio services and partnerships.
+                  Licensing, distribution, studio services and partnerships — clear guidance for creators, buyers and platforms.
                 </p>
                 <div className="mt-8 grid w-full max-w-2xl gap-2 sm:grid-cols-2">
                   {starterPrompts.map((prompt) => (
                     <button
                       key={prompt}
                       onClick={() => void sendMessage(prompt)}
-                      className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3.5 text-left text-sm text-zinc-300 transition hover:border-violet-400/30 hover:bg-violet-500/[0.08] hover:text-white"
+                      className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3.5 text-left text-sm text-zinc-300 transition hover:border-violet-400/35 hover:bg-violet-500/[0.1] hover:text-white"
                     >
                       {prompt}
                     </button>
@@ -274,14 +286,14 @@ export default function Chat() {
                 {messages.map((message) => (
                   <article key={message.id} className={`flex gap-3.5 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                     {message.role === "assistant" && (
-                      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-300">
+                      <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-300 ring-1 ring-violet-400/20">
                         <Bot size={16} />
                       </div>
                     )}
                     <div
                       className={`max-w-[86%] whitespace-pre-wrap text-[15px] leading-7 sm:max-w-[78%] ${
                         message.role === "user"
-                          ? "rounded-3xl rounded-br-lg bg-[#25252a] px-4 py-2.5 text-zinc-100"
+                          ? "rounded-3xl rounded-br-lg bg-[#1c1c24] px-4 py-2.5 text-zinc-100 ring-1 ring-white/5"
                           : "py-1 text-zinc-200"
                       }`}
                     >
@@ -316,14 +328,14 @@ export default function Chat() {
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#09090b] via-[#09090b] to-transparent px-4 pb-4 pt-12 sm:px-6">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#05050a] via-[#05050a]/90 to-transparent px-4 pb-4 pt-12 sm:px-6">
           <div className="pointer-events-auto mx-auto max-w-3xl">
             {error && (
               <div className="mb-2 rounded-xl border border-red-400/20 bg-red-500/10 px-3.5 py-2 text-xs text-red-300">{error}</div>
             )}
             <form
               onSubmit={onSubmit}
-              className="flex items-end gap-2 rounded-[26px] border border-white/10 bg-[#18181b] p-2 shadow-2xl shadow-black/30 transition focus-within:border-violet-400/35"
+              className="flex items-end gap-2 rounded-[26px] border border-white/10 bg-[#12121a] p-2 shadow-2xl shadow-black/40 ring-1 ring-violet-500/10 transition focus-within:border-violet-400/40 focus-within:ring-violet-400/20"
             >
               <textarea
                 value={input}
@@ -336,19 +348,21 @@ export default function Chat() {
                 }}
                 rows={1}
                 maxLength={4000}
-                placeholder="Message StreamVista AI…"
+                placeholder="Message StreamVista Media OS…"
                 className="max-h-40 min-h-11 flex-1 resize-none bg-transparent px-3 py-2.5 text-[15px] leading-6 text-white outline-none placeholder:text-zinc-600"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isSending}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-500"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-400 to-orange-400 text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:from-zinc-700 disabled:to-zinc-700 disabled:text-zinc-500"
                 aria-label="Send message"
               >
                 <Send size={17} />
               </button>
             </form>
-            <p className="mt-2 text-center text-[10px] text-zinc-700">AI can make mistakes. Verify important information.</p>
+            <p className="mt-2 text-center text-[10px] text-zinc-600">
+              AI can make mistakes. Verify rights, contracts and commercial terms in your workspace.
+            </p>
           </div>
         </div>
       </section>

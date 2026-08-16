@@ -1,4 +1,4 @@
-import { AuthService } from "./auth.types";
+import { AuthService, PublicSignupRole, SignupInput } from "./auth.types";
 import { UserProfile, UserRole } from "../../types/auth";
 import { assertSupabaseConfigured, supabase } from "../supabase";
 
@@ -9,22 +9,41 @@ type ProfileRow = {
   app_role: string;
   created_at: string;
   updated_at: string;
+  verification_status?: string;
+  organization_name?: string | null;
 };
+
+const ALLOWED_PUBLIC: PublicSignupRole[] = ["creator", "buyer", "investor", "studio"];
 
 function normalizeRole(role: string): UserRole {
   switch (role) {
-    case "founder": return "founder";
-    case "super_admin": return "super_admin";
-    case "admin": return "admin";
-    case "buyer": return "buyer";
-    case "finance": return "finance";
-    case "qc": return "qc_staff";
-    case "legal": return "legal_staff";
-    case "operations": return "support_staff";
-    case "creator":
-    case "studio":
-    case "licensing":
+    case "founder":
+      return "founder";
+    case "super_admin":
+      return "super_admin";
+    case "admin":
+      return "admin";
+    case "buyer":
+      return "buyer";
+    case "finance":
+      return "finance";
+    case "qc":
+    case "qc_staff":
+      return "qc_staff";
+    case "legal":
+    case "legal_staff":
+      return "legal_staff";
+    case "operations":
+    case "support_staff":
+      return "support_staff";
     case "investor":
+      // Map to scoped partner until dedicated investor workspace ships
+      return "creator_partner";
+    case "studio":
+      return "creator_partner";
+    case "creator":
+    case "creator_partner":
+    case "licensing":
       return "creator_partner";
     default:
       return "support_staff";
@@ -76,18 +95,36 @@ class ApiAuthService implements AuthService {
     return getProfile();
   }
 
-  async signup(email: string, password: string, displayName: string) {
+  async signup(input: SignupInput) {
     assertSupabaseConfigured();
+
+    if (!ALLOWED_PUBLIC.includes(input.signupRole)) {
+      throw new Error("A valid public signup role is required.");
+    }
+
+    const signupRole = input.signupRole;
     const emailRedirectTo =
       typeof window === "undefined"
         ? undefined
         : new URL("/login", window.location.origin).toString();
 
+    const metadata: Record<string, string> = {
+      full_name: input.displayName.trim(),
+      display_name: input.displayName.trim(),
+      signup_role: signupRole,
+      // Studio: never free — plan gate is product rule until billing is wired
+      plan_tier: signupRole === "studio" ? "paid_required" : "standard",
+    };
+
+    if ((signupRole === "buyer" || signupRole === "studio" || signupRole === "investor") && input.organizationName?.trim()) {
+      metadata.organization_name = input.organizationName.trim();
+    }
+
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
+      email: input.email.trim().toLowerCase(),
+      password: input.password,
       options: {
-        data: { full_name: displayName.trim(), display_name: displayName.trim() },
+        data: metadata,
         emailRedirectTo,
       },
     });

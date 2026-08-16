@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { PublicSignupRole } from "../types/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [signupRole, setSignupRole] = useState<PublicSignupRole | "">("");
+  const [organizationName, setOrganizationName] = useState("");
   const [createMode, setCreateMode] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -23,10 +26,28 @@ export default function Login() {
 
     try {
       if (createMode) {
-        const confirmationRequired = await signup(email, password, displayName);
+        if (signupRole !== "creator" && signupRole !== "buyer") {
+          setError("Choose Creator Partner or Buyer to continue.");
+          return;
+        }
+        const confirmationRequired = await signup(
+          email,
+          password,
+          displayName,
+          signupRole,
+          signupRole === "buyer" ? organizationName : undefined,
+        );
         if (confirmationRequired) {
-          setMessage("Check your email to confirm the account, then sign in.");
+          setMessage(
+            signupRole === "buyer"
+              ? "Check your email to confirm the account. Buyer workspace access will be enabled after StreamVista verifies your organization."
+              : "Check your email to confirm the account, then sign in.",
+          );
           setCreateMode(false);
+          return;
+        }
+        if (signupRole === "buyer") {
+          navigate("/buyer-pending", { replace: true });
           return;
         }
       } else {
@@ -58,15 +79,50 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             {createMode && (
-              <label className="block">
-                <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">Display name</span>
-                <input
-                  value={displayName}
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  required
-                  className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
-                />
-              </label>
+              <>
+                <label className="block">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">Display name</span>
+                  <input
+                    value={displayName}
+                    onChange={(event) => setDisplayName(event.target.value)}
+                    required
+                    className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">I am a...</span>
+                  <select
+                    value={signupRole}
+                    onChange={(event) => setSignupRole(event.target.value as PublicSignupRole | "")}
+                    required
+                    className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
+                  >
+                    <option value="" disabled>Select your role</option>
+                    <option value="creator">Creator Partner</option>
+                    <option value="buyer">Buyer</option>
+                  </select>
+                  <span className="mt-2 block text-xs leading-5 text-zinc-500">
+                    Finance, QC, Legal and admin access are invite-only and assigned by StreamVista.
+                  </span>
+                </label>
+
+                {signupRole === "buyer" && (
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">Company / OTT platform <span className="normal-case tracking-normal text-zinc-400">(optional)</span></span>
+                    <input
+                      value={organizationName}
+                      onChange={(event) => setOrganizationName(event.target.value)}
+                      autoComplete="organization"
+                      placeholder="Company or platform name"
+                      className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
+                    />
+                    <span className="mt-2 block text-xs leading-5 text-zinc-500">
+                      Buyer accounts require StreamVista verification before buyer workspace access is enabled.
+                    </span>
+                  </label>
+                )}
+              </>
             )}
 
             <label className="block">
@@ -111,6 +167,8 @@ export default function Login() {
             className="mt-5 w-full text-sm font-semibold text-[#1E4FC7] hover:underline"
             onClick={() => {
               setCreateMode((value) => !value);
+              setSignupRole("");
+              setOrganizationName("");
               setError("");
               setMessage("");
             }}
@@ -119,7 +177,7 @@ export default function Login() {
           </button>
 
           <div className="mt-8 flex items-center justify-between border-t border-black/10 pt-5 text-xs text-zinc-500">
-            <span>Role comes from your verified profile</span>
+            <span>Role is verified server-side</span>
             <a href="mailto:hello@streamvista.in" className="font-semibold text-zinc-700 hover:text-black">Need help?</a>
           </div>
         </section>

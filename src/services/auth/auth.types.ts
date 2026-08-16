@@ -1,8 +1,14 @@
-import { UserProfile } from "../../types/auth";
+import { PublicSignupRole, UserProfile } from "../../types/auth";
 
 export interface AuthService {
   getCurrentUser(): Promise<UserProfile | null>;
   login(email: string, password?: string): Promise<UserProfile>;
-  signup(email: string, password: string, displayName: string): Promise<{ user: UserProfile | null; confirmationRequired: boolean }>;
+  signup(
+    email: string,
+    password: string,
+    displayName: string,
+    role: PublicSignupRole,
+    organizationName?: string,
+  ): Promise<{ user: UserProfile | null; confirmationRequired: boolean }>;
   logout(): Promise<void>;
 }

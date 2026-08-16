@@ -6,6 +6,7 @@ import { MainLayout } from "./layouts/MainLayout";
 import Chat from "./pages/Chat";
 import HomeWhite from "./pages/HomeWhite";
 import Login from "./pages/Login";
+import BuyerPending from "./pages/BuyerPending";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
 import Titles from "./pages/Titles";
@@ -52,6 +53,9 @@ function LoginRoute() {
   if (loading) return null;
   const next = params.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+  if (user?.role === "buyer" && user.verificationStatus !== "verified") {
+    return <Navigate to="/buyer-pending" replace />;
+  }
   return user ? <Navigate to={safeNext} replace /> : <Login />;
 }
 
@@ -76,6 +80,7 @@ function App() {
           <Route path="/home" element={<HomeWhite />} />
           <Route path="/login" element={<LoginRoute />} />
           <Route path="/auth" element={<LegacyAuthRedirect />} />
+          <Route path="/buyer-pending" element={<ProtectedRoute allowPendingBuyer><BuyerPending /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />

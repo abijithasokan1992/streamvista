@@ -1,4 +1,4 @@
-import { AuthService, SignupInput } from "./auth.types";
+import { AuthService, PublicSignupRole, SignupInput } from "./auth.types";
 import { UserProfile, UserRole } from "../../types/auth";
 import { assertSupabaseConfigured, supabase } from "../supabase";
 
@@ -12,6 +12,8 @@ type ProfileRow = {
   verification_status?: string;
   organization_name?: string | null;
 };
+
+const ALLOWED_PUBLIC: PublicSignupRole[] = ["creator", "buyer", "investor", "studio"];
 
 function normalizeRole(role: string): UserRole {
   switch (role) {
@@ -34,14 +36,16 @@ function normalizeRole(role: string): UserRole {
     case "operations":
     case "support_staff":
       return "support_staff";
+    case "investor":
+      // Map to scoped partner until dedicated investor workspace ships
+      return "creator_partner";
+    case "studio":
+      return "creator_partner";
     case "creator":
     case "creator_partner":
-    case "studio":
     case "licensing":
-    case "investor":
       return "creator_partner";
     default:
-      // Fail closed for unknown roles (Final MVP)
       return "support_staff";
   }
 }
@@ -94,7 +98,11 @@ class ApiAuthService implements AuthService {
   async signup(input: SignupInput) {
     assertSupabaseConfigured();
 
-    const signupRole = input.signupRole === "buyer" ? "buyer" : "creator";
+    if (!ALLOWED_PUBLIC.includes(input.signupRole)) {
+      throw new Error("A valid public signup role is required.");
+    }
+
+    const signupRole = input.signupRole;
     const emailRedirectTo =
       typeof window === "undefined"
         ? undefined
@@ -103,11 +111,12 @@ class ApiAuthService implements AuthService {
     const metadata: Record<string, string> = {
       full_name: input.displayName.trim(),
       display_name: input.displayName.trim(),
-      // PR #43 trigger reads signup_role only — never trust client role/verification
       signup_role: signupRole,
+      // Studio: never free — plan gate is product rule until billing is wired
+      plan_tier: signupRole === "studio" ? "paid_required" : "standard",
     };
 
-    if (signupRole === "buyer" && input.organizationName?.trim()) {
+    if ((signupRole === "buyer" || signupRole === "studio" || signupRole === "investor") && input.organizationName?.trim()) {
       metadata.organization_name = input.organizationName.trim();
     }
 

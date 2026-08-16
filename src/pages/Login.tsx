@@ -3,7 +3,12 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import type { PublicSignupRole } from "../services/auth/auth.types";
 
-const PUBLIC_ROLES: { id: PublicSignupRole; label: string; detail: string }[] = [
+const PUBLIC_ROLES: {
+  id: PublicSignupRole;
+  label: string;
+  detail: string;
+  badge?: string;
+}[] = [
   {
     id: "creator",
     label: "Creator Partner",
@@ -14,6 +19,17 @@ const PUBLIC_ROLES: { id: PublicSignupRole; label: string; detail: string }[] = 
     label: "Buyer",
     detail: "Request screenings after admin verification",
   },
+  {
+    id: "investor",
+    label: "Investor",
+    detail: "Follow titles and pipeline interest — verification required",
+  },
+  {
+    id: "studio",
+    label: "Studio",
+    detail: "Production operations workspace",
+    badge: "Paid plans only",
+  },
 ];
 
 export default function Login() {
@@ -22,6 +38,7 @@ export default function Login() {
   const [displayName, setDisplayName] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [signupRole, setSignupRole] = useState<PublicSignupRole>("creator");
+  const [studioPaidAck, setStudioPaidAck] = useState(false);
   const [createMode, setCreateMode] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -32,6 +49,9 @@ export default function Login() {
   const next = params.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
 
+  const needsOrg =
+    signupRole === "buyer" || signupRole === "studio" || signupRole === "investor";
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
@@ -39,8 +59,13 @@ export default function Login() {
 
     try {
       if (createMode) {
-        if (!signupRole || (signupRole !== "creator" && signupRole !== "buyer")) {
-          setError("Select Creator Partner or Buyer to create an account.");
+        if (!["creator", "buyer", "investor", "studio"].includes(signupRole)) {
+          setError("Select a valid account role.");
+          return;
+        }
+
+        if (signupRole === "studio" && !studioPaidAck) {
+          setError("Studio accounts require a paid plan. Confirm to continue — no free Studio start.");
           return;
         }
 
@@ -49,22 +74,29 @@ export default function Login() {
           password,
           displayName,
           signupRole,
-          organizationName: signupRole === "buyer" ? organizationName : undefined,
+          organizationName: needsOrg ? organizationName : undefined,
         });
 
         if (confirmationRequired) {
-          setMessage(
+          const roleMsg =
             signupRole === "buyer"
-              ? "Check your email to confirm. Buyer access stays pending until StreamVista admin verification."
-              : "Check your email to confirm the account, then sign in.",
-          );
+              ? "Check your email to confirm. Buyer access stays pending until admin verification."
+              : signupRole === "studio"
+                ? "Check your email to confirm. Studio workspace unlocks after paid plan activation — no free tier."
+                : signupRole === "investor"
+                  ? "Check your email to confirm. Investor access stays pending until verification."
+                  : "Check your email to confirm the account, then sign in.";
+          setMessage(roleMsg);
           setCreateMode(false);
           setPassword("");
+          setStudioPaidAck(false);
           return;
         }
 
-        if (signupRole === "buyer") {
-          setMessage("Account created. Buyer workspace unlocks after admin verification.");
+        if (signupRole === "studio") {
+          setMessage("Studio account created. Activate a paid plan before production workspace access.");
+        } else if (signupRole === "buyer" || signupRole === "investor") {
+          setMessage("Account created. Access unlocks after verification.");
         }
       } else {
         await login(email, password);
@@ -124,7 +156,7 @@ export default function Login() {
                     Account role
                   </legend>
                   <p className="mb-3 text-xs leading-5 text-zinc-500">
-                    Public signup is limited to Creator Partner or Buyer. Admin, QC, Legal and Finance roles are invite-only.
+                    Choose how you use StreamVista. Admin, QC, Legal and Finance stay invite-only.
                   </p>
                   <div className="grid gap-2">
                     {PUBLIC_ROLES.map((role) => {
@@ -143,11 +175,21 @@ export default function Login() {
                             name="signupRole"
                             value={role.id}
                             checked={selected}
-                            onChange={() => setSignupRole(role.id)}
+                            onChange={() => {
+                              setSignupRole(role.id);
+                              if (role.id !== "studio") setStudioPaidAck(false);
+                            }}
                             className="mt-1"
                           />
-                          <span>
-                            <span className="block text-sm font-bold">{role.label}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-bold">{role.label}</span>
+                              {role.badge && (
+                                <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#FFC700]">
+                                  {role.badge}
+                                </span>
+                              )}
+                            </span>
                             <span className="mt-0.5 block text-xs text-zinc-500">{role.detail}</span>
                           </span>
                         </label>
@@ -156,10 +198,27 @@ export default function Login() {
                   </div>
                 </fieldset>
 
-                {signupRole === "buyer" && (
+                {signupRole === "studio" && (
+                  <label className="flex items-start gap-3 rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                    <input
+                      type="checkbox"
+                      checked={studioPaidAck}
+                      onChange={(event) => setStudioPaidAck(event.target.checked)}
+                      className="mt-1"
+                    />
+                    <span>
+                      <strong>No free Studio start.</strong> Studio access requires a paid StreamVista plan.
+                      Account can be created now; production workspace unlocks after plan activation.
+                    </span>
+                  </label>
+                )}
+
+                {needsOrg && (
                   <label className="block">
                     <span className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-zinc-600">
-                      Company / OTT platform
+                      {signupRole === "investor"
+                        ? "Fund / firm (optional)"
+                        : "Company / studio / OTT"}
                     </span>
                     <input
                       value={organizationName}
@@ -169,9 +228,11 @@ export default function Login() {
                       placeholder="Optional"
                       className="h-12 w-full rounded-xl border border-black/15 bg-white px-4 outline-none transition focus:border-black"
                     />
-                    <span className="mt-2 block text-xs text-zinc-500">
-                      Buyers remain pending until a StreamVista admin verifies the account.
-                    </span>
+                    {(signupRole === "buyer" || signupRole === "investor") && (
+                      <span className="mt-2 block text-xs text-zinc-500">
+                        Access stays pending until StreamVista verification.
+                      </span>
+                    )}
                   </label>
                 )}
               </>
@@ -236,6 +297,7 @@ export default function Login() {
               setError("");
               setMessage("");
               setPassword("");
+              setStudioPaidAck(false);
             }}
           >
             {createMode ? "Already have an account? Sign in" : "Don’t have an account? Create Account"}
@@ -244,7 +306,7 @@ export default function Login() {
           <div className="mt-8 space-y-2 border-t border-black/10 pt-5 text-xs text-zinc-500">
             <p>Secure access · Credentials are never prefilled or displayed.</p>
             <div className="flex items-center justify-between">
-              <span>Privileged roles are invite-only</span>
+              <span>Studio = paid plans only · no free start</span>
               <a href="mailto:hello@streamvista.in" className="font-semibold text-zinc-700 hover:text-black">
                 Need help?
               </a>

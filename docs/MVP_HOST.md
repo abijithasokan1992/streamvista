@@ -1,13 +1,15 @@
 # StreamVista Final MVP host (locked)
 
-**Date locked:** 2026-08-16
+**Date locked:** 2026-08-16  
+**Last deploy trigger:** 2026-08-16 (Rocket home #53 + magic link #52 on main)
 
 ## Canonical MVP host
 
 | Role | URL |
 |------|-----|
 | **MVP host** | https://streamvista-ai-chat.vercel.app |
-| Login | https://streamvista-ai-chat.vercel.app/login |
+| Login (magic link) | https://streamvista-ai-chat.vercel.app/login |
+| Chat | https://streamvista-ai-chat.vercel.app/chat |
 | Health | https://streamvista-ai-chat.vercel.app/api/ready |
 
 **Required ready shape:**
@@ -16,32 +18,25 @@
 {"status":"ready","database":"connected"}
 ```
 
-## Explicit non-hosts (do not treat as MVP production)
+## UX on this host (main)
+
+- Home: Rocket-style open chat box + soft **Enter** (PR #53)
+- Auth: passwordless magic link (PR #52)
+- Principle: Home invites · magic link admits · RBAC protects · AI guides
+
+## Explicit non-hosts
 
 | Surface | Reason |
 |---------|--------|
-| https://streamvista-black.vercel.app | `database=unconfigured` until Vercel env bind |
-| vista-os-v1-command-center | Deploy ERROR / DEPLOYMENT_NOT_FOUND |
-| https://streamvista.in | Public marketing site |
+| https://streamvista-black.vercel.app | database=unconfigured until env bind |
+| vista-os-v1-command-center | Deploy ERROR / NOT_FOUND |
+| https://streamvista.in | Marketing |
 
 ## Supabase
 
-- Canonical project ref: `uakpqqardziifcwzvgfx`
-- URL: `https://uakpqqardziifcwzvgfx.supabase.co`
-- Official account: `abijithasokan@crayonspictures.com`
-- Do not point MVP host at Crayons Bridge or personal-gmail projects
-
-## Product
-
-Content licensing / distribution **web app** (not website-only).
-
-## Still open after host lock
-
-- Apply/verify auth trigger (PR #43 path) + RLS on canonical DB
-- E2E: creator signup → upload; buyer pending → admin verify → screening
-- Redeploy MVP host from latest `main` so Create Account role selector (#51) is live
-- Production Ready certificate only after Runtime + Auth + RLS + E2E PASS on **this** host
+- Ref: `uakpqqardziifcwzvgfx`
+- Redirect allow: `https://streamvista-ai-chat.vercel.app/**`
 
 ## Rule
 
-All Final MVP demos, auth tests, and “is it up?” checks use **streamvista-ai-chat** until this document is updated by explicit decision.
+All Final MVP demos and auth tests use **streamvista-ai-chat** until this document is updated by explicit decision.

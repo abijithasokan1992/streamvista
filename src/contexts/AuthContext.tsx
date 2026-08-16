@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { UserProfile } from "../types/auth";
 import { authService } from "../services/auth";
+import type { SignupInput } from "../services/auth/auth.types";
 
 interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password?: string) => Promise<void>;
-  signup: (email: string, password: string, displayName: string) => Promise<boolean>;
+  signup: (input: SignupInput) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
@@ -50,10 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string, displayName: string) => {
+  const signup = async (input: SignupInput) => {
     setLoading(true);
     try {
-      const result = await authService.signup(email, password, displayName);
+      const result = await authService.signup(input);
       if (result.user) setUser(result.user);
       return result.confirmationRequired;
     } finally {

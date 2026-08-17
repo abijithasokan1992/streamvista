@@ -6,7 +6,7 @@ export function Topbar() {
   const { user, logout } = useAuth();
 
   return (
-    <header className="h-16 flex items-center justify-between px-8 border-b border-slate-200 bg-white/90 backdrop-blur-sm sticky top-0 z-40">
+    <header data-role-source="authenticated-session" className="h-16 flex items-center justify-between px-8 border-b border-slate-200 bg-white/90 backdrop-blur-sm sticky top-0 z-40">
       <div className="flex-1"></div>
       
       {user && (

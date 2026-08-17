@@ -87,19 +87,31 @@ const mapTitle = (row: TitleRow): Title => {
 
 const titleSelect = "id,creator_id,title,synopsis,content_type,primary_language,director,status,commercial_profile,metadata,created_at,updated_at";
 
+async function getAccessToken() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session?.access_token) throw new Error("Authentication required.");
+  return data.session.access_token;
+}
+
+async function getServerTitles() {
+  assertSupabaseConfigured();
+  const token = await getAccessToken();
+  const response = await fetch("/api/titles", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || `Titles request failed (${response.status}).`);
+  return ((payload.titles || []) as TitleRow[]).map(mapTitle);
+}
+
 class ApiDatabaseService implements DatabaseService {
   async getTitles(): Promise<Title[]> {
-    assertSupabaseConfigured();
-    const { data, error } = await supabase.from("sv_app_titles").select(titleSelect);
-    if (error) throw new Error(error.message);
-    return ((data || []) as TitleRow[]).map(mapTitle);
+    return getServerTitles();
   }
 
   async getTitleById(id: string): Promise<Title | null> {
-    assertSupabaseConfigured();
-    const { data, error } = await supabase.from("sv_app_titles").select(titleSelect).eq("id", id).maybeSingle();
-    if (error) throw new Error(error.message);
-    return data ? mapTitle(data as TitleRow) : null;
+    const titles = await getServerTitles();
+    return titles.find((title) => title.id === id) || null;
   }
 
   async getTitlesByCreator(creatorId?: string): Promise<Title[]> {

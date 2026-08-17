@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
+const EXPECTED_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
 const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 const configuredUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const configuredPublishableKey = (

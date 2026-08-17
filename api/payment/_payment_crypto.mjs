@@ -15,6 +15,14 @@ export function safeCurrency(value) {
   return currency;
 }
 
+export function verifyCheckoutSignature(secret, orderId, paymentId, receivedSignature) {
+  if (!secret || !orderId || !paymentId || !receivedSignature) return false;
+  const expected = createHmac("sha256", secret).update(`${orderId}|${paymentId}`).digest("hex");
+  const a = Buffer.from(expected, "utf8");
+  const b = Buffer.from(String(receivedSignature), "utf8");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 export function verifyWebhookSignature(secret, rawBody, receivedSignature) {
   if (!secret || !receivedSignature) return false;
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex");

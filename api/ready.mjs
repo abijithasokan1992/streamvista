@@ -1,12 +1,5 @@
 const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
-
-function projectRefFromUrl(value) {
-  try {
-    return new URL(value).hostname.split(".")[0] || "";
-  } catch {
-    return "";
-  }
-}
+const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
@@ -17,28 +10,19 @@ export default async function handler(request, response) {
     return response.status(405).json({ status: "not_ready", reason: "method_not_allowed" });
   }
 
-  const url = process.env.VITE_SUPABASE_URL?.trim();
   const key = (
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY
   )?.trim();
 
-  if (!url || !key) {
+  if (!key) {
     return response.status(503).json({
       status: "not_ready",
       database: "unconfigured",
     });
   }
 
-  if (projectRefFromUrl(url) !== EXPECTED_SUPABASE_PROJECT_REF) {
-    return response.status(503).json({
-      status: "not_ready",
-      database: "binding_mismatch",
-      project_ref: EXPECTED_SUPABASE_PROJECT_REF,
-    });
-  }
-
   try {
-    const result = await fetch(`${url.replace(/\/$/, "")}/rest/v1/rpc/sv_app_readiness`, {
+    const result = await fetch(`${CANONICAL_SUPABASE_URL}/rest/v1/rpc/sv_app_readiness`, {
       method: "POST",
       headers: {
         apikey: key,

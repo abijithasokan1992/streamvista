@@ -5,6 +5,7 @@ import { hashPassword, newToken, verifyPassword } from "./security.mjs";
 
 const ROLES=["platform_owner","founder","super_admin","admin","creator_partner","buyer","finance","qc_staff","legal_staff","support_staff"];
 const ADMIN=new Set(["platform_owner","founder","super_admin","admin"]);
+const TITLE_READERS=new Set(ROLES);
 const MIME={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".svg":"image/svg+xml",".png":"image/png"};
 function json(res,status,value,headers={}){res.writeHead(status,{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...headers});res.end(status===204?"":JSON.stringify(value));}
 async function readBody(req){let raw="";for await(const chunk of req){raw+=chunk;if(raw.length>1_000_000)throw new Error("Payload too large");}return raw?JSON.parse(raw):{};}
@@ -24,6 +25,16 @@ export function createApp(options={}){
  const current=req=>{const token=cookies(req).sv_session;if(!token)return null;return db.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=? AND s.expires_at>?").get(token,new Date().toISOString())||null;};
  const audit=(actor,action,target="")=>db.prepare("INSERT INTO audit_log(actor_id,action,target,created_at) VALUES(?,?,?,?)").run(actor||null,action,target,new Date().toISOString());
  const allowedOrigin=req=>!req.headers.origin||!(options.appOrigin||process.env.APP_ORIGIN)||req.headers.origin===(options.appOrigin||process.env.APP_ORIGIN);
+ const titleRowsForUser=(user,creatorId)=>{
+  if(!TITLE_READERS.has(user.role)) return null;
+  if(user.role==="creator_partner"){
+   if(creatorId&&creatorId!==user.id) return null;
+   return db.prepare("SELECT payload FROM titles WHERE creator_owner_id=?").all(user.id);
+  }
+  if(user.role==="buyer") return db.prepare("SELECT t.payload FROM titles t JOIN buyer_assignments a ON a.title_id=t.id WHERE a.buyer_id=?").all(user.id);
+  if(creatorId&&!ADMIN.has(user.role)) return null;
+  return db.prepare(creatorId?"SELECT payload FROM titles WHERE creator_owner_id=?":"SELECT payload FROM titles").all(...(creatorId?[creatorId]:[]));
+ };
  return async(req,res)=>{try{
   const url=new URL(req.url,"http://localhost"),path=url.pathname;
   res.setHeader("x-content-type-options","nosniff");res.setHeader("x-frame-options","DENY");res.setHeader("referrer-policy","strict-origin-when-cross-origin");
@@ -35,7 +46,20 @@ export function createApp(options={}){
   const user=current(req);
   if(path==="/api/auth/me")return user?json(res,200,{user:safeUser(user)}):json(res,401,{error:"Unauthenticated"});
   if(!user&&path.startsWith("/api/"))return json(res,401,{error:"Unauthenticated"});
-  if(path==="/api/titles"&&req.method==="GET"){let rows=[];if(user.role==="creator_partner")rows=db.prepare("SELECT payload FROM titles WHERE creator_owner_id=?").all(user.id);else if(user.role==="buyer")rows=db.prepare("SELECT t.payload FROM titles t JOIN buyer_assignments a ON a.title_id=t.id WHERE a.buyer_id=?").all(user.id);else if(ADMIN.has(user.role)||["finance","qc_staff","legal_staff","support_staff"].includes(user.role))rows=db.prepare("SELECT payload FROM titles").all();return json(res,200,{titles:rows.map(r=>JSON.parse(r.payload))});}
+  if(path==="/api/titles"&&req.method==="GET"){
+   const rows=titleRowsForUser(user,url.searchParams.get("creatorId"));
+   if(rows===null)return json(res,403,{error:"Forbidden"});
+   return json(res,200,{titles:rows.map(r=>JSON.parse(r.payload))});
+  }
+  if(path.startsWith("/api/titles/")&&req.method==="GET"){
+   if(!TITLE_READERS.has(user.role))return json(res,403,{error:"Forbidden"});
+   const id=decodeURIComponent(path.slice("/api/titles/".length));
+   const row=db.prepare("SELECT payload,creator_owner_id FROM titles WHERE id=?").get(id);
+   if(!row)return json(res,404,{error:"Title not found"});
+   if(user.role==="creator_partner"&&row.creator_owner_id!==user.id)return json(res,403,{error:"Forbidden"});
+   if(user.role==="buyer"&&!db.prepare("SELECT 1 FROM buyer_assignments WHERE buyer_id=? AND title_id=?").get(user.id,id))return json(res,403,{error:"Forbidden"});
+   return json(res,200,{title:JSON.parse(row.payload)});
+  }
   if(path==="/api/drafts"&&req.method==="GET"){const owner=user.role==="creator_partner"?user.id:url.searchParams.get("creatorId");if(!owner||(owner!==user.id&&!ADMIN.has(user.role)))return json(res,403,{error:"Forbidden"});return json(res,200,{drafts:db.prepare("SELECT payload FROM titles WHERE creator_owner_id=? AND status='draft'").all(owner).map(r=>JSON.parse(r.payload))});}
   if(path==="/api/drafts"&&req.method==="POST"){if(user.role!=="creator_partner"&&!ADMIN.has(user.role))return json(res,403,{error:"Forbidden"});const input=await readBody(req),now=new Date().toISOString(),id=String(input.id||crypto.randomUUID()),owner=user.role==="creator_partner"?user.id:String(input.creatorOwnerId||user.id),draft={...input,id,creatorOwnerId:owner,status:"draft",updatedAt:now,createdAt:input.createdAt||now};db.prepare("INSERT INTO titles VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,status='draft',updated_at=excluded.updated_at").run(id,owner,JSON.stringify(draft),"draft",draft.createdAt,now);audit(user.id,"draft.save",id);return json(res,200,{draft});}
   if(path==="/api/users"&&req.method==="GET"){if(!ADMIN.has(user.role))return json(res,403,{error:"Forbidden"});return json(res,200,{users:db.prepare("SELECT * FROM users").all().map(safeUser)});}

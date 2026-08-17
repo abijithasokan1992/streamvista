@@ -13,29 +13,47 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AUTH_BOOT_TIMEOUT_MS = 8000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadUser() {
       try {
-        // Complete magic-link redirect if present
-        const fromLink = await authService.exchangeMagicLinkSession();
-        if (fromLink) {
-          setUser(fromLink);
-          return;
-        }
-        const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        await Promise.race([
+          (async () => {
+            const fromLink = await authService.exchangeMagicLinkSession();
+            if (cancelled) return;
+            if (fromLink) {
+              setUser(fromLink);
+              return;
+            }
+            const currentUser = await authService.getCurrentUser();
+            if (!cancelled) setUser(currentUser);
+          })(),
+          new Promise<never>((_, reject) =>
+            window.setTimeout(
+              () => reject(new Error("Authentication bootstrap timed out")),
+              AUTH_BOOT_TIMEOUT_MS,
+            ),
+          ),
+        ]);
       } catch (error) {
         console.error("Failed to load user session", error);
+        if (!cancelled) setUser(null);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
     loadUser();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = async (email: string, password?: string) => {

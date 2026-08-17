@@ -1,4 +1,4 @@
-const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
+const EXPECTED_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
 const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 
 export default async function handler(request, response) {

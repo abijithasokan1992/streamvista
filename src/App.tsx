@@ -36,7 +36,6 @@ function isMarketingHost() {
   return window.location.hostname === "www.streamvista.in" || window.location.hostname === "streamvista.in";
 }
 
-/** Logged-out: Rocket home with chat. Logged-in: Dashboard. */
 function RootRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -45,7 +44,6 @@ function RootRoute() {
   return <Home />;
 }
 
-/** Chat is open for guidance; account creation stays magic-link on /login */
 function ChatRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -109,6 +107,7 @@ function App() {
             <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "qc_staff"]}><QC /></ProtectedRoute>} />
             <Route path="/legal" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><Legal /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance"]}><Payments /></ProtectedRoute>} />
+            <Route path="/support" element={<ProtectedRoute allowedRoles={[...ADMIN, "support_staff"]}><Settings /></ProtectedRoute>} />
             <Route path="/payments" element={<Navigate to="/finance" replace />} />
             <Route path="/analytics" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance", "creator_partner", "buyer"]}><Analytics /></ProtectedRoute>} />
             <Route path="/campaigns" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Campaigns /></ProtectedRoute>} />

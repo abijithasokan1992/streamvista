@@ -1,4 +1,4 @@
 import { DatabaseService } from "./database.types";
-import { apiDatabaseService } from "./apiDatabaseService";
+import { serverDatabaseService } from "./serverDatabaseService";
 
-export const databaseService: DatabaseService = apiDatabaseService;
+export const databaseService: DatabaseService = serverDatabaseService;

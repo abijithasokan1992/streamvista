@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
-import { integerPaise, safeCurrency, verifyWebhookSignature } from "./_payment_crypto.mjs";
+import { integerPaise, safeCurrency, verifyCheckoutSignature, verifyWebhookSignature } from "./_payment_crypto.mjs";
 
 export const CANONICAL_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
-export { integerPaise, safeCurrency, verifyWebhookSignature };
+export { integerPaise, safeCurrency, verifyCheckoutSignature, verifyWebhookSignature };
 
 export function json(response, status, body, headers = {}) {
   response.status(status).setHeader("Cache-Control", "no-store").setHeader("Content-Type", "application/json; charset=utf-8");

@@ -1,24 +1,54 @@
 import { useEffect, useState } from "react";
 import { databaseService } from "../services/database";
 import { Title } from "../types/title";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
+import { Card, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Loader2, Plus, Search } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import { useAuth } from "../contexts/AuthContext";
+import { hasPermission } from "../security/rbac";
 
 export default function Titles() {
+  const { user, loading: authLoading } = useAuth();
   const [titles, setTitles] = useState<Title[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading || !user || !hasPermission(user.role, "titles.read")) return;
+
+    let cancelled = false;
     async function load() {
-      const data = await databaseService.getTitles();
-      setTitles(data);
-      setLoading(false);
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await databaseService.getTitles();
+        if (!cancelled) setTitles(data);
+      } catch (loadError) {
+        if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to load titles.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
     load();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, user]);
+
+  if (authLoading || loading) {
+    return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-brand-gold h-8 w-8" /></div>;
+  }
+
+  if (!user || !hasPermission(user.role, "titles.read")) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold tracking-tight text-white">Unauthorized</h1>
+        <p className="text-slate-400">Your authenticated role does not have permission to read titles.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -27,9 +57,7 @@ export default function Titles() {
           <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Titles</h1>
           <p className="text-slate-400">Manage all published titles on StreamVista.</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus size={16} /> Add Title
-        </Button>
+        <Button className="flex items-center gap-2"><Plus size={16} /> Add Title</Button>
       </div>
 
       <div className="flex gap-4 mb-6">
@@ -39,20 +67,14 @@ export default function Titles() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="animate-spin text-brand-gold h-8 w-8" />
-        </div>
+      {error ? (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-red-200" role="alert">{error}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {titles.map(title => (
             <Card key={title.id} className="flex flex-col group cursor-pointer hover:border-brand-gold/50 transition-colors">
               <div className="aspect-[2/3] bg-brand-navy border-b border-white/5 relative overflow-hidden flex items-center justify-center">
-                {title.posterUrl ? (
-                  <img src={title.posterUrl} alt={title.title} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-slate-600 font-medium">No Poster</span>
-                )}
+                {title.posterUrl ? <img src={title.posterUrl} alt={title.title} className="w-full h-full object-cover" /> : <span className="text-slate-600 font-medium">No Poster</span>}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                   <Button size="sm" variant="primary" className="w-full">View Details</Button>
                 </div>
@@ -61,10 +83,7 @@ export default function Titles() {
                 <CardTitle className="line-clamp-1">{title.title}</CardTitle>
                 <CardDescription className="line-clamp-2 mt-1">{title.synopsis}</CardDescription>
               </CardHeader>
-              <div className="px-6 pb-4 flex gap-2 flex-wrap">
-                <Badge variant="outline">{title.contentType}</Badge>
-                <Badge variant="success">{title.status}</Badge>
-              </div>
+              <div className="px-6 pb-4 flex gap-2 flex-wrap"><Badge variant="outline">{title.contentType}</Badge><Badge variant="success">{title.status}</Badge></div>
             </Card>
           ))}
         </div>

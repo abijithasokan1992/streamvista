@@ -1,4 +1,4 @@
-const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
+const EXPECTED_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
 
 function projectRefFromUrl(value) {
   try {

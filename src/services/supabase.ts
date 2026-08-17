@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
 const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
@@ -27,15 +27,25 @@ export const SUPABASE_URL =
     ? configuredUrl
     : CANONICAL_SUPABASE_URL;
 
-// A non-secret placeholder keeps the public shell renderable when a Preview deployment
-// is missing its browser publishable key. All data/auth calls remain fail-closed through
-// assertSupabaseConfigured().
-export const SUPABASE_PUBLISHABLE_KEY = configuredPublishableKey || "streamvista-unconfigured";
+/**
+ * Keep the public shell renderable when a deployment is missing its browser
+ * Supabase configuration. Previously an invalid placeholder key was passed to
+ * createClient(), which throws during module initialization and leaves the app
+ * as a completely blank page. Data/auth operations still fail closed through
+ * assertSupabaseConfigured().
+ */
+const unconfiguredSupabase = new Proxy({} as SupabaseClient, {
+  get() {
+    throw new Error(SUPABASE_CONFIG_ERROR || "Supabase is not configured.");
+  },
+});
+
+export const supabase: SupabaseClient = configuredUrl && configuredPublishableKey && !SUPABASE_CONFIG_ERROR
+  ? createClient(SUPABASE_URL, configuredPublishableKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    })
+  : unconfiguredSupabase;
 
 export function assertSupabaseConfigured() {
   if (SUPABASE_CONFIG_ERROR) throw new Error(SUPABASE_CONFIG_ERROR);
 }
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-});

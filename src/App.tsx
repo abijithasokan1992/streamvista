@@ -31,6 +31,17 @@ import GlobalBusinessCenter from "./pages/GlobalBusinessCenter";
 const PLATFORM = ["platform_owner", "founder", "super_admin"] as const;
 const ADMIN = [...PLATFORM, "admin"] as const;
 
+function AuthLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        <p className="mt-4 text-sm text-white/70">Loading StreamVista…</p>
+      </div>
+    </div>
+  );
+}
+
 function isMarketingHost() {
   if (typeof window === "undefined") return false;
   return window.location.hostname === "www.streamvista.in" || window.location.hostname === "streamvista.in";
@@ -39,7 +50,7 @@ function isMarketingHost() {
 /** Logged-out: Rocket home with chat. Logged-in: Dashboard. */
 function RootRoute() {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <AuthLoading />;
   if (isMarketingHost() && !user) return <HomeWhite />;
   if (user) return <Navigate to="/dashboard" replace />;
   return <Home />;
@@ -48,7 +59,7 @@ function RootRoute() {
 /** Chat is open for guidance; account creation stays magic-link on /login */
 function ChatRoute() {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return <AuthLoading />;
   if (user) {
     return (
       <ProtectedRoute>
@@ -62,7 +73,7 @@ function ChatRoute() {
 function LoginRoute() {
   const { user, loading } = useAuth();
   const [params] = useSearchParams();
-  if (loading) return null;
+  if (loading) return <AuthLoading />;
   const next = params.get("next");
   const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
   return user ? <Navigate to={safeNext} replace /> : <Login />;
@@ -106,14 +117,14 @@ function App() {
             <Route path="/drafts" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Drafts /></ProtectedRoute>} />
             <Route path="/uploads" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Uploads /></ProtectedRoute>} />
             <Route path="/screenings" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer", "creator_partner"]}><Screenings /></ProtectedRoute>} />
-            <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "qc_staff"]}><QC /></ProtectedRoute>} />
+            <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><QC /></ProtectedRoute>} />
             <Route path="/legal" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><Legal /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance"]}><Payments /></ProtectedRoute>} />
             <Route path="/payments" element={<Navigate to="/finance" replace />} />
             <Route path="/analytics" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance", "creator_partner", "buyer"]}><Analytics /></ProtectedRoute>} />
             <Route path="/campaigns" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Campaigns /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Users /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Settings /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Settings /></Route>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<div className="flex h-full items-center justify-center text-slate-400"><p>Page not found or under construction.</p></div>} />
           </Route>

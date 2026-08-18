@@ -10,17 +10,10 @@ export const SUPABASE_CONFIG_ERROR = !configuredPublishableKey
   ? "StreamVista backend is not configured for this deployment."
   : null;
 
-// Production is pinned to the verified StreamVista Supabase project. The
-deployment URL variable is intentionally not trusted for project selection.
+// Production is pinned to the verified StreamVista Supabase project.
+// The deployment URL variable is intentionally not trusted for project selection.
 export const SUPABASE_URL = CANONICAL_SUPABASE_URL;
 
-/**
- * Keep the public shell renderable when a deployment is missing its browser
- * Supabase configuration. Previously an invalid placeholder key was passed to
- * createClient(), which throws during module initialization and leaves the app
- * as a completely blank page. Data/auth operations still fail closed through
- * assertSupabaseConfigured().
- */
 const unconfiguredSupabase = new Proxy({} as SupabaseClient, {
   get() {
     throw new Error(SUPABASE_CONFIG_ERROR || "Supabase is not configured.");

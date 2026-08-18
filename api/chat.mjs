@@ -68,12 +68,9 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: "Method not allowed" });
   }
 
-  if (process.env.STREAMVISTA_PUBLIC_AI_ENABLED !== "true") {
-    return response.status(503).json({ error: "StreamVista AI is not enabled for this environment." });
-  }
-
-  // Read the deployment secret inside the request handler so every invocation
-  // resolves the current runtime environment instead of retaining a module snapshot.
+  // Resolve the secret inside every request invocation. Do not retain an
+  // environment snapshot at module scope so the serverless runtime can use
+  // the currently deployed credential for each client thread.
   const apiKey = typeof process.env.GEMINI_API_KEY === "string"
     ? process.env.GEMINI_API_KEY.trim()
     : "";

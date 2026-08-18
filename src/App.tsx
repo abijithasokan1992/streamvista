@@ -6,7 +6,6 @@ import { MainLayout } from "./layouts/MainLayout";
 
 import Chat from "./pages/Chat";
 import Home from "./pages/Home";
-import HomeWhite from "./pages/HomeWhite";
 import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
@@ -40,19 +39,6 @@ function AuthLoading() {
       </div>
     </div>
   );
-}
-
-function isMarketingHost() {
-  if (typeof window === "undefined") return false;
-  return window.location.hostname === "www.streamvista.in" || window.location.hostname === "streamvista.in";
-}
-
-function RootRoute() {
-  const { user, loading } = useAuth();
-  if (loading) return <AuthLoading />;
-  if (isMarketingHost() && !user) return <HomeWhite />;
-  if (user) return <Navigate to="/dashboard" replace />;
-  return <Home />;
 }
 
 function ChatRoute() {
@@ -95,13 +81,14 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<RootRoute />} />
           <Route path="/chat" element={<ChatRoute />} />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<LoginRoute />} />
           <Route path="/auth" element={<LegacyAuthRedirect />} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+            {/* Founder OS is the canonical authenticated root for streamvista.in. */}
+            <Route index element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/business-center" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><GlobalBusinessCenter /></ProtectedRoute>} />
             <Route path="/workspace/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><WorkspaceLanding type="creator" /></ProtectedRoute>} />

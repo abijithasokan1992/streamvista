@@ -1,5 +1,5 @@
 -- Razorpay production ledger + webhook idempotency for canonical StreamVista.
--- Canonical project: uakpqqardziifcwzvgfx.
+-- Canonical project: tqzimuwozhipqgyerdff.
 -- Apply only through the normal Supabase migration pipeline.
 
 alter table public.sv_payments

@@ -172,7 +172,7 @@ export default function Chat() {
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-          <a href="https://www.streamvista.in" className="flex items-center gap-2.5 font-black tracking-[-0.04em]">
+          <a href="https://streamvista.in" className="flex items-center gap-2.5 font-black tracking-[-0.04em]">
             <span className="h-7 w-7 rounded-full bg-[radial-gradient(circle_at_30%_25%,#ff8b49,#8757e7_46%,#25103e_78%)]" />
             STREAMVISTA AI
           </a>
@@ -238,7 +238,7 @@ export default function Chat() {
             </div>
           </div>
           <a
-            href="https://www.streamvista.in"
+            href="https://streamvista.in"
             className="rounded-full border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-400 transition hover:bg-white/5 hover:text-white"
           >
             Main site

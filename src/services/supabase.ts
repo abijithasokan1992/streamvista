@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
+const EXPECTED_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
 const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 const configuredPublishableKey = (
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -11,7 +11,7 @@ export const SUPABASE_CONFIG_ERROR = !configuredPublishableKey
   : null;
 
 // Production is pinned to the verified StreamVista Supabase project. The
-// deployment URL variable is intentionally not trusted for project selection.
+deployment URL variable is intentionally not trusted for project selection.
 export const SUPABASE_URL = CANONICAL_SUPABASE_URL;
 
 /**

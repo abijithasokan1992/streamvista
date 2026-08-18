@@ -11,6 +11,26 @@ function isAdminRole(role?: string) { return role === "admin" || role === "found
 function isCreatorRole(role?: string) { return role === "creator_partner" || isAdminRole(role); }
 function roleLabel(role?: string) { return (role || "unknown").replaceAll("_", " "); }
 
+function QuickLink({ href, label, detail }: { href: string; label: string; detail: string }) {
+  return (
+    <Link
+      to={href}
+      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md"
+    >
+      <p className="font-bold text-slate-950">{label}</p>
+      <p className="mt-1 text-xs text-slate-500">{detail}</p>
+    </Link>
+  );
+}
+
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-center text-sm text-slate-500">
+      {label}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const role = user?.role;

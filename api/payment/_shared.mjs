@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { integerPaise, safeCurrency, verifyCheckoutSignature, verifyWebhookSignature } from "./_payment_crypto.mjs";
 
-export const CANONICAL_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
+export const CANONICAL_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
 export { integerPaise, safeCurrency, verifyCheckoutSignature, verifyWebhookSignature };
 
 export function json(response, status, body, headers = {}) {

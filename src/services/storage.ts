@@ -1,6 +1,6 @@
 import { assertSupabaseConfigured, supabase } from "./supabase";
 
-const FILM_BUCKET = "sv-masters";
+const FILM_BUCKET = "streamvista-films";
 
 export interface StorageProvider {
   upload(file: File, path: string): Promise<string>;
@@ -17,9 +17,7 @@ export class SupabaseStorage implements StorageProvider {
     return path;
   }
 
-  getUrl(path: string) {
-    return path;
-  }
+  getUrl(path: string) { return path; }
 
   async getSignedUrl(path: string, expiresIn = 3600) {
     assertSupabaseConfigured();
@@ -37,22 +35,12 @@ export class SupabaseStorage implements StorageProvider {
 
 abstract class ServerManagedStorage implements StorageProvider {
   private readonly providerName: string;
-
-  protected constructor(providerName: string) {
-    this.providerName = providerName;
-  }
-
+  protected constructor(providerName: string) { this.providerName = providerName; }
   async upload(): Promise<string> {
     throw new Error(`${this.providerName} uploads require a server-side signed-upload adapter; browser cloud keys are intentionally unsupported.`);
   }
-
-  getUrl(path: string) {
-    return path;
-  }
-
-  async delete(): Promise<void> {
-    throw new Error(`${this.providerName} deletes require a server-side adapter.`);
-  }
+  getUrl(path: string) { return path; }
+  async delete(): Promise<void> { throw new Error(`${this.providerName} deletes require a server-side adapter.`); }
 }
 
 export class S3Storage extends ServerManagedStorage { constructor() { super("S3"); } }

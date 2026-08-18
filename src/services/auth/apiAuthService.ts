@@ -1,6 +1,7 @@
 import { AuthService, MagicLinkInput, PublicSignupRole, SignupInput } from "./auth.types";
 import { UserProfile, UserRole } from "../../types/auth";
 import { assertSupabaseConfigured, supabase } from "../supabase";
+import { getAuthRedirect } from "../../config/appOrigin";
 
 type ProfileRow = {
   id: string;
@@ -66,11 +67,6 @@ async function getProfile() {
   return mapProfile(data as ProfileRow);
 }
 
-function appOrigin() {
-  if (typeof window === "undefined") return undefined;
-  return window.location.origin;
-}
-
 function buildMetadata(input: {
   displayName?: string;
   signupRole?: PublicSignupRole;
@@ -123,7 +119,7 @@ class ApiAuthService implements AuthService {
       }
     }
 
-    const emailRedirectTo = `${appOrigin()}/login?magic=1`;
+    const emailRedirectTo = getAuthRedirect();
     const data = input.create
       ? buildMetadata({
           displayName: input.displayName,

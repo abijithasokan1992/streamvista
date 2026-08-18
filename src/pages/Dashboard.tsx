@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Clock3, Film, Layers3, ListChecks, ShieldCheck } from "lucide-react";
+import { ArrowRight, Clock3, Film, Layers3, ListChecks, ShieldCheck } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
 import { listScreeningRequests, listTitlesByStatus, setTitleStatus, updateScreeningStatus, type MarketplaceTitle, type ScreeningRequest, type TitleStatus } from "../services/marketplace";
@@ -58,4 +58,4 @@ export default function Dashboard() {
   );
 }
 
-function MetricCard({ icon, label, value, detail, href }: { icon: ReactNode; label: string; value: string; detail: string; href: string }) { return <Link to={href} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_14px_35px_rgba(15,23,42,0.08)]"><div className="flex items-start justify-between gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-700">{icon}</span><ArrowRight size={17} className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-violet-500" /></div><p className="mt-5 text-sm font-semibold text-slate-500">{label}</p><p className="mt-1 text-4xl font-black tracking-tight text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-400 Ram">{detail}</p></Link>; }
+function MetricCard({ icon, label, value, detail, href }: { icon: ReactNode; label: string; value: string; detail: string; href: string }) { return <Link to={href} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-[0_14px_35px_rgba(15,23,42,0.08)]"><div className="flex items-start justify-between gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-700">{icon}</span><ArrowRight size={17} className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-violet-500" /></div><p className="mt-5 text-sm font-semibold text-slate-500">{label}</p><p className="mt-1 text-4xl font-black tracking-tight text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-400">{detail}</p></Link>; }

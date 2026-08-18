@@ -84,7 +84,7 @@ export default function Auth() {
         } else if (authMethod === 'magic_link') {
           const { error } = await supabase.auth.signInWithOtp({
             email,
-            options: { redirectTo: 'https://streamvista.in' }
+            options: { emailRedirectTo: 'https://streamvista.in' }
           });
           if (error) throw error;
           setMessage('Magic Link transmitted! Check your inbox.');

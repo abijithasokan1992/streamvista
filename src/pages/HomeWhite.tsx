@@ -1,3 +1,37 @@
 import { ArrowRight, Clapperboard, Film, Tv } from "lucide-react";
-const journeys=[{icon:Clapperboard,title:"Create & distribute",copy:"For creators and studios moving rights-ready work."},{icon:Film,title:"Find content",copy:"For OTT buyers and partners discovering curated titles."},{icon:Tv,title:"Watch",copy:"Secure screenings and programmed experiences."}];
-export default function HomeWhite(){return <main className="min-h-screen bg-[#F9F6F0] text-[#111111]"><header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-7 lg:px-10"><a href="/home" className="flex items-center gap-3 font-black text-[#1E4FC7]"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1E4FC7] text-white">S</span>STREAMVISTA</a><a href="/login" className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white">Sign in</a></header><section className="mx-auto grid min-h-[620px] max-w-7xl items-center gap-12 px-6 py-12 lg:grid-cols-[1.05fr_.95fr] lg:px-10"><div><p className="text-xs font-black uppercase tracking-[.28em] text-zinc-500">Stories · Rights · Reach</p><h1 className="mt-6 font-serif text-[80px] leading-[.92] tracking-[-.055em]">Stories move here.</h1><p className="mt-7 max-w-xl text-lg leading-8 text-zinc-600">One B2B path from creator upload and rights review to OTT screening, licensing, contracts, delivery and revenue.</p><a href="/login?next=/chat" className="mt-9 inline-flex items-center gap-2 rounded-full bg-[#1E4FC7] px-6 py-3 text-sm font-bold text-white">Talk to StreamVista AI <ArrowRight size={16}/></a></div><div className="relative mx-auto h-[480px] w-[480px] max-w-full"><div className="absolute inset-[7%] rounded-full bg-[radial-gradient(circle_at_30%_28%,#7ec8ff_0%,#6c63ff_34%,#5b2fcf_58%,#20103d_82%)] shadow-[0_42px_100px_rgba(75,58,180,.26)]"/></div></section><section className="mx-auto grid max-w-7xl gap-3 px-6 pb-12 md:grid-cols-3 lg:px-10">{journeys.map(({icon:Icon,title,copy})=>title === "Watch" ? <a key={title} href="https://www.crayonsloop.com" target="_blank" rel="noopener noreferrer" className="rounded-3xl bg-[#111] p-7 text-white block"><Icon/><h2 className="mt-7 text-2xl font-bold">{title}</h2><p className="mt-3 text-sm text-zinc-400">{copy}</p></a> : <article key={title} className="rounded-3xl bg-[#111] p-7 text-white"><Icon/><h2 className="mt-7 text-2xl font-bold">{title}</h2><p className="mt-3 text-sm text-zinc-400">{copy}</p></article>)}</section><a href="/login?next=/chat" className="fixed bottom-6 right-6 rounded-full bg-black px-5 py-3 text-sm font-bold text-white shadow-xl">Ask StreamVista AI</a></main>}
+
+const journeys = [
+  { icon: Clapperboard, title: "Create & distribute", copy: "For creators and studios moving rights-ready work." },
+  { icon: Film, title: "Find content", copy: "For OTT buyers and partners discovering curated titles." },
+  { icon: Tv, title: "Watch", copy: "Secure screenings and programmed experiences." },
+];
+
+export default function HomeWhite() {
+  return (
+    <main className="min-h-screen bg-[#F9F6F0] text-[#111111]">
+      <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-7 lg:px-10">
+        <a href="/home" className="flex items-center gap-3 font-black text-[#1E4FC7]"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1E4FC7] text-white">S</span>STREAMVISTA</a>
+        <a href="/login" className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white">Sign in</a>
+      </header>
+      <section className="mx-auto grid min-h-[620px] max-w-7xl items-center gap-12 px-6 py-12 lg:grid-cols-[1.05fr_.95fr] lg:px-10">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[.28em] text-zinc-500">Stories · Rights · Reach</p>
+          <h1 className="mt-6 font-serif text-[80px] leading-[.92] tracking-[-.055em]">Stories move here.</h1>
+          <p className="mt-7 max-w-xl text-lg leading-8 text-zinc-600">One B2B path from creator upload and rights review to OTT screening, licensing, contracts, delivery and revenue.</p>
+          <a href="/login?next=/chat" className="mt-9 inline-flex items-center gap-2 rounded-full bg-[#1E4FC7] px-6 py-3 text-sm font-bold text-white">Talk to StreamVista AI <ArrowRight size={16} /></a>
+        </div>
+        <div className="relative mx-auto h-[480px] w-[480px] max-w-full"><div className="absolute inset-[7%] rounded-full bg-[radial-gradient(circle_at_30%_28%,#7ec8ff_0%,#6c63ff_34%,#5b2fcf_58%,#20103d_82%)] shadow-[0_42px_100px_rgba(75,58,180,.26)]" /></div>
+      </section>
+      <section className="mx-auto grid max-w-7xl gap-3 px-6 pb-12 md:grid-cols-3 lg:px-10">
+        {journeys.map(({ icon: Icon, title, copy }) => title === "Watch" ? (
+          <a key={title} href="https://crayonsloop.com" target="_blank" rel="noopener noreferrer" className="block rounded-3xl bg-[#111] p-7 text-white">
+            <Icon /><h2 className="mt-7 text-2xl font-bold">{title}</h2><p className="mt-3 text-sm text-zinc-400">{copy}</p>
+          </a>
+        ) : (
+          <article key={title} className="rounded-3xl bg-[#111] p-7 text-white"><Icon /><h2 className="mt-7 text-2xl font-bold">{title}</h2><p className="mt-3 text-sm text-zinc-400">{copy}</p></article>
+        ))}
+      </section>
+      <a href="/login?next=/chat" className="fixed bottom-6 right-6 rounded-full bg-black px-5 py-3 text-sm font-bold text-white shadow-xl">Ask StreamVista AI</a>
+    </main>
+  );
+}

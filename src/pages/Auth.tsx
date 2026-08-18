@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { supabase } from '../services/supabase';
+import React, { useEffect, useState } from 'react';
+import { supabase, SUPABASE_URL } from '../services/supabase';
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -11,6 +11,49 @@ export default function Auth() {
   const [displayName, setDisplayName] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeUser, setActiveUser] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadActiveUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (mounted) setActiveUser(Boolean(data.user));
+    };
+
+    loadActiveUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setActiveUser(Boolean(session?.user));
+    });
+
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    setMessage('');
+
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) throw error;
+
+      // Supabase removes its persisted session on local sign-out. Remove the
+      // canonical project's auth cache as a final client-side cleanup guard.
+      const projectRef = new URL(SUPABASE_URL).hostname.split('.')[0];
+      localStorage.removeItem(`sb-${projectRef}-auth-token`);
+      sessionStorage.removeItem(`sb-${projectRef}-auth-token`);
+      setActiveUser(false);
+      window.location.replace('/home');
+    } catch (err: any) {
+      setMessage(err.message || 'Unable to terminate the active session.');
+      setLoggingOut(false);
+    }
+  };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +115,25 @@ export default function Auth() {
         <p className="text-gray-400 text-sm text-center mb-6">
           {isSignUp ? 'Create your platform account and assign role workspace.' : 'Access StreamVista secure rights management node.'}
         </p>
+
+        {activeUser && (
+          <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase text-amber-300">Active Session</p>
+                <p className="text-[11px] text-gray-400">Authenticated profile detected</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="rounded border border-red-500/50 px-3 py-2 text-xs font-bold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loggingOut ? 'Logging Out...' : 'Log Out Session'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* AUTH METHOD SELECTOR ON THE UI */}
         <div className="flex justify-around border-b border-[#27272a] mb-6 pb-2 text-xs font-semibold">

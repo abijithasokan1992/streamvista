@@ -12,13 +12,13 @@ Locked gate remains manual-certification-first. These scripts **assist** verific
 
 ## Prerequisites
 
-1. `#54` applied on `uakpqqardziifcwzvgfx`
+1. `#54` applied on `tqzimuwozhipqgyerdff`
 2. Production host READY: `https://streamvista-ai-chat.vercel.app`
 3. Env (local only — never commit):
 
 ```bash
 export E2E_BASE_URL=https://streamvista-ai-chat.vercel.app
-export SUPABASE_URL=https://uakpqqardziifcwzvgfx.supabase.co
+export SUPABASE_URL=https://tqzimuwozhipqgyerdff.supabase.co
 export SUPABASE_ANON_KEY=...          # publishable
 export E2E_CREATOR_EMAIL=...
 export E2E_CREATOR_PASSWORD=...       # only if password users exist; prefer service seed

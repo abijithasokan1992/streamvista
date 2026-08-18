@@ -34,7 +34,7 @@
 
 ## Supabase
 
-- Ref: `uakpqqardziifcwzvgfx`
+- Ref: `tqzimuwozhipqgyerdff`
 - Redirect allow: `https://streamvista-ai-chat.vercel.app/**`
 
 ## Rule

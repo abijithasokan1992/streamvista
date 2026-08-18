@@ -47,7 +47,6 @@ function isMarketingHost() {
   return window.location.hostname === "www.streamvista.in" || window.location.hostname === "streamvista.in";
 }
 
-/** Logged-out: Rocket home with chat. Logged-in: Dashboard. */
 function RootRoute() {
   const { user, loading } = useAuth();
   if (loading) return <AuthLoading />;
@@ -56,7 +55,6 @@ function RootRoute() {
   return <Home />;
 }
 
-/** Chat is open for guidance; account creation stays magic-link on /login */
 function ChatRoute() {
   const { user, loading } = useAuth();
   if (loading) return <AuthLoading />;
@@ -117,14 +115,14 @@ function App() {
             <Route path="/drafts" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Drafts /></ProtectedRoute>} />
             <Route path="/uploads" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Uploads /></ProtectedRoute>} />
             <Route path="/screenings" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer", "creator_partner"]}><Screenings /></ProtectedRoute>} />
-            <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><QC /></ProtectedRoute>} />
+            <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "qc_staff"]}><QC /></ProtectedRoute>} />
             <Route path="/legal" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><Legal /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance"]}><Payments /></ProtectedRoute>} />
             <Route path="/payments" element={<Navigate to="/finance" replace />} />
             <Route path="/analytics" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance", "creator_partner", "buyer"]}><Analytics /></ProtectedRoute>} />
             <Route path="/campaigns" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Campaigns /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Users /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Settings /></Route>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Settings /></ProtectedRoute>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<div className="flex h-full items-center justify-center text-slate-400"><p>Page not found or under construction.</p></div>} />
           </Route>

@@ -1,5 +1,5 @@
 -- P0 RLS for StreamVista Final MVP
--- Project: uakpqqardziifcwzvgfx only — do not apply to unrelated DBs.
+-- Project: tqzimuwozhipqgyerdff only — do not apply to unrelated DBs.
 -- Prerequisite: 20260816_p0_schema_deps.sql (verification_status on profiles)
 -- Live titles ownership column: creator_id (not creator_owner_id)
 -- Live approved status may be ready_for_distribution (app maps to approved)

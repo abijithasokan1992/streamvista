@@ -59,6 +59,22 @@ function extractReply(payload) {
   return text || null;
 }
 
+function readGeminiApiKey() {
+  try {
+    // Resolve the production environment on every invocation so a recycled
+    // serverless worker does not retain a stale module-level configuration snapshot.
+    return typeof process?.env?.GEMINI_API_KEY === "string"
+      ? process.env.GEMINI_API_KEY.trim()
+      : "";
+  } catch (error) {
+    console.error(
+      "Gemini configuration lookup failed",
+      error instanceof Error ? error.message : "unknown error",
+    );
+    return "";
+  }
+}
+
 export default async function handler(request, response) {
   response.setHeader("Cache-Control", "no-store");
   response.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -72,9 +88,11 @@ export default async function handler(request, response) {
     return response.status(503).json({ error: "StreamVista AI is not enabled for this environment." });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  const apiKey = readGeminiApiKey();
   if (!apiKey) {
-    return response.status(503).json({ error: "StreamVista AI is not configured." });
+    return response.status(503).json({
+      error: "StreamVista AI configuration is temporarily unavailable. Please retry shortly while the production environment recovers.",
+    });
   }
 
   const messages = sanitizeMessages(request.body?.messages);

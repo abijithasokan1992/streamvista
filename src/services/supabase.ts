@@ -1,9 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const EXPECTED_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
+const EXPECTED_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
 const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
+const CANONICAL_PUBLISHABLE_KEY = "sb_publishable_AaGzVOAHywBYaUHgEkesOQ_aBV1nZj3";
 const configuredPublishableKey = (
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  CANONICAL_PUBLISHABLE_KEY
 )?.trim();
 
 export const SUPABASE_CONFIG_ERROR = !configuredPublishableKey

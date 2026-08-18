@@ -1,5 +1,5 @@
 -- P0 schema dependencies for #54 RLS
--- Canonical project only: uakpqqardziifcwzvgfx
+-- Canonical project only: tqzimuwozhipqgyerdff
 -- Additive / safe. Run BEFORE 20260816_p0_rls_policies.sql
 --
 -- Live findings:

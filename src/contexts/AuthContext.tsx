@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { UserProfile } from "../types/auth";
 import { authService } from "../services/auth";
 import type { MagicLinkInput, SignupInput } from "../services/auth/auth.types";
+import { supabase } from "../services/supabase";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -19,23 +20,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     async function loadUser() {
       try {
-        // Complete magic-link redirect if present
         const fromLink = await authService.exchangeMagicLinkSession();
-        if (fromLink) {
+        if (mounted && fromLink) {
           setUser(fromLink);
           return;
         }
+
         const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        if (mounted) setUser(currentUser);
       } catch (error) {
         console.error("Failed to load user session", error);
+        if (mounted) setUser(null);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
-    loadUser();
+
+    void loadUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+
+      if (!session?.user) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profile = await authService.getCurrentUser();
+        if (mounted) setUser(profile);
+      } catch (error) {
+        console.error("Failed to refresh StreamVista profile after auth change", error);
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password?: string) => {

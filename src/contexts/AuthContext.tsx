@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     void loadUser();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
 
       if (!session?.user) {
@@ -51,14 +51,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      try {
-        const profile = await authService.getCurrentUser();
-        if (mounted) setUser(profile);
-      } catch (error) {
-        console.error("Failed to refresh StreamVista profile after auth change", error);
-        if (mounted) setUser(null);
-      } finally {
-        if (mounted) setLoading(false);
+      // Do not call Supabase APIs synchronously inside the auth callback;
+      // let the auth transaction finish first, then hydrate the application profile.
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        window.setTimeout(() => {
+          if (!mounted) return;
+          void authService
+            .getCurrentUser()
+            .then((profile) => {
+              if (mounted) setUser(profile);
+            })
+            .catch((error) => {
+              console.error("Failed to refresh StreamVista profile after auth change", error);
+              if (mounted) setUser(null);
+            })
+            .finally(() => {
+              if (mounted) setLoading(false);
+            });
+        }, 0);
       }
     });
 

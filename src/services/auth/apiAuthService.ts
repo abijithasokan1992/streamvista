@@ -3,68 +3,76 @@ import { UserProfile, UserRole } from "../../types/auth";
 import { assertSupabaseConfigured, supabase } from "../supabase";
 import { getAuthRedirect } from "../../config/appOrigin";
 
-type ProfileRow = {
-  id: string;
-  email: string;
-  display_name: string;
-  app_role: string;
-  created_at: string;
-  updated_at: string;
-  verification_status?: string;
-  organization_name?: string | null;
-};
-
 const ALLOWED_PUBLIC: PublicSignupRole[] = ["creator", "buyer", "investor", "studio"];
 
-function normalizeRole(role: string): UserRole {
+type SupabaseAuthUser = {
+  id: string;
+  email?: string;
+  created_at: string;
+  updated_at?: string;
+  user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+};
+
+function normalizeRole(role: unknown): UserRole {
   switch (role) {
-    case "founder":
-      return "founder";
-    case "super_admin":
-      return "super_admin";
-    case "admin":
-      return "admin";
-    case "buyer":
-      return "buyer";
-    case "finance":
-      return "finance";
+    case "platform_owner": return "platform_owner";
+    case "founder": return "founder";
+    case "super_admin": return "super_admin";
+    case "admin": return "admin";
+    case "buyer": return "buyer";
+    case "finance": return "finance";
     case "qc":
-    case "qc_staff":
-      return "qc_staff";
+    case "qc_staff": return "qc_staff";
     case "legal":
-    case "legal_staff":
-      return "legal_staff";
+    case "legal_staff": return "legal_staff";
     case "operations":
-    case "support_staff":
-      return "support_staff";
+    case "support_staff": return "support_staff";
     case "investor":
-      return "creator_partner";
     case "studio":
-      return "creator_partner";
     case "creator":
     case "creator_partner":
-    case "licensing":
-      return "creator_partner";
-    default:
-      return "support_staff";
+    case "licensing": return "creator_partner";
+    default: return "support_staff";
   }
 }
 
-const mapProfile = (profile: ProfileRow): UserProfile => ({
-  uid: profile.id,
-  email: profile.email,
-  displayName: profile.display_name,
-  role: normalizeRole(profile.app_role),
-  createdAt: profile.created_at,
-  updatedAt: profile.updated_at,
-});
+function mapAuthUser(user: SupabaseAuthUser): UserProfile {
+  const userMetadata = user.user_metadata ?? {};
+  const appMetadata = user.app_metadata ?? {};
 
-async function getProfile() {
-  assertSupabaseConfigured();
-  const { data, error } = await supabase.rpc("sv_session_profile");
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Authenticated StreamVista profile was not found.");
-  return mapProfile(data as ProfileRow);
+  // Privileged roles must come from server-controlled app_metadata.
+  const trustedAppRole = typeof appMetadata.role === "string"
+    ? appMetadata.role
+    : typeof appMetadata.app_role === "string"
+      ? appMetadata.app_role
+      : null;
+
+  // Public signup metadata is restricted to non-admin roles.
+  const signupRole = typeof userMetadata.signup_role === "string"
+    ? userMetadata.signup_role
+    : null;
+
+  const role = trustedAppRole
+    ? normalizeRole(trustedAppRole)
+    : signupRole && ALLOWED_PUBLIC.includes(signupRole as PublicSignupRole)
+      ? normalizeRole(signupRole)
+      : "support_staff";
+
+  const displayName = typeof userMetadata.display_name === "string"
+    ? userMetadata.display_name
+    : typeof userMetadata.full_name === "string"
+      ? userMetadata.full_name
+      : user.email?.split("@")[0] || "StreamVista User";
+
+  return {
+    uid: user.id,
+    email: user.email || "",
+    displayName,
+    role,
+    createdAt: user.created_at,
+    updatedAt: user.updated_at || user.created_at,
+  };
 }
 
 function buildMetadata(input: {
@@ -90,17 +98,12 @@ function buildMetadata(input: {
 class ApiAuthService implements AuthService {
   async getCurrentUser(): Promise<UserProfile | null> {
     assertSupabaseConfigured();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
+    const { data: { user }, error } = await supabase.auth.getUser();
     if (error) throw new Error(error.message);
-    return user ? getProfile() : null;
+    return user ? mapAuthUser(user as SupabaseAuthUser) : null;
   }
 
   async login(email: string, _password?: string): Promise<UserProfile> {
-    // Public MVP is magic-link only — use requestMagicLink from UI
     await this.requestMagicLink({ email, create: false });
     throw new Error("Magic link sent. Open the link in your email to continue — no password required.");
   }
@@ -154,14 +157,10 @@ class ApiAuthService implements AuthService {
 
   async exchangeMagicLinkSession(): Promise<UserProfile | null> {
     assertSupabaseConfigured();
-    // Supabase JS picks up tokens from URL hash/query when detectSessionInUrl is default true
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
+    const { data: { session }, error } = await supabase.auth.getSession();
     if (error) throw new Error(error.message);
     if (!session?.user) return null;
-    return getProfile();
+    return mapAuthUser(session.user as SupabaseAuthUser);
   }
 
   async logout(): Promise<void> {

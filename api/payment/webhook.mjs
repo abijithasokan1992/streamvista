@@ -53,7 +53,6 @@ export default async function handler(request, response) {
         provider_event_id: eventId,
         status: nextStatus,
         verified_at: new Date().toISOString(),
-        raw_event_hash: hash,
       };
       if (payment.error_reason) update.error_reason = payment.error_reason;
       const { data, error } = await client
@@ -79,7 +78,6 @@ export default async function handler(request, response) {
           provider_event_id: eventId,
           status: "captured",
           verified_at: new Date().toISOString(),
-          raw_event_hash: hash,
         })
         .eq("provider_order_id", order.id)
         .eq("provider", "razorpay")
@@ -101,7 +99,7 @@ export default async function handler(request, response) {
         paymentId = paymentRow.id;
         await client
           .from("sv_payments")
-          .update({ status: "refunded", provider_event_id: eventId, raw_event_hash: hash, verified_at: new Date().toISOString() })
+          .update({ status: "refunded", provider_event_id: eventId, verified_at: new Date().toISOString() })
           .eq("id", paymentRow.id);
         if (paymentRow.deal_id) await client.from("sv_marketplace_deals").update({ payment_status: "refunded" }).eq("id", paymentRow.deal_id);
       }

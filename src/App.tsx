@@ -7,6 +7,7 @@ import { MainLayout } from "./layouts/MainLayout";
 import Chat from "./pages/Chat";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Bridge from "./pages/Bridge";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
 import Titles from "./pages/Titles";
@@ -76,6 +77,7 @@ function App() {
   return <AuthProvider><BrowserRouter><Routes>
     <Route path="/chat" element={<ChatRoute />} />
     <Route path="/home" element={<Home />} />
+    <Route path="/bridge" element={<Bridge />} />
     <Route path="/login" element={<LoginRoute />} />
     <Route path="/auth" element={<LegacyAuthRedirect />} />
 

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { UserProfile } from "../types/auth";
 import { authService } from "../services/auth";
 import type { MagicLinkInput, SignupInput } from "../services/auth/auth.types";
-import { SUPABASE_CONFIG_ERROR, supabase } from "../services/supabase";
+import { supabase } from "../services/supabase";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -41,14 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     void loadUser();
-
-    // The preview can render without backend credentials. Avoid touching the
-    // Supabase auth singleton until it has been created with a real key.
-    if (SUPABASE_CONFIG_ERROR) {
-      return () => {
-        mounted = false;
-      };
-    }
 
     const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;

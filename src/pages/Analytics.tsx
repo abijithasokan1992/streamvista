@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import PaymentCharts from "../components/analytics/PaymentCharts";
-
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+import { supabase } from "../services/supabase";
 
 export default function Analytics() {
   const [stats, setStats] = useState({ titles: 0, drafts: 0, screenings: 0, views: 0 });

@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+import { supabase } from "../../services/supabase";
 type Point = { date: string; revenue: number; refunds: number; successfulPayments: number };
 type Metrics = { grossRevenue:number; refundedAmount:number; netRevenue:number; activeSubscriptions:number; monthlyRecurringRevenue:number; successfulPayments:number; refundEvents:number; successToRefundRatio:number|null; creatorPayout:number; platformCollection:number; allocationTotal:number };
 type Payload = { metrics: Metrics; series: Point[]; generatedAt: string };

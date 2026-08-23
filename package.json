@@ -17,6 +17,7 @@
     "verify:rule77": "node scripts/verify-rule77.mjs"
   },
   "dependencies": {
+    "@supabase/server": "^1.4.1",
     "@supabase/supabase-js": "2.55.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.2",

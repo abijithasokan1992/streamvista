@@ -39,7 +39,7 @@ export default function Bridge() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("Your session expired. Please sign in again.");
 
-      const idempotencyKey = `bridge-${user.id}-${Date.now()}`;
+      const idempotencyKey = `bridge-${user.uid}-${Date.now()}`;
       const response = await fetch("/api/payment/create-service-order", {
         method: "POST",
         headers: {

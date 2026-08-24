@@ -7,13 +7,17 @@
     "dev": "vite",
     "dev:server": "node --watch server/index.mjs",
     "start": "node server/index.mjs",
-    "test": "node --test server/*.test.mjs",
+    "test": "node --test server/*.test.mjs api/*.test.mjs",
+    "test:rbac": "node --test api/founder-rbac-policy.test.mjs",
+    "test:e2e:smoke": "playwright test e2e/smoke.spec.ts",
+    "test:e2e:rls": "node scripts/e2e-p0-rls.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
     "verify:rule77": "node scripts/verify-rule77.mjs"
   },
   "dependencies": {
+    "@supabase/server": "^1.4.1",
     "@supabase/supabase-js": "2.55.0",
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
@@ -28,10 +32,19 @@
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vercel/speed-insights": "^2.0.0",
     "@vitejs/plugin-react": "^6.0.3",
-    "oxlint": "^1.71.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.25.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.1",
+    "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"
+  },
+  "devDependencies": {
+    "oxlint": "^1.71.0"
   }
 }

@@ -1,23 +1,36 @@
-import { Card, CardContent } from "../components/ui/Card";
-import { BarChart3 } from "lucide-react";
+import { useEffect, useState } from "react";
+import PaymentCharts from "../components/analytics/PaymentCharts";
+import { supabase } from "../services/supabase";
 
 export default function Analytics() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Analytics</h1>
-        <p className="text-slate-400">View performance metrics and audience engagement data. <span className="text-brand-orange text-xs uppercase ml-2 px-2 py-0.5 border border-brand-orange/30 rounded">Demo Data</span></p>
-      </div>
+  const [stats, setStats] = useState({ titles: 0, drafts: 0, screenings: 0, views: 0 });
 
-      <Card className="bg-brand-navy-light/30 border-dashed border-2">
-        <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500 mb-4">
-            <BarChart3 size={32} />
-          </div>
-          <h3 className="text-xl font-medium text-white mb-2">Analytics Dashboard</h3>
-          <p className="text-slate-400 max-w-md">Interactive charts for views, screenings, and engagement will appear here.</p>
-        </CardContent>
-      </Card>
+  useEffect(() => {
+    (async () => {
+      const { count: titles } = await supabase.from("films_film").select("id", { count: "exact", head: true }).eq("status", "published");
+      const { count: drafts } = await supabase.from("films_film").select("id", { count: "exact", head: true }).eq("status", "draft");
+      const { count: screenings } = await supabase.from("film_audit_logs").select("id", { count: "exact", head: true }).eq("status", "pending");
+      const { data: viewsData } = await supabase.from("film_audit_logs").select("views");
+      const views = viewsData?.reduce((sum, row: { views?: number }) => sum + (row.views || 0), 0) || 0;
+      setStats({ titles: titles || 0, drafts: drafts || 0, screenings: screenings || 0, views });
+    })();
+  }, []);
+
+  return (
+    <div className="min-h-full bg-slate-950 p-8 text-white">
+      <div className="mx-auto max-w-7xl">
+        <header>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-cyan-300/60">Command Center</p>
+          <h1 className="mt-2 text-3xl font-bold">Analytics</h1>
+          <p className="mt-1 text-sm text-white/45">Operational intelligence across the StreamVista workspace.</p>
+        </header>
+        <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[["Published titles", stats.titles], ["Active drafts", stats.drafts], ["Pending screenings", stats.screenings], ["Views", stats.views]].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-5"><p className="text-xs text-white/40">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></div>
+          ))}
+        </div>
+        <div className="mt-8"><PaymentCharts /></div>
+      </div>
     </div>
   );
 }

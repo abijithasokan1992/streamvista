@@ -1,16 +1,169 @@
 import { DatabaseService } from "./database.types";
-import { Title,TitleDraft } from "../../types/title";
-import { UserProfile } from "../../types/auth";
-import { supabase } from "../supabase";
-type TitleRow={id:string;creator_owner_id:string;payload:Record<string,unknown>;status:string;created_at:string;updated_at:string};
-const mapTitle=(r:TitleRow)=>({...r.payload,id:r.id,creatorOwnerId:r.creator_owner_id,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at}) as Title;
-class ApiDatabaseService implements DatabaseService{
- async getTitles():Promise<Title[]>{const{data,error}=await supabase.from("sv_app_titles").select("id,creator_owner_id,payload,status,created_at,updated_at");if(error)throw new Error(error.message);return(data as TitleRow[]).map(mapTitle)}
- async getTitleById(id:string):Promise<Title|null>{return(await this.getTitles()).find(t=>t.id===id)||null}
- async getTitlesByCreator():Promise<Title[]>{return this.getTitles()}
- async getTitlesByBuyer():Promise<Title[]>{return this.getTitles()}
- async getDraftsByCreator(creatorId:string):Promise<TitleDraft[]>{const{data,error}=await supabase.from("sv_app_titles").select("id,creator_owner_id,payload,status,created_at,updated_at").eq("creator_owner_id",creatorId).eq("status","draft");if(error)throw new Error(error.message);return(data as TitleRow[]).map(mapTitle) as TitleDraft[]}
- async saveDraft(draft:TitleDraft):Promise<TitleDraft>{const row={id:draft.id,creator_owner_id:draft.creatorOwnerId,payload:draft,status:"draft",updated_at:new Date().toISOString()};const{data,error}=await supabase.from("sv_app_titles").upsert(row).select("id,creator_owner_id,payload,status,created_at,updated_at").single();if(error)throw new Error(error.message);return mapTitle(data as TitleRow) as TitleDraft}
- async getUsers():Promise<UserProfile[]>{const{data,error}=await supabase.from("sv_app_profiles").select("id,email,display_name,app_role,created_at,updated_at");if(error)throw new Error(error.message);return data.map(p=>({uid:p.id,email:p.email,displayName:p.display_name,role:p.app_role,createdAt:p.created_at,updatedAt:p.updated_at})) as UserProfile[]}
+import { Title, TitleDraft } from "../../types/title";
+import { UserProfile, UserRole } from "../../types/auth";
+import { assertSupabaseConfigured, supabase } from "../supabase";
+
+type TitleRow = {
+  id: string;
+  creator_id: string;
+  title: string;
+  synopsis: string | null;
+  content_type: string | null;
+  primary_language: string | null;
+  director: string | null;
+  status: string;
+  commercial_profile: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type ProfileRow = {
+  id: string;
+  email: string;
+  display_name: string;
+  app_role: string;
+  created_at: string;
+  updated_at: string;
+};
+
+function normalizeRole(role: string): UserRole {
+  switch (role) {
+    case "founder": return "founder";
+    case "super_admin": return "super_admin";
+    case "admin": return "admin";
+    case "buyer": return "buyer";
+    case "finance": return "finance";
+    case "qc": return "qc_staff";
+    case "legal": return "legal_staff";
+    case "operations": return "support_staff";
+    default: return "creator_partner";
+  }
 }
-export const apiDatabaseService=new ApiDatabaseService();
+
+const mapTitle = (row: TitleRow): Title => {
+  const commercial = row.commercial_profile || {};
+  const metadata = row.metadata || {};
+  const rights = (commercial.rights && typeof commercial.rights === "object" ? commercial.rights : {}) as Record<string, unknown>;
+  return {
+    id: row.id,
+    title: row.title,
+    synopsis: row.synopsis || "",
+    contentType: (row.content_type || "movie") as Title["contentType"],
+    genres: Array.isArray(metadata.genres) ? metadata.genres.map(String) : [],
+    director: row.director || "",
+    producer: String(metadata.producer || ""),
+    cast: Array.isArray(metadata.cast) ? metadata.cast.map(String) : [],
+    runtimeMinutes: Number(metadata.runtime_minutes || 0),
+    originalLanguage: row.primary_language || "",
+    additionalLanguages: Array.isArray(metadata.additional_languages) ? metadata.additional_languages.map(String) : [],
+    country: String(metadata.country || "India"),
+    releaseDate: String(metadata.release_date || ""),
+    posterUrl: metadata.poster_url ? String(metadata.poster_url) : undefined,
+    thumbnailUrl: metadata.thumbnail_url ? String(metadata.thumbnail_url) : undefined,
+    galleryUrls: Array.isArray(metadata.gallery_urls) ? metadata.gallery_urls.map(String) : [],
+    trailerUrl: metadata.trailer_url ? String(metadata.trailer_url) : undefined,
+    screenerUrl: metadata.film_path ? String(metadata.film_path) : undefined,
+    masterVideoUrl: metadata.film_path ? String(metadata.film_path) : undefined,
+    subtitleFiles: Array.isArray(metadata.subtitle_files) ? metadata.subtitle_files.map(String) : [],
+    captionFiles: Array.isArray(metadata.caption_files) ? metadata.caption_files.map(String) : [],
+    ageRating: String(metadata.age_rating || ""),
+    budget: metadata.budget ? String(metadata.budget) : undefined,
+    rightsAvailable: Object.keys(rights),
+    territories: rights.territory ? [String(rights.territory)] : [],
+    excludedTerritories: [],
+    licensingModel: "non-exclusive",
+    rightsStartDate: undefined,
+    rightsEndDate: undefined,
+    creatorOwnerId: row.creator_id,
+    status: row.status === "ready_for_distribution" ? "published" : row.status === "archived" ? "archived" : "draft",
+    qcStatus: row.status === "qc" || row.status === "ready_for_distribution" ? "approved" : "pending",
+    legalStatus: row.status === "ready_for_distribution" ? "approved" : "pending",
+    approvalStatus: row.status === "ready_for_distribution" ? "approved" : "pending",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
+
+const titleSelect = "id,creator_id,title,synopsis,content_type,primary_language,director,status,commercial_profile,metadata,created_at,updated_at";
+
+class ApiDatabaseService implements DatabaseService {
+  async getTitles(): Promise<Title[]> {
+    assertSupabaseConfigured();
+    const { data, error } = await supabase.from("sv_app_titles").select(titleSelect);
+    if (error) throw new Error(error.message);
+    return ((data || []) as TitleRow[]).map(mapTitle);
+  }
+
+  async getTitleById(id: string): Promise<Title | null> {
+    assertSupabaseConfigured();
+    const { data, error } = await supabase.from("sv_app_titles").select(titleSelect).eq("id", id).maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? mapTitle(data as TitleRow) : null;
+  }
+
+  async getTitlesByCreator(creatorId?: string): Promise<Title[]> {
+    assertSupabaseConfigured();
+    let query = supabase.from("sv_app_titles").select(titleSelect);
+    if (creatorId) query = query.eq("creator_id", creatorId);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return ((data || []) as TitleRow[]).map(mapTitle);
+  }
+
+  async getTitlesByBuyer(): Promise<Title[]> {
+    assertSupabaseConfigured();
+    const { data, error } = await supabase.from("sv_app_titles").select(titleSelect).eq("status", "ready_for_distribution");
+    if (error) throw new Error(error.message);
+    return ((data || []) as TitleRow[]).map(mapTitle);
+  }
+
+  async getDraftsByCreator(creatorId: string): Promise<TitleDraft[]> {
+    assertSupabaseConfigured();
+    const { data, error } = await supabase.from("sv_app_titles").select(titleSelect).eq("creator_id", creatorId).eq("status", "draft");
+    if (error) throw new Error(error.message);
+    return ((data || []) as TitleRow[]).map((row) => ({ ...mapTitle(row), status: "draft" })) as TitleDraft[];
+  }
+
+  async saveDraft(draft: TitleDraft): Promise<TitleDraft> {
+    assertSupabaseConfigured();
+    const row = {
+      id: draft.id,
+      creator_id: draft.creatorOwnerId,
+      title: draft.title || "Untitled",
+      synopsis: draft.synopsis || "",
+      content_type: draft.contentType || "movie",
+      primary_language: draft.originalLanguage || "",
+      director: draft.director || "",
+      status: "draft",
+      commercial_profile: { rights: { territory: draft.territories?.[0] || "" } },
+      metadata: {
+        producer: draft.producer || "",
+        cast: draft.cast || [],
+        runtime_minutes: draft.runtimeMinutes || 0,
+        trailer_url: draft.trailerUrl || "",
+        film_path: draft.masterVideoUrl || draft.screenerUrl || "",
+      },
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase.from("sv_app_titles").upsert(row).select(titleSelect).single();
+    if (error) throw new Error(error.message);
+    return { ...mapTitle(data as TitleRow), status: "draft" } as TitleDraft;
+  }
+
+  async getUsers(): Promise<UserProfile[]> {
+    assertSupabaseConfigured();
+    const { data, error } = await supabase.rpc("sv_admin_profiles");
+    if (error) throw new Error(error.message);
+    return ((data || []) as ProfileRow[]).map((profile) => ({
+      uid: profile.id,
+      email: profile.email,
+      displayName: profile.display_name,
+      role: normalizeRole(profile.app_role),
+      createdAt: profile.created_at,
+      updatedAt: profile.updated_at,
+    }));
+  }
+}
+
+export const apiDatabaseService = new ApiDatabaseService();

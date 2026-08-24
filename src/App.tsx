@@ -1,8 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
-import { AuthProvider } from "./contexts/AuthContext";
 import { BrowserRouter, Navigate, Routes, Route, useSearchParams } from "react-router-dom";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { MainLayout } from "./layouts/MainLayout";
@@ -38,7 +34,14 @@ const PLATFORM = ["platform_owner", "founder", "super_admin"] as const;
 const ADMIN = [...PLATFORM, "admin"] as const;
 
 function AuthLoading() {
-  return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white"><div className="text-center"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" /><p className="mt-4 text-sm text-white/70">Loading StreamVista…</p></div></div>;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+      <div className="text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        <p className="mt-4 text-sm text-white/70">Loading StreamVista…</p>
+      </div>
+    </div>
+  );
 }
 
 function ChatRoute() {
@@ -77,73 +80,59 @@ function ComplaintBoxAuthRoute() {
 }
 
 function App() {
-  return <AuthProvider><BrowserRouter><Routes>
-    <Route path="/chat" element={<ChatRoute />} />
-    <Route path="/home" element={<Home />} />
-    <Route path="/bridge" element={<Bridge />} />
-    <Route path="/login" element={<LoginRoute />} />
-    <Route path="/auth" element={<LegacyAuthRedirect />} />
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/chat" element={<ChatRoute />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/bridge" element={<Bridge />} />
+          <Route path="/login" element={<LoginRoute />} />
+          <Route path="/auth" element={<LegacyAuthRedirect />} />
 
-    <Route path="/complaint-box" element={<ComplaintBoxHome />} />
-    <Route path="/complaint-box/auth" element={<ComplaintBoxAuthRoute />} />
-    <Route path="/complaint-box/case" element={<ProtectedRoute><ComplaintBoxCase /></ProtectedRoute>} />
-    <Route path="/complaint-box/dashboard" element={<ProtectedRoute><ComplaintBoxDashboard /></ProtectedRoute>} />
+          <Route path="/complaint-box" element={<ComplaintBoxHome />} />
+          <Route path="/complaint-box/auth" element={<ComplaintBoxAuthRoute />} />
+          <Route path="/complaint-box/case" element={<ProtectedRoute><ComplaintBoxCase /></ProtectedRoute>} />
+          <Route path="/complaint-box/dashboard" element={<ProtectedRoute><ComplaintBoxDashboard /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+            <Route index element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/business-center" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><GlobalBusinessCenter /></ProtectedRoute>} />
+            <Route path="/workspace/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><WorkspaceLanding type="creator" /></ProtectedRoute>} />
+            <Route path="/workspace/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><WorkspaceLanding type="buyer" /></ProtectedRoute>} />
+            <Route path="/workspace/studio" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><WorkspaceLanding type="studio" /></ProtectedRoute>} />
             <Route path="/command" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><FounderCommand /></ProtectedRoute>} />
+            <Route path="/sales" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><SalesCommand /></ProtectedRoute>} />
             <Route path="/titles" element={<Titles />} />
             <Route path="/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><CreatorDashboard /></ProtectedRoute>} />
             <Route path="/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><BuyerDashboard /></ProtectedRoute>} />
             <Route path="/drafts" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Drafts /></ProtectedRoute>} />
             <Route path="/uploads" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Uploads /></ProtectedRoute>} />
-            <Route path="/screenings" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Screenings /></ProtectedRoute>} />
+            <Route path="/screenings" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer", "creator_partner"]}><Screenings /></ProtectedRoute>} />
             <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "qc_staff"]}><QC /></ProtectedRoute>} />
             <Route path="/legal" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><Legal /></ProtectedRoute>} />
-            <Route path="/finance" element={<ProtectedRoute allowedRoles={[...PLATFORM, "finance"]}><Payments /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance"]}><Analytics /></ProtectedRoute>} />
-            <Route path="/campaigns" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Campaigns /></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><Users /></ProtectedRoute>} />
+            <Route path="/finance" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance"]}><Payments /></ProtectedRoute>} />
+            <Route path="/payments" element={<Navigate to="/finance" replace />} />
+            <Route path="/analytics" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance", "creator_partner", "buyer"]}><Analytics /></ProtectedRoute>} />
+            <Route path="/campaigns" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Campaigns /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Users /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Settings /></ProtectedRoute>} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="*" element={
-              <div className="flex items-center justify-center h-full text-slate-400">
-                <p>Page not found or under construction.</p>
-              </div>
-            } />
+            <Route
+              path="*"
+              element={
+                <div className="flex h-full items-center justify-center text-slate-400">
+                  <p>Page not found or under construction.</p>
+                </div>
+              }
+            />
           </Route>
         </Routes>
-        <VercelAnalytics />
       </BrowserRouter>
     </AuthProvider>
   );
-    <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-      <Route index element={<Dashboard />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/business-center" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><GlobalBusinessCenter /></ProtectedRoute>} />
-      <Route path="/workspace/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><WorkspaceLanding type="creator" /></ProtectedRoute>} />
-      <Route path="/workspace/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><WorkspaceLanding type="buyer" /></ProtectedRoute>} />
-      <Route path="/workspace/studio" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><WorkspaceLanding type="studio" /></ProtectedRoute>} />
-      <Route path="/command" element={<ProtectedRoute allowedRoles={PLATFORM.slice()}><FounderCommand /></ProtectedRoute>} />
-      <Route path="/sales" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><SalesCommand /></ProtectedRoute>} />
-      <Route path="/titles" element={<Titles />} />
-      <Route path="/creator" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><CreatorDashboard /></ProtectedRoute>} />
-      <Route path="/buyer" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><BuyerDashboard /></ProtectedRoute>} />
-      <Route path="/drafts" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Drafts /></ProtectedRoute>} />
-      <Route path="/uploads" element={<ProtectedRoute allowedRoles={[...ADMIN, "creator_partner"]}><Uploads /></ProtectedRoute>} />
-      <Route path="/screenings" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer", "creator_partner"]}><Screenings /></ProtectedRoute>} />
-      <Route path="/qc" element={<ProtectedRoute allowedRoles={[...ADMIN, "qc_staff"]}><QC /></ProtectedRoute>} />
-      <Route path="/legal" element={<ProtectedRoute allowedRoles={[...ADMIN, "legal_staff"]}><Legal /></ProtectedRoute>} />
-      <Route path="/finance" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance"]}><Payments /></ProtectedRoute>} />
-      <Route path="/payments" element={<Navigate to="/finance" replace />} />
-      <Route path="/analytics" element={<ProtectedRoute allowedRoles={[...ADMIN, "finance", "creator_partner", "buyer"]}><Analytics /></ProtectedRoute>} />
-      <Route path="/campaigns" element={<ProtectedRoute allowedRoles={[...ADMIN, "buyer"]}><Campaigns /></ProtectedRoute>} />
-      <Route path="/users" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Users /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute allowedRoles={ADMIN.slice()}><Settings /></ProtectedRoute>} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
-      <Route path="*" element={<div className="flex h-full items-center justify-center text-slate-400"><p>Page not found or under construction.</p></div>} />
-    </Route>
-  </Routes><SpeedInsights /></BrowserRouter></AuthProvider>;
 }
 
 export default App;

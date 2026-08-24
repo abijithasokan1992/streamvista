@@ -19,23 +19,22 @@
   "dependencies": {
     "@supabase/server": "^1.4.1",
     "@supabase/supabase-js": "2.55.0",
-    "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^24.13.2",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vercel/speed-insights": "^2.0.0",
-    "@vitejs/plugin-react": "^6.0.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.25.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1",
-    "tailwind-merge": "^3.6.0",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"
-  },
-  "devDependencies": {
-    "oxlint": "^1.71.0"
   }
 }

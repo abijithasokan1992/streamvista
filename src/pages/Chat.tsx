@@ -13,6 +13,7 @@ export default function Chat() {
   const [activeId, setActiveId] = useState(() => threads[0]?.id ?? "");
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);

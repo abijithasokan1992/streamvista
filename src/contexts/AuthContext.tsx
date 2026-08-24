@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { UserProfile } from "../types/auth";
 import { authService } from "../services/auth";
 import type { MagicLinkInput, SignupInput } from "../services/auth/auth.types";
+import { SUPABASE_CONFIG_ERROR, supabase } from "../services/supabase";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -19,23 +20,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     async function loadUser() {
       try {
-        // Complete magic-link redirect if present
         const fromLink = await authService.exchangeMagicLinkSession();
-        if (fromLink) {
+        if (mounted && fromLink) {
           setUser(fromLink);
           return;
         }
+
         const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        if (mounted) setUser(currentUser);
       } catch (error) {
         console.error("Failed to load user session", error);
+        if (mounted) setUser(null);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
-    loadUser();
+
+    void loadUser();
+
+    // The preview can render without backend credentials. Avoid touching the
+    // Supabase auth singleton until it has been created with a real key.
+    if (SUPABASE_CONFIG_ERROR) {
+      return () => {
+        mounted = false;
+      };
+    }
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+
+      if (!session?.user) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      // Do not call Supabase APIs synchronously inside the auth callback;
+      // let the auth transaction finish first, then hydrate the application profile.
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        window.setTimeout(() => {
+          if (!mounted) return;
+          void authService
+            .getCurrentUser()
+            .then((profile) => {
+              if (mounted) setUser(profile);
+            })
+            .catch((error) => {
+              console.error("Failed to refresh StreamVista profile after auth change", error);
+              if (mounted) setUser(null);
+            })
+            .finally(() => {
+              if (mounted) setLoading(false);
+            });
+        }, 0);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password?: string) => {

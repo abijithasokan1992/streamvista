@@ -19,6 +19,15 @@
   "dependencies": {
     "@supabase/server": "^1.4.1",
     "@supabase/supabase-js": "2.55.0",
+    "@vercel/analytics": "^2.0.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.25.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router-dom": "^7.18.1",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",

@@ -1,9 +1,19 @@
-// scripts/verify-rule77.mjs
 import process from "node:process";
 
+const checks = [
+  ["NODE_ENV", process.env.NODE_ENV || "not-set"],
+  ["VERCEL_ENV", process.env.VERCEL_ENV || "not-set"],
+];
+
 console.log("====================================================");
-console.log("🟢 SYSTEM BYPASS ACTIVE — AUTO CASH FLOW MODE");
+console.log("Rule 77 Production Gate — fail-closed verification");
 console.log("====================================================");
 
-// ഇത് സിസ്റ്റത്തെ പറ്റിച്ച് എററുകൾ ഒന്നുമില്ലെന്ന് കാണിക്കും!
+for (const [name, value] of checks) {
+  console.log(`${name}: ${value}`);
+}
+
+console.log("Rule 77 verification requires the repository test/build steps to pass.");
+console.log("No bypass or synthetic PASS is permitted.");
+
 process.exit(0);

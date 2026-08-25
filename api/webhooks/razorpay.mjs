@@ -56,8 +56,6 @@ export default async function handler(request, response) {
   let eventId = null;
   try {
     const { keyId, keySecret, webhookSecret } = requireRazorpaySecrets();
-    // Read the key pair here so production configuration is validated even though
-    // webhook authenticity itself is established with RAZORPAY_WEBHOOK_SECRET.
     void keyId;
     void keySecret;
 
@@ -114,7 +112,6 @@ export default async function handler(request, response) {
         provider_event_id: eventId,
         status: nextStatus,
         verified_at: new Date().toISOString(),
-        raw_event_hash: hash,
       };
       if (payment?.error_reason) update.error_reason = payment.error_reason;
 
@@ -148,7 +145,6 @@ export default async function handler(request, response) {
         const { error: paymentError } = await client.from("sv_payments").update({
           status: "refunded",
           provider_event_id: eventId,
-          raw_event_hash: hash,
           verified_at: new Date().toISOString(),
         }).eq("id", data.id);
         if (paymentError) throw paymentError;

@@ -4,7 +4,7 @@ import urllib.request
 from datetime import datetime
 
 report = {
-    "timestamp": datetime.utcnow().isoformat() + "Z",
+    "timestamp": datetime.now(datetime.timezone.utc).isoformat(),
     "evidence_chain": {}
 }
 

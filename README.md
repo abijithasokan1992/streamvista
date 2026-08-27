@@ -28,10 +28,28 @@ React + TypeScript + Vite · Supabase Auth/RLS · Vercel
 
 Vercel project **streamvista-ai-chat** · Git branch **`main`** · Root Directory = repo root.
 
-Badge reflects GitHub **Production** deployment environment status for this repo. Confirm live UI on the host after each deploy.
+## Canonical Repository Layout
 
-## P0 gate (unchanged)
+```text
+streamvista/
+├── .github/
+│   └── workflows/          # GitHub Actions (CI/CD Deployments)
+├── agents/                 # Vertex AI Agent Engine Logic
+│   ├── __init__.py
+│   ├── reasoning_engine.py # Vertex AI Agent SDK Init & Main Logic
+│   └── sub_agents/         # A2A Network Sub-agents
+│       ├── ingest_guard.py
+│       ├── qc_sentinel.py
+│       ├── rights_bridge.py
+│       └── loop_monetizer.py
+├── scripts/
+│   └── iam_setup.sh        # IAM & Service Account CLI Directives
+├── config/
+│   └── GCP_CONFIG.json     # Project ID, Location, Resource IDs
+├── requirements.txt        # Python Dependencies
+└── README.md
+```
 
-SQL #54 apply → Magic link → Dashboard → Title → Poster → Isolation → E2E → Certified → READY
+### Vertex Runtime Configuration
 
-Deployment badge green ≠ P0 certified.
+The canonical GCP runtime configuration is stored in `config/GCP_CONFIG.json`. Credentials and service-account secrets are never committed to the repository; `scripts/iam_setup.sh` validates the authenticated deployment environment instead.

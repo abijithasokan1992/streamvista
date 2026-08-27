@@ -26,3 +26,4 @@ dist/
 *.dylib
 *.dll
 .bash_history
+.npm/

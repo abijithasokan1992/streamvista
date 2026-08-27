@@ -1,6 +1,0 @@
-{
-  "name": "StreamVista",
-  "description": "StreamVista Studio OS & AI Media Pipeline for content creators, OTT distribution, and studio operations.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

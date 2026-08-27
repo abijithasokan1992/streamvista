@@ -1,0 +1,5 @@
+[Error - 7:00:36 AM] (node:10905) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[Error - 7:00:47 AM] (node:10905) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+[Error - 7:41:57 AM] Failed to load entities from /home/abijithasokan1992/node_modules/.vite/deps_temp_11c6a982/package.json: Error: ENOENT: no such file or directory, open '/home/abijithasokan1992/node_modules/.vite/deps_temp_11c6a982/package.json'
+[Error - 7:41:57 AM] Failed to load entities from /home/abijithasokan1992/node_modules/.vite/deps_temp_11c6a982/_metadata.json: Error: ENOENT: no such file or directory, open '/home/abijithasokan1992/node_modules/.vite/deps_temp_11c6a982/_metadata.json'

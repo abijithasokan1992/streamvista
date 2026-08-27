@@ -1,0 +1,7 @@
+2026-08-26 06:48:16.497 [warning] Dir "/home/abijithasokan1992/.pixi/envs" is not watchable (directory does not exist)
+2026-08-26 06:48:17.164 [info] Skipping ActivatedEnv Detection:  process.env.VSCODE_CLI !== '1'
+2026-08-26 06:48:17.202 [info] > conda info --json
+2026-08-26 06:48:17.218 [info] Python interpreter path: /bin/python
+2026-08-26 06:48:17.450 [info] > pyenv which python
+2026-08-26 06:48:17.450 [info] cwd: .
+2026-08-26 06:48:20.410 [info] Starting Jedi language server for abijithasokan1992.

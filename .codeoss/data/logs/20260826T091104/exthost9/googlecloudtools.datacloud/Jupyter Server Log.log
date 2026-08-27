@@ -1,0 +1,126 @@
+2026-08-26 11:52:25.643 [info] Creating Jupyter runtime directory: /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/jupyter_runtime
+2026-08-26 11:52:25.643 [info] Initializing python virtual environment
+2026-08-26 11:52:34.425 [info] WARNING: Skipping kernels_filter as it is not installed.
+
+2026-08-26 11:52:37.238 [info] Processing ./extensions/googlecloudtools.datacloud/dataproc/resources/dak_jupyter-0.2.0-py3-none-any.whl
+Requirement already satisfied: google-cloud-jupyter-config in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (0.0.14)
+Requirement already satisfied: jupyter_server==2.16 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (2.16.0)
+Requirement already satisfied: certifi in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (2026.7.22)
+Requirement already satisfied: anyio>=3.1.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (4.14.2)
+Requirement already satisfied: argon2-cffi>=21.1 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (25.1.0)
+Requirement already satisfied: jinja2>=3.0.3 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (3.1.6)
+Requirement already satisfied: jupyter-client>=7.4.4 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (8.9.1)
+Requirement already satisfied: jupyter-core!=5.0.*,>=4.12 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (5.9.1)
+Requirement already satisfied: jupyter-events>=0.11.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (0.12.1)
+Requirement already satisfied: jupyter-server-terminals>=0.4.4 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (0.5.4)
+Requirement already satisfied: nbconvert>=6.4.4 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (7.17.1)
+Requirement already satisfied: nbformat>=5.3.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (5.11.1)
+Requirement already satisfied: overrides>=5.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (7.7.0)
+Requirement already satisfied: packaging>=22.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (26.3)
+Requirement already satisfied: prometheus-client>=0.9 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (0.26.0)
+Requirement already satisfied: pyzmq>=24 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (27.2.0)
+Requirement already satisfied: send2trash>=1.8.2 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (2.1.0)
+Requirement already satisfied: terminado>=0.8.3 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (0.18.1)
+Requirement already satisfied: tornado>=6.2.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (6.5.8)
+Requirement already satisfied: traitlets>=5.6.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (5.16.1)
+Requirement already satisfied: websocket-client>=1.7 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter_server==2.16) (1.9.0)
+Requirement already satisfied: cachetools in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from google-cloud-jupyter-config) (7.1.7)
+Requirement already satisfied: idna>=2.8 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from anyio>=3.1.0->jupyter_server==2.16) (3.19)
+Requirement already satisfied: typing_extensions>=4.5 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from anyio>=3.1.0->jupyter_server==2.16) (4.16.0)
+Requirement already satisfied: argon2-cffi-bindings in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from argon2-cffi>=21.1->jupyter_server==2.16) (26.1.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jinja2>=3.0.3->jupyter_server==2.16) (3.0.3)
+Requirement already satisfied: python-dateutil>=2.8.2 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter-client>=7.4.4->jupyter_server==2.16) (2.9.0.post0)
+Requirement already satisfied: platformdirs>=2.5 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter-core!=5.0.*,>=4.12->jupyter_server==2.16) (4.11.4)
+Requirement already satisfied: jsonschema>=4.18.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (4.26.0)
+Requirement already satisfied: python-json-logger>=2.0.4 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter-events>=0.11.0->jupyter_server==2.16) (4.2.0)
+Requirement already satisfied: pyyaml>=5.3 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter-events>=0.11.0->jupyter_server==2.16) (6.0.3)
+Requirement already satisfied: referencing in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter-events>=0.11.0->jupyter_server==2.16) (0.37.0)
+Requirement already satisfied: rfc3339-validator in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter-events>=0.11.0->jupyter_server==2.16) (0.1.4)
+Requirement already satisfied: rfc3986-validator>=0.1.1 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jupyter-events>=0.11.0->jupyter_server==2.16) (0.1.1)
+Requirement already satisfied: beautifulsoup4 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbconvert>=6.4.4->jupyter_server==2.16) (4.15.0)
+Requirement already satisfied: bleach!=5.0.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from bleach[css]!=5.0.0->nbconvert>=6.4.4->jupyter_server==2.16) (6.4.0)
+Requirement already satisfied: defusedxml in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbconvert>=6.4.4->jupyter_server==2.16) (0.7.1)
+Requirement already satisfied: jupyterlab-pygments in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbconvert>=6.4.4->jupyter_server==2.16) (0.3.0)
+Requirement already satisfied: mistune<4,>=2.0.3 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbconvert>=6.4.4->jupyter_server==2.16) (3.3.4)
+Requirement already satisfied: nbclient>=0.5.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbconvert>=6.4.4->jupyter_server==2.16) (0.11.0)
+Requirement already satisfied: pandocfilters>=1.4.1 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbconvert>=6.4.4->jupyter_server==2.16) (1.5.1)
+Requirement already satisfied: pygments>=2.4.1 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbconvert>=6.4.4->jupyter_server==2.16) (2.21.0)
+Requirement already satisfied: fastjsonschema>=2.15 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from nbformat>=5.3.0->jupyter_server==2.16) (2.22.2)
+Requirement already satisfied: ptyprocess in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from terminado>=0.8.3->jupyter_server==2.16) (0.7.0)
+Requirement already satisfied: webencodings in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from bleach!=5.0.0->bleach[css]!=5.0.0->nbconvert>=6.4.4->jupyter_server==2.16) (0.6.1)
+Requirement already satisfied: tinycss2>=1.1.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from bleach[css]!=5.0.0->nbconvert>=6.4.4->jupyter_server==2.16) (1.5.1)
+Requirement already satisfied: attrs>=22.2.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema>=4.18.0->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (26.1.0)
+Requirement already satisfied: jsonschema-specifications>=2023.03.6 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema>=4.18.0->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (2025.9.1)
+Requirement already satisfied: rpds-py>=0.25.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema>=4.18.0->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (2026.6.3)
+Requirement already satisfied: fqdn in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (1.5.1)
+Requirement already satisfied: isoduration in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (20.11.0)
+Requirement already satisfied: jsonpointer>1.13 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (3.1.1)
+Requirement already satisfied: rfc3987-syntax>=1.1.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (1.1.0)
+Requirement already satisfied: uri-template in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (1.3.0)
+Requirement already satisfied: webcolors>=24.6.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (25.10.0)
+Requirement already satisfied: six>=1.5 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from python-dateutil>=2.8.2->jupyter-client>=7.4.4->jupyter_server==2.16) (1.17.0)
+Requirement already satisfied: cffi>=1.0.1 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from argon2-cffi-bindings->argon2-cffi>=21.1->jupyter_server==2.16) (2.1.1)
+Requirement already satisfied: soupsieve>=1.6.1 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from beautifulsoup4->nbconvert>=6.4.4->jupyter_server==2.16) (2.9.2)
+Requirement already satisfied: pycparser in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from cffi>=1.0.1->argon2-cffi-bindings->argon2-cffi>=21.1->jupyter_server==2.16) (3.0)
+Requirement already satisfied: lark>=1.2.2 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from rfc3987-syntax>=1.1.0->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (1.3.1)
+Requirement already satisfied: arrow>=0.15.0 in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from isoduration->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (1.4.0)
+Requirement already satisfied: tzdata in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/lib/python3.12/site-packages (from arrow>=0.15.0->isoduration->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.11.0->jupyter_server==2.16) (2026.3)
+dak-jupyter is already installed with the same version as the provided wheel. Use --force-reinstall to force an installation of the wheel.
+
+2026-08-26 11:52:37.259 [info] [DEBUG] Starting Server with Executable: /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/bin/python
+2026-08-26 11:52:46.534 [info] [Jupyter Log]: Token broker is enabled
+Injecting the tornado websocket connection interceptor
+[D 2026-08-26 11:52:46.355 DataCloudServerApp] Config changed: {'ServerApp': {'kernel_spec_manager_class': <class 'dak_jupyter.handlers.FilteringKernelSpecManager'>, 'log_level': 'DEBUG', 'open_browser': False, 'port': 36115, 'ip': '127.0.0.1'}, 'CommandTokenRenewer': {'token_command': 'gcloud auth print-access-token'}, 'GatewayClient': {'url': 'https://654684934964-dot-asia-southeast1.kernels.googleusercontent.com', 'gateway_token_renewer_class': <class 'google.cloud.jupyter_config.tokenrenewer.CommandTokenRenewer'>, 'auth_token': 'Initial, invalid value', 'auth_scheme': 'Bearer', 'headers': '{"Cookie": "_xsrf=XSRF", "X-XSRFToken": "XSRF", "User-Agent": "cloud-shell-datacloud/0.9.0"}', 'gateway_retry_max': 45, 'gateway_retry_interval': 20, 'connect_timeout': 300, 'request_timeout': 300}, 'IdentityProvider': {'token': 'ad685cbea17fb1eafc2689e84aa83775e90803414a49f63c4e75eb5bffc4200a'}}
+[D 2026-08-26 11:52:46.394 DataCloudServerApp] Searching ['/home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/etc/jupyter', '/home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/jupyter_config', '/usr/local/etc/jupyter', '/etc/jupyter'] for config files
+[D 2026-08-26 11:52:46.399 DataCloudServerApp] Looking for jupyter_config in /etc/jupyter
+[D 2026-08-26 11:52:46.400 DataCloudServerApp] Looking for jupyter_config in /usr/local/etc/jupyter
+[D 2026-08-26 11:52:46.400 DataCloudServerApp] Looking for jupyter_config in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/jupyter_config
+[D 2026-08-26 11:52:46.400 DataCloudServerApp] Looking for jupyter_config in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/etc/jupyter
+[D 2026-08-26 11:52:46.403 DataCloudServerApp] Looking for jupyter_server_config in /etc/jupyter
+[D 2026-08-26 11:52:46.404 DataCloudServerApp] Looking for jupyter_server_config in /usr/local/etc/jupyter
+[D 2026-08-26 11:52:46.407 DataCloudServerApp] Looking for jupyter_server_config in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/jupyter_config
+[D 2026-08-26 11:52:46.407 DataCloudServerApp] Looking for jupyter_server_config in /home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/etc/jupyter
+[D 2026-08-26 11:52:46.424 DataCloudServerApp] Paths used for configuration of jupyter_server_config: 
+    	/etc/jupyter/jupyter_server_config.json
+[D 2026-08-26 11:52:46.428 DataCloudServerApp] Paths used for configuration of jupyter_server_config: 
+    	/usr/local/etc/jupyter/jupyter_server_config.json
+[D 2026-08-26 11:52:46.429 DataCloudServerApp] Paths used for configuration of jupyter_server_config: 
+    	/home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/jupyter_config/jupyter_server_config.json
+[D 2026-08-26 11:52:46.429 DataCloudServerApp] Paths used for configuration of jupyter_server_config: 
+    	/home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/etc/jupyter/jupyter_server_config.d/google_cloud_jupyter_config.json
+    	/home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/etc/jupyter/jupyter_server_config.d/jupyter_server_terminals.json
+    	/home/abijithasokan1992/.codeoss/data/User/globalStorage/googlecloudtools.datacloud/remote-kernel/etc/jupyter/jupyter_server_config.json
+[D 2026-08-26 11:52:46.458 DataCloudServerApp] Extension package google.cloud.jupyter_config took 0.0000s to import
+
+2026-08-26 11:52:46.539 [info] [Jupyter Log]: [D 2026-08-26 11:52:46.529 DataCloudServerApp] Extension package jupyter_server_terminals took 0.0700s to import
+[I 2026-08-26 11:52:46.529 DataCloudServerApp] google.cloud.jupyter_config | extension was successfully linked.
+
+2026-08-26 11:52:46.553 [info] [Jupyter Log]: [D 2026-08-26 11:52:46.551 DataCloudServerApp] Config changed: {'ServerApp': {'kernel_spec_manager_class': <class 'dak_jupyter.handlers.FilteringKernelSpecManager'>, 'log_level': 'DEBUG', 'open_browser': False, 'port': 36115, 'ip': '127.0.0.1', 'jpserver_extensions': <LazyConfigValue value={'google.cloud.jupyter_config': True, 'jupyter_server_terminals': True}>}, 'CommandTokenRenewer': {'token_command': 'gcloud auth print-access-token'}, 'GatewayClient': {'url': 'https://654684934964-dot-asia-southeast1.kernels.googleusercontent.com', 'gateway_token_renewer_class': <class 'google.cloud.jupyter_config.tokenrenewer.CommandTokenRenewer'>, 'auth_token': 'Initial, invalid value', 'auth_scheme': 'Bearer', 'headers': '{"Cookie": "_xsrf=XSRF", "X-XSRFToken": "XSRF", "User-Agent": "cloud-shell-datacloud/0.9.0"}', 'gateway_retry_max': 45, 'gateway_retry_interval': 20, 'connect_timeout': 300, 'request_timeout': 300}, 'IdentityProvider': {'token': 'ad685cbea17fb1eafc2689e84aa83775e90803414a49f63c4e75eb5bffc4200a'}}
+
+2026-08-26 11:52:46.556 [info] [Jupyter Log]: [I 2026-08-26 11:52:46.555 DataCloudServerApp] jupyter_server_terminals | extension was successfully linked.
+
+2026-08-26 11:52:46.562 [info] [Jupyter Log]: [I 2026-08-26 11:52:46.559 DataCloudServerApp] FilteringKernelSpecManager Constructed
+
+2026-08-26 11:52:46.657 [info] [Jupyter Log]: [I 2026-08-26 11:52:46.654 DataCloudServerApp] google.cloud.jupyter_config | extension was successfully loaded.
+[I 2026-08-26 11:52:46.656 DataCloudServerApp] jupyter_server_terminals | extension was successfully loaded.
+
+2026-08-26 11:52:46.682 [info] [Jupyter Log]: [I 2026-08-26 11:52:46.682 DataCloudServerApp] Serving notebooks from local directory: /google/devshell/editor/code-oss-for-cloud-shell
+
+2026-08-26 11:52:46.684 [info] [Jupyter Log]: [I 2026-08-26 11:52:46.682 DataCloudServerApp] Jupyter Server 2.16.0 is running at:
+[I 2026-08-26 11:52:46.682 DataCloudServerApp] http://127.0.0.1:[REDACTED]/?token=...
+[I 2026-08-26 11:52:46.682 DataCloudServerApp] Kernels will be managed by the Gateway server running at:
+[I 2026-08-26 11:52:46.682 DataCloudServerApp] https://654684934964-dot-asia-southeast1.kernels.googleusercontent.com
+[I 2026-08-26 11:52:46.682 DataCloudServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+
+2026-08-26 11:52:46.698 [info] [Jupyter Log]: [D 2026-08-26 11:52:46.693 DataCloudServerApp] google.cloud.jupyter_config | extension was successfully started.
+[D 2026-08-26 11:52:46.693 DataCloudServerApp] jupyter_server_terminals | extension was successfully started.
+
+2026-08-26 11:52:46.794 [info] Token broker enabled, exchanging token
+2026-08-26 11:52:48.197 [info] [Jupyter Log]: [W 2026-08-26 11:52:48.171 DataCloudServerApp] 403 POST /exchange_token (@127.0.0.1) 1325.52ms referer=None
+
+2026-08-26 12:06:14.391 [info] [Jupyter Log]: [C 2026-08-26 12:06:14.283 DataCloudServerApp] received signal 15, stopping
+[I 2026-08-26 12:06:14.285 DataCloudServerApp] Shutting down 2 extensions
+[D 2026-08-26 12:06:14.286 DataCloudServerApp] jupyter_server_terminals | extension app 'jupyter_server_terminals' stopping
+[D 2026-08-26 12:06:14.286 DataCloudServerApp] jupyter_server_terminals | extension app 'jupyter_server_terminals' stopped
+
+2026-08-26 12:06:14.633 [info] Jupyter process exited with code 0

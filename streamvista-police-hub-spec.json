@@ -1,0 +1,177 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "StreamVista Kerala Police Investigative Hub",
+    "version": "1.0.0",
+    "description": "Integrated API for authorized Kerala Police investigations, including suspect tracking, Data Box ingestion, OSINT intelligence, and financial analytics."
+  },
+  "servers": [
+    {
+      "url": "https://3000-dot-1234567-dot-devshell.appspot.com",
+      "description": "Local Tunnel URL (Replace with your actual public URL from localtunnel or ngrok)"
+    }
+  ],
+  "paths": {
+    "/api/police/suspects": {
+      "get": {
+        "summary": "List all suspects under surveillance",
+        "operationId": "listSuspects",
+        "responses": {
+          "200": { "description": "List of suspects" }
+        }
+      },
+      "post": {
+        "summary": "Add a new suspect to the investigation",
+        "operationId": "addSuspect",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "mobileNumbers": { "type": "array", "items": { "type": "string" } },
+                  "socialProfiles": { "type": "object" },
+                  "remarks": { "type": "string" }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Suspect added" }
+        }
+      }
+    },
+    "/api/police/suspects/{id}/dashboard": {
+      "get": {
+        "summary": "Get the complete investigative dashboard for a suspect",
+        "operationId": "getSuspectDashboard",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Full investigative summary (Logs, Location, Financial, OSINT)" }
+        }
+      }
+    },
+    "/api/police/intelligence": {
+      "get": {
+        "summary": "Fetch real-time OSINT news intelligence",
+        "operationId": "getIntelligence",
+        "responses": {
+          "200": { "description": "Latest intelligence reports" }
+        }
+      }
+    },
+    "/api/police/cases/public": {
+      "get": {
+        "summary": "Retrieve matches from public court and FIR registries",
+        "operationId": "getPublicCases",
+        "responses": {
+          "200": { "description": "Public case matches" }
+        }
+      }
+    },
+    "/api/police/investigation/simulate": {
+      "post": {
+        "summary": "Simulate data collection for an investigation (Test Mode)",
+        "operationId": "simulateInvestigation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "suspectId": { "type": "string" }
+                },
+                "required": ["suspectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Dashboard populated with simulated evidence" }
+        }
+      }
+    },
+    "/api/police/investigation/seal": {
+      "post": {
+        "summary": "Seal an investigation and securely dispose of active session data",
+        "operationId": "sealInvestigation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "suspectId": { "type": "string" }
+                },
+                "required": ["suspectId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Investigation sealed and archived" }
+        }
+      }
+    },
+    "/api/police/audit-logs": {
+      "get": {
+        "summary": "Retrieve master audit logs for the Hub",
+        "operationId": "getAuditLogs",
+        "responses": {
+          "200": { "description": "Full audit trail" }
+        }
+      }
+    },
+    "/api/ingest": {
+      "post": {
+        "summary": "Ingest investigative assets into the Police Data Box",
+        "operationId": "ingestAsset",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary" },
+                  "useDataBox": { "type": "string", "default": "true" },
+                  "suspectId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Asset securely transferred to Data Box" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

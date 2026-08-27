@@ -1,0 +1,78 @@
+/* StreamVista Premium Design System */
+
+:root {
+  /* Cinematic Color Palette */
+  --obsidian: #0D0D0D;
+  --studio-black: #050505;
+  --royal-gold: #D4AF37;
+  --royal-gold-muted: rgba(212, 175, 55, 0.7);
+  --studio-silver: #C0C0C0;
+  --studio-silver-muted: rgba(192, 192, 192, 0.5);
+  
+  /* UI Surface & Glassmorphism */
+  --glass-surface: rgba(20, 20, 20, 0.8);
+  --glass-border: rgba(212, 175, 55, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  
+  /* Typography */
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Playfair Display', serif;
+  
+  /* Transitions */
+  --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--studio-black);
+  color: var(--studio-silver);
+  font-family: var(--font-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, .display-text {
+  font-family: var(--font-display);
+  color: var(--royal-gold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  transition: var(--transition-smooth);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--obsidian);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--royal-gold-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--royal-gold);
+}

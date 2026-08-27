@@ -1,0 +1,149 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "StreamVista API",
+    "version": "1.0.0",
+    "description": "API for managing film projects, storage, and QC scans."
+  },
+  "servers": [
+    {
+      "url": "https://3000-dot-1234567-dot-devshell.appspot.com",
+      "description": "Local Cloud Shell Tunnel (Replace with your actual tunnel URL)"
+    }
+  ],
+  "paths": {
+    "/api/projects": {
+      "get": {
+        "summary": "List all projects",
+        "operationId": "listProjects",
+        "responses": {
+          "200": {
+            "description": "A list of projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "number" },
+                          "title": { "type": "string" },
+                          "type": { "type": "string" },
+                          "status": { "type": "string" },
+                          "progress": { "type": "number" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new project",
+        "operationId": "createProject",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "language": { "type": "string" },
+                  "genre": { "type": "string" }
+                },
+                "required": ["title"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project created"
+          }
+        }
+      }
+    },
+    "/api/storage/files": {
+      "get": {
+        "summary": "List storage files",
+        "operationId": "listFiles",
+        "responses": {
+          "200": {
+            "description": "A list of files"
+          }
+        }
+      }
+    },
+    "/api/qc/trigger": {
+      "post": {
+        "summary": "Trigger a QC scan on an asset",
+        "operationId": "triggerQC",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetId": { "type": "string" },
+                  "filePath": { "type": "string" }
+                },
+                "required": ["assetId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "QC Scan triggered"
+          }
+        }
+      }
+    },
+    "/api/booking/resources": {
+      "get": {
+        "summary": "List available studio resources",
+        "operationId": "listResources",
+        "responses": {
+          "200": {
+            "description": "List of resources"
+          }
+        }
+      }
+    },
+    "/api/loop/content": {
+      "get": {
+        "summary": "Get approved content for the Loop",
+        "operationId": "getLoopContent",
+        "responses": {
+          "200": {
+            "description": "List of content"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

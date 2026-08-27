@@ -1,0 +1,124 @@
+2026-08-26 10:50:47.224 [info] [OnboardingStatus] Updating context key 'gDataCloud.alreadyOnboarded' to false
+2026-08-26 10:50:47.224 [info] Getting gcloud config internal...
+2026-08-26 10:50:47.224 [info] Checking for gcloud binary path...
+2026-08-26 10:50:47.224 [info] Executing: which gcloud
+2026-08-26 10:50:47.224 [info] Getting gcloud config internal...
+2026-08-26 10:50:47.224 [info] Checking for gcloud binary path...
+2026-08-26 10:50:47.224 [info] Executing: which gcloud
+2026-08-26 10:50:47.224 [info] Checking for gcloud binary path...
+2026-08-26 10:50:47.224 [info] Executing: which gcloud
+2026-08-26 10:50:47.224 [info] hasGcloud: true
+2026-08-26 10:50:47.224 [info] Syncing gcloud settings to extension
+2026-08-26 10:50:47.224 [info] hasGcloud: true
+2026-08-26 10:50:47.224 [info] Getting gcloud config internal...
+2026-08-26 10:50:47.224 [info] [OnboardingPlugin] Cloud Code extension or Cloud Shell/Workstations detected. Skipping automatic onboarding.
+2026-08-26 10:50:47.224 [info] Executing: gcloud config config-helper --format json
+2026-08-26 10:50:47.224 [info] Activating bigquery
+2026-08-26 10:50:47.224 [info] ConversationalAnalyticsPlugin activated
+2026-08-26 10:50:47.224 [info] ConversationalAnalyticsPlugin: activate finished
+2026-08-26 10:50:47.224 [info] Activating Databases
+2026-08-26 10:50:47.224 [info] Activating Catalog Feature
+2026-08-26 10:50:47.224 [info] Registering Dataplex Project adapter unconditionally.
+2026-08-26 10:50:47.224 [info] Activating dataplex universal catalog
+2026-08-26 10:50:47.224 [info] Activating dataproc
+2026-08-26 10:50:47.224 [info] Activating spark resource tree
+2026-08-26 10:50:47.224 [info] SparkMonitorPlugin: Activating...
+2026-08-26 10:50:47.224 [info] SparkMonitorPlugin: State change - experiment: true, setting: true, overall: true
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] appName: Code OSS for Cloud Shell, ideType: 6
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile antigravity-ide is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile antigravity is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile jetski is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile cursor is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile copilot is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile gemini-code-assist is active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] appName: Code OSS for Cloud Shell, ideType: 6
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile antigravity-ide is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile antigravity is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile jetski is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile cursor is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile copilot is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.826Z] Profile gemini-code-assist is active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.827Z] Activating Agent Skill Installer
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] appName: Code OSS for Cloud Shell, ideType: 6
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile antigravity-ide is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile antigravity is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile jetski is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile cursor is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile copilot is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile gemini-code-assist is active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] appName: Code OSS for Cloud Shell, ideType: 6
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile antigravity-ide is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile antigravity is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile jetski is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile cursor is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile copilot is NOT active
+2026-08-26 10:50:47.224 [info] [2026-08-26T10:50:42.837Z] Profile gemini-code-assist is active
+2026-08-26 10:50:47.224 [info] Executing: gcloud config config-helper --format json
+2026-08-26 10:50:47.224 [info] Executing: gcloud config config-helper --format json
+2026-08-26 10:50:47.224 [info] [MCP Registry] Listening on socket: /tmp/datacloud-mcp-notebooks-codeossforcloudshell.sock
+2026-08-26 10:50:47.224 [info] [MCP Registry] Server 'notebooks' listening on IPC socket: /tmp/datacloud-mcp-notebooks-codeossforcloudshell.sock
+2026-08-26 10:50:47.224 [info] [MCP Registry] Listening on socket: /tmp/datacloud-mcp-dataAgentKit-codeossforcloudshell.sock
+2026-08-26 10:50:47.224 [info] [MCP Registry] Server 'dataAgentKit' listening on IPC socket: /tmp/datacloud-mcp-dataAgentKit-codeossforcloudshell.sock
+2026-08-26 10:50:47.224 [info] [MCP Registry] Listening on socket: /tmp/datacloud-mcp-visualization-codeossforcloudshell.sock
+2026-08-26 10:50:47.224 [info] [MCP Registry] Server 'visualization' listening on IPC socket: /tmp/datacloud-mcp-visualization-codeossforcloudshell.sock
+2026-08-26 10:50:47.224 [info] Checking if identities match...Fetching ADC account name...
+2026-08-26 10:50:47.224 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 10:50:47.224 [info] MCP config plugin: ideType: 6
+2026-08-26 10:50:47.230 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 10:50:47.237 [info] SparkMonitorPlugin: Wrote filter config file with value: true
+2026-08-26 10:50:47.373 [info] [2026-08-26T10:50:47.372Z] Checking skills for Gemini Code Assist in /home/abijithasokan1992/.gemini/skills. Force=false
+2026-08-26 10:50:47.374 [info] [2026-08-26T10:50:47.373Z] Bundle checksum match. Skipping installation.
+2026-08-26 10:50:47.376 [info] [2026-08-26T10:50:47.374Z] Syncing telemetry hooks for gemini-code-assist. Telemetry enabled: true
+2026-08-26 10:50:47.380 [info] [2026-08-26T10:50:47.380Z] Hook plugin for gemini-code-assist installed successfully to /home/abijithasokan1992/.gemini/config/plugins/googlecloudtools.datacloud_telemetry
+2026-08-26 10:50:47.422 [info] Identity match check: {"gcloudAccountEmpty":false,"vscodeAccountEmpty":false,"gcloudAdcAccountEmpty":false,"gcloudAccountMatchesVscode":true,"gcloudAdcAccountMatchesVscode":true}
+2026-08-26 10:50:47.423 [info] Syncing project to extension: streamvista-ai-studio
+2026-08-26 10:50:47.991 [info] MCP config plugin: ideType: 6
+2026-08-26 10:50:47.991 [info] Syncing region to extension: asia-southeast1
+2026-08-26 10:50:48.102 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 10:50:48.551 [info] MCP config plugin: ideType: 6
+2026-08-26 10:50:48.552 [info] Syncing billingQuotaProject to extension: streamvista-ai-studio
+2026-08-26 10:50:48.567 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 10:50:48.998 [info] MCP config plugin: ideType: 6
+2026-08-26 10:50:49.092 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 10:50:49.454 [info] bqsql Magic SQL: Project ID changed from undefined to streamvista-ai-studio, refreshing config...
+2026-08-26 10:50:49.454 [info] bqsql Magic SQL: Updating startup commands with Project ID & Auth
+2026-08-26 10:50:49.454 [info] MCP config plugin: ideType: 6
+2026-08-26 10:50:49.500 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 10:50:49.642 [warning] bqsql Magic SQL: Workspace update failed, trying Global... CodeExpectedError: Unable to write jupyter.runStartupCommands to Workspace Settings. This setting can be written only into User settings.
+2026-08-26 10:50:49.644 [info] Initial Jupyter startup triggered with project: streamvista-ai-studio, region: asia-southeast1
+2026-08-26 10:50:50.159 [info] bqsql Magic SQL: Updated runStartupCommands in Global (Fallback)
+2026-08-26 10:50:50.159 [info] bqsql Magic SQL: Broadcasting new Project ID to active kernels: streamvista-ai-studio
+2026-08-26 10:50:50.458 [info] Global Jupyter Launch timeout updated to 300000ms
+2026-08-26 10:50:50.458 [info] Looking for existing Jupyter server
+2026-08-26 10:50:55.630 [info] MCP config plugin: ideType: 6
+2026-08-26 10:50:55.631 [info] SparkMonitorPlugin: State change - experiment: true, setting: true, overall: true
+2026-08-26 10:50:55.633 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 10:50:55.872 [info] SparkMonitorPlugin: Wrote filter config file with value: true
+2026-08-26 10:50:56.082 [info] > Running pip uninstall -y kernels_filter...
+2026-08-26 10:50:57.293 [info] ✔ Pip command successful.
+2026-08-26 10:50:57.309 [info] > Running pip install -i https://pypi.org/simple --upgrade google-cloud-jupyter-config jupyter_server==2.16 certifi /google/devshell/editor/code-oss-for-cloud-shell/extensions/googlecloudtools.datacloud/dataproc/resources/dak_jupyter-0.2.0-py3-none-any.whl...
+2026-08-26 10:51:06.051 [info] ✔ Pip command successful.
+2026-08-26 10:51:06.068 [info] Starting new jupyter server
+2026-08-26 10:51:06.068 [info] [DEBUG] Project Number: 654684934964
+2026-08-26 10:51:06.068 [info] [DEBUG] Region: asia-southeast1
+2026-08-26 10:51:06.068 [info] [DEBUG] ADC File Path: undefined
+2026-08-26 10:51:06.068 [info] [DEBUG] Is Cloud Shell: true
+2026-08-26 10:51:06.068 [info] Token broker is enabled
+2026-08-26 10:51:14.312 [error] Failed to start jupyter server: Token exchange failed with status 403: {"error": "Token hash mismatch"}
+2026-08-26 10:51:14.312 [error] handleTokenExchangeError called with status: 403
+2026-08-26 10:51:14.312 [info] Hiding Remote Spark Kernels option: token exchange failure
+2026-08-26 11:28:56.988 [info] MCP config plugin: ideType: 6
+2026-08-26 11:28:57.081 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 11:28:57.082 [info] MCP config plugin: ideType: 6
+2026-08-26 11:28:57.104 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 11:48:14.549 [info] proactively refreshing access token
+2026-08-26 11:50:56.792 [info] MCP config plugin: ideType: 6
+2026-08-26 11:50:56.858 [info] MCP config plugin: MCP config key: mcpServers
+2026-08-26 11:51:53.609 [info] Deactivating bigquery
+2026-08-26 11:51:53.609 [info] Deactivating GCS
+2026-08-26 11:51:53.609 [info] Deactivating Databases
+2026-08-26 11:51:53.609 [info] Deactivating Catalog Feature
+2026-08-26 11:51:53.609 [info] Deactivating dataproc
+2026-08-26 11:51:53.609 [info] SparkMonitorPlugin: Deactivating...
+2026-08-26 11:51:53.609 [info] Deactivating settings
+2026-08-26 11:51:53.609 [info] Shutting down spawned Jupyter server...

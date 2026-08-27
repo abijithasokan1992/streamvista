@@ -1,3 +1,0 @@
-# StreamVista Agent Runtime
-# Keep production SDK versions pinned/managed by the deployment environment.
-google-cloud-aiplatform

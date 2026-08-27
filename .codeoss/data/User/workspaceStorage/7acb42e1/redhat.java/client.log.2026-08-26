@@ -1,0 +1,73 @@
+{
+  message: 'Starting Java server with: /usr/lib/jvm/java-21-openjdk-amd64/bin/java --add-modules=ALL-SYSTEM --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.fs=ALL-UNNAMED -Declipse.application=org.eclipse.jdt.ls.core.id1 -Dosgi.bundles.defaultStartLevel=4 -Declipse.product=org.eclipse.jdt.ls.core.product -Djava.import.generatesMetadataFilesAtProjectRoot=false -DDetectVMInstallationsJob.disabled=true -Dfile.encoding=utf8 -XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable -javaagent:/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/lombok/lombok-1.18.39-4050.jar -jar /google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/server/plugins/org.eclipse.equinox.launcher_1.7.100.v20251111-0406.jar -configuration /home/abijithasokan1992/.codeoss/data/User/globalStorage/redhat.java/1.55.2026042408/config_ss_linux -data /home/abijithasokan1992/.codeoss/data/User/workspaceStorage/7acb42e1/redhat.java/ss_ws',
+  level: 'info',
+  timestamp: '2026-08-26 06:52:05.767'
+}
+{
+  message: 'Starting Java server with: /usr/lib/jvm/java-21-openjdk-amd64/bin/java --add-modules=ALL-SYSTEM --add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.fs=ALL-UNNAMED -Declipse.application=org.eclipse.jdt.ls.core.id1 -Dosgi.bundles.defaultStartLevel=4 -Declipse.product=org.eclipse.jdt.ls.core.product -Djava.import.generatesMetadataFilesAtProjectRoot=false -DDetectVMInstallationsJob.disabled=true -Dfile.encoding=utf8 -XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable -javaagent:/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/lombok/lombok-1.18.39-4050.jar -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/abijithasokan1992/.codeoss/data/User/workspaceStorage/7acb42e1/redhat.java -Daether.dependencyCollector.impl=bf -XX:+UnlockDiagnosticVMOptions -XX:+AllowArchivingWithJavaAgent -XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=/home/abijithasokan1992/.codeoss/data/User/globalStorage/redhat.java/1.55.2026042408/jdtls.jsa -jar /google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/server/plugins/org.eclipse.equinox.launcher_1.7.100.v20251111-0406.jar -configuration /home/abijithasokan1992/.codeoss/data/User/globalStorage/redhat.java/1.55.2026042408/config_linux -data /home/abijithasokan1992/.codeoss/data/User/workspaceStorage/7acb42e1/redhat.java/jdt_ws',
+  level: 'info',
+  timestamp: '2026-08-26 06:52:06.631'
+}
+{
+  message: 'WARNING: Using incubator modules: jdk.incubator.vector\n',
+  level: 'info',
+  timestamp: '2026-08-26 06:52:06.881'
+}
+{
+  message: 'WARNING: Using incubator modules: jdk.incubator.vector\n',
+  level: 'info',
+  timestamp: '2026-08-26 06:52:07.421'
+}
+{
+  message: 'Aug 26, 2026 6:52:15 AM org.apache.aries.spifly.BaseActivator log\n' +
+    'INFO: Registered provider ch.qos.logback.classic.spi.LogbackServiceProvider of service org.slf4j.spi.SLF4JServiceProvider in bundle ch.qos.logback.classic\n',
+  level: 'info',
+  timestamp: '2026-08-26 06:52:15.970'
+}
+{
+  message: '[Error - 6:53:00 AM] Sending notification workspace/didChangeConfiguration failed',
+  level: 'info',
+  timestamp: '2026-08-26 06:53:00.513'
+}
+{
+  message: "TypeError: Cannot read properties of null (reading 'sendNotification')\n" +
+    '    at /google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:861356\n' +
+    '    at Generator.next (<anonymous>)\n' +
+    '    at /google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:847294\n' +
+    '    at new Promise (<anonymous>)\n' +
+    '    at r (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:847042)\n' +
+    '    at didChangeConfiguration (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:861304)\n' +
+    '    at t.SyncConfigurationFeature.onDidChangeConfiguration (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:1152149)\n' +
+    '    at t.SyncConfigurationFeature.register (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:1151446)\n' +
+    '    at t.SyncConfigurationFeature.initialize (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:1151197)\n' +
+    '    at c.initializeFeatures (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:1124857)\n' +
+    '    at c.doInitialize (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:1111724)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at c.start (/google/devshell/editor/code-oss-for-cloud-shell/extensions/redhat.java/dist/extension.js:2:1108753)',
+  level: 'info',
+  timestamp: '2026-08-26 06:53:00.523'
+}
+{
+  message: '[Error - 6:53:00 AM] Aug 26, 2026, 6:53:00 AM org.eclipse.lsp4j.jsonrpc.ResponseErrorException: Unhandled method workspace/executeClientCommand\n' +
+    'java.util.concurrent.CompletionException: org.eclipse.lsp4j.jsonrpc.ResponseErrorException: Unhandled method workspace/executeClientCommand\n' +
+    '\tat java.base/java.util.concurrent.CompletableFuture.reportJoin(CompletableFuture.java:413)\n' +
+    '\tat java.base/java.util.concurrent.CompletableFuture.join(CompletableFuture.java:2118)\n' +
+    '\tat org.eclipse.jdt.ls.core.internal.JavaClientConnection.executeClientCommand(JavaClientConnection.java:89)\n' +
+    '\tat org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer.synchronizeBundles(JDTLanguageServer.java:449)\n' +
+    '\tat org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer$2.run(JDTLanguageServer.java:317)\n' +
+    '\tat org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)\n' +
+    'Caused by: org.eclipse.lsp4j.jsonrpc.ResponseErrorException: Unhandled method workspace/executeClientCommand\n' +
+    '\tat org.eclipse.lsp4j.jsonrpc.RemoteEndpoint.handleResponse(RemoteEndpoint.java:220)\n' +
+    '\tat org.eclipse.lsp4j.jsonrpc.RemoteEndpoint.consume(RemoteEndpoint.java:204)\n' +
+    '\tat org.eclipse.jdt.ls.core.internal.ParentProcessWatcher.lambda$1(ParentProcessWatcher.java:86)\n' +
+    '\tat org.eclipse.lsp4j.jsonrpc.json.StreamMessageProducer.handleMessage(StreamMessageProducer.java:185)\n' +
+    '\tat org.eclipse.lsp4j.jsonrpc.json.StreamMessageProducer.listen(StreamMessageProducer.java:97)\n' +
+    '\tat org.eclipse.lsp4j.jsonrpc.json.ConcurrentMessageProcessor.run(ConcurrentMessageProcessor.java:114)\n' +
+    '\tat java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572)\n' +
+    '\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317)\n' +
+    '\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)\n' +
+    '\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)\n' +
+    '\tat java.base/java.lang.Thread.run(Thread.java:1583)\n',
+  level: 'info',
+  timestamp: '2026-08-26 06:53:00.667'
+}

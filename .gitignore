@@ -1,28 +1,27 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+.gemini/
+*.zip
+.cache/
+node_modules/
+dist/
+.vscode/
+thumbnails/
+uploads/
+.local/lib/python3.12/site-packages/llvmlite/binding/libllvmlite.so
+.cache/cloud-code/cloudcode_cli/cloudcode_cli/6aca8e36/cloudcode_cli
 
-node_modules
-dist
-dist-ssr
-*.local
-.data/
-.env
-.env.*
-!.env.example
+libllvmlite.so
+cloudcode_cli
+*.zip
+node_modules/
+dist/
+.cache/
+.local/
+.gemini/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Cloud Shell & System Cache
+.cache/
+.local/
+.gemini/
+*.so
+*.dylib
+*.dll

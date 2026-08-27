@@ -1,0 +1,20 @@
+0 verbose cli /usr/local/nvm/versions/node/v24.19.0/bin/node /usr/local/nvm/versions/node/v24.19.0/bin/npm
+1 info using npm@12.0.2
+2 info using node@v24.19.0
+3 silly config load:file:/usr/local/nvm/versions/node/v24.19.0/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/abijithasokan1992/.npmrc
+5 silly config load:file:/usr/local/nvm/versions/node/v24.19.0/etc/npmrc
+6 verbose title npm run build:api
+7 verbose argv "run" "build:api"
+8 verbose logfile logs-max:10 dir:/home/abijithasokan1992/.npm/_logs/2026-08-27T06_34_27_771Z-
+9 verbose logfile /home/abijithasokan1992/.npm/_logs/2026-08-27T06_34_27_771Z-debug-0.log
+10 silly logfile start cleaning logs, removing 1 files
+11 silly logfile done cleaning log files
+12 notice run build:api
+13 notice run tsc -p apps/auto-api/tsconfig.json
+14 verbose cwd /home/abijithasokan1992
+15 verbose os Linux 6.6.143+
+16 verbose node v24.19.0
+17 verbose npm  v12.0.2
+18 verbose exit 0
+19 info ok

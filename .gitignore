@@ -27,3 +27,4 @@ dist/
 *.dll
 .bash_history
 .npm/
+.npm/

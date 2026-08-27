@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { GeminiService } from '../services/GeminiService';
+import { MetaModelService } from '../services/MetaModelService';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -34,6 +35,36 @@ router.post('/parse-vin', async (req, res) => {
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Meta Model API gateway. The API key remains server-side.
+router.post('/muse', async (req, res) => {
+  try {
+    const { input, model, reasoningEffort } = req.body;
+    if (!input) return res.status(400).json({ error: 'input is required' });
+
+    const result = await MetaModelService.chat(input, { model, reasoningEffort });
+    res.json(result);
+  } catch (err: any) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
+// Grounded assistant endpoint for current web information.
+router.post('/muse/search', async (req, res) => {
+  try {
+    const { input, model, reasoningEffort } = req.body;
+    if (!input) return res.status(400).json({ error: 'input is required' });
+
+    const result = await MetaModelService.chat(input, {
+      model,
+      reasoningEffort,
+      webSearch: true,
+    });
+    res.json(result);
+  } catch (err: any) {
+    res.status(502).json({ error: err.message });
   }
 });
 

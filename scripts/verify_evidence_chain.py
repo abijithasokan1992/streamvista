@@ -1,10 +1,10 @@
 import os
 import json
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 
 report = {
-    "timestamp": datetime.now(datetime.timezone.utc).isoformat(),
+    "timestamp": datetime.now(timezone.utc).isoformat(),
     "evidence_chain": {}
 }
 

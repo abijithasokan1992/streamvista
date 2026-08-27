@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-08-27T06:57:05.037536Z",
+  "evidence_chain": {
+    "HTTP_ENDPOINT": {
+      "status": "PASS",
+      "details": "streamvista.in returned HTTP 200 OK"
+    },
+    "SCAFFOLDING_BOUNDARIES": {
+      "status": "FAIL",
+      "details": "Missing required scaffold files"
+    }
+  }
+}

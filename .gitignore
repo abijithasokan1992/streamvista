@@ -25,3 +25,4 @@ dist/
 *.so
 *.dylib
 *.dll
+.bash_history

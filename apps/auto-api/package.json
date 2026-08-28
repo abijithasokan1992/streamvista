@@ -13,7 +13,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -22,8 +21,7 @@
     "multer": "^2.2.0",
     "nodemailer": "^9.0.3",
     "oracledb": "^7.0.0",
-    "razorpay": "^2.9.6",
-    "twilio": "^6.0.2"
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

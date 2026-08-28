@@ -1,53 +1,54 @@
 import React, { useState } from 'react';
-import { UserPlus, Shield, ArrowRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Loader2, Shield } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function SignUp() {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) return setMessage('Authentication is not configured yet.');
+    if (password.length < 8) return setMessage('Use a password with at least 8 characters.');
+    setBusy(true);
+    setMessage(null);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } },
+    });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    if (data.session) navigate('/creator-studio', { replace: true });
+    else setMessage('Account created. Check your email to confirm your address, then sign in.');
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617] font-mono">
-      <div className="w-full max-w-md p-8 border border-cyan-900/50 bg-black/40 backdrop-blur-xl rounded-lg shadow-[0_0_50px_rgba(6,182,212,0.1)]">
-        <div className="flex flex-col items-center mb-8">
-          <div className="p-3 bg-cyan-500/10 rounded-full mb-4">
-            <UserPlus className="w-8 h-8 text-cyan-500" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tighter text-cyan-400">PROVISION_NEW_OPERATOR</h1>
-          <p className="text-[10px] text-zinc-500 uppercase mt-2">Join the StreamVista Strategic Data Network</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] px-6">
+      <div className="w-full max-w-md rounded-2xl border border-cyan-900/40 bg-black/50 p-8 backdrop-blur-xl">
+        <div className="mb-8 text-center">
+          <Shield className="mx-auto mb-4 h-10 w-10 text-cyan-400" />
+          <div className="text-xs uppercase tracking-[0.35em] text-cyan-500">Crayons Bridge</div>
+          <h1 className="mt-2 text-2xl font-semibold text-white">Create your account</h1>
+          <p className="mt-2 text-sm text-zinc-500">Secure access starts with your verified identity.</p>
         </div>
-        
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] text-zinc-500 uppercase font-bold">Full Legal Name</label>
-            <input 
-              type="text" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-zinc-950 border border-cyan-900/30 rounded px-4 py-2 text-cyan-400 focus:outline-none focus:border-cyan-500/50"
-              placeholder="Abijith Asokan"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] text-zinc-500 uppercase font-bold">Primary Identity (Email)</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-zinc-950 border border-cyan-900/30 rounded px-4 py-2 text-cyan-400 focus:outline-none focus:border-cyan-500/50"
-              placeholder="operator@crayonspictures.com"
-            />
-          </div>
-          <button 
-            className="w-full bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 font-bold py-2 rounded flex items-center justify-center gap-2 transition-colors"
-          >
-            REQUEST_ACCESS
-            <ArrowRight className="w-4 h-4" />
+        <form onSubmit={submit} className="space-y-5">
+          <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Full name" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="email" placeholder="Email address" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={8} autoComplete="new-password" placeholder="Password (8+ characters)" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
+          {message && <p className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3 text-sm text-cyan-300">{message}</p>}
+          <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 py-3 font-semibold text-black hover:bg-cyan-400 disabled:opacity-60">
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            {busy ? 'Creating…' : 'Create account'}
+            {!busy && <ArrowRight className="h-4 w-4" />}
           </button>
-        </div>
-        
-        <div className="mt-8 text-center">
-          <a href="/login" className="text-[10px] text-cyan-700 hover:text-cyan-500 uppercase underline decoration-cyan-900/50">Existing Operator? Return to Gateway</a>
-        </div>
+        </form>
+        <p className="mt-6 text-center text-sm text-zinc-500">Already registered? <Link to="/login" className="text-cyan-400 hover:text-cyan-300">Sign in</Link></p>
       </div>
     </div>
   );

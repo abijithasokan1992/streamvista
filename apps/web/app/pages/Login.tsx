@@ -1,62 +1,63 @@
 import React, { useState } from 'react';
-import { Terminal, Shield, Lock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Shield, Lock, Mail, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate successful login
-    localStorage.setItem('isAuthenticated', 'true');
-    window.location.href = '/creator-studio';
+    setMessage(null);
+    if (!supabase) return setMessage('Authentication is not configured yet.');
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (error) return setMessage(error.message);
+    navigate('/creator-studio', { replace: true });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617] font-mono">
-      <div className="w-full max-w-md p-8 border border-cyan-900/50 bg-black/40 backdrop-blur-xl rounded-lg">
-        <div className="flex flex-col items-center mb-8">
-          <div className="p-3 bg-cyan-500/10 rounded-full mb-4">
-            <Shield className="w-8 h-8 text-cyan-500" />
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] px-6">
+      <div className="w-full max-w-md rounded-2xl border border-cyan-900/40 bg-black/50 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500/10">
+            <Shield className="h-8 w-8 text-cyan-400" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tighter text-cyan-400">SECURE_GATEWAY_AUTH</h1>
-          <p className="text-[10px] text-zinc-500 uppercase mt-2">StreamVista NOC Access Portal</p>
+          <div className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-500">Crayons Bridge</div>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">Welcome back</h1>
+          <p className="mt-2 text-sm text-zinc-500">Secure access to your StreamVista workspace.</p>
         </div>
-        
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] text-zinc-500 uppercase font-bold">Operator ID (Email)</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-zinc-950 border border-cyan-900/30 rounded px-4 py-2 text-cyan-400 focus:outline-none focus:border-cyan-500/50"
-              placeholder="operator@streamvista.io"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] text-zinc-500 uppercase font-bold">Access Cipher</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-zinc-950 border border-cyan-900/30 rounded px-4 py-2 text-cyan-400 focus:outline-none focus:border-cyan-500/50"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          <button 
-            type="submit"
-            className="w-full bg-cyan-600 hover:bg-cyan-500 text-black font-bold py-2 rounded flex items-center justify-center gap-2 transition-colors"
-          >
-            <Lock className="w-4 h-4" />
-            INITIATE_SESSION
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <label className="block text-sm text-zinc-300">
+            Email
+            <div className="mt-2 flex items-center rounded-lg border border-white/10 bg-zinc-950 px-3">
+              <Mail className="mr-2 h-4 w-4 text-zinc-500" />
+              <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="email" className="w-full bg-transparent py-3 text-white outline-none" />
+            </div>
+          </label>
+          <label className="block text-sm text-zinc-300">
+            Password
+            <div className="mt-2 flex items-center rounded-lg border border-white/10 bg-zinc-950 px-3">
+              <Lock className="mr-2 h-4 w-4 text-zinc-500" />
+              <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" className="w-full bg-transparent py-3 text-white outline-none" />
+            </div>
+          </label>
+          {message && <p className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-300">{message}</p>}
+          <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-60">
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            {busy ? 'Signing in…' : 'Enter Bridge'}
           </button>
         </form>
-        
-        <div className="mt-8 pt-6 border-t border-cyan-900/20 text-center">
-          <p className="text-[10px] text-zinc-600">UNAUTHORIZED ACCESS ATTEMPTS ARE LOGGED</p>
+
+        <div className="mt-6 flex items-center justify-between text-sm">
+          <Link className="text-cyan-400 hover:text-cyan-300" to="/forgot-password">Forgot password?</Link>
+          <Link className="text-zinc-400 hover:text-white" to="/signup">Create account</Link>
         </div>
       </div>
     </div>

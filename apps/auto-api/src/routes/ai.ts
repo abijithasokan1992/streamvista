@@ -1,40 +1,16 @@
 import { Router } from 'express';
-import multer from 'multer';
-import { GeminiService } from '../services/GeminiService';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
-router.post('/identify-part', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image uploaded' });
-    }
-    const result = await GeminiService.identifyPartFromImage(req.file.buffer, req.file.mimetype);
-    res.json(JSON.parse(result.replace(/```json|```/g, "")));
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+const disabled = (feature: string) => (_req: any, res: any) => {
+  res.status(410).json({
+    success: false,
+    error: `${feature} is disabled in the production baseline.`,
+  });
+};
 
-router.post('/enhance-search', async (req, res) => {
-  try {
-    const { query } = req.body;
-    const result = await GeminiService.enhanceSearchQuery(query);
-    res.json(result);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.post('/parse-vin', async (req, res) => {
-  try {
-    const { vin } = req.body;
-    const result = await GeminiService.parseVin(vin);
-    res.json(result);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.post('/identify-part', disabled('Gemini automotive image identification'));
+router.post('/enhance-search', disabled('Gemini search enhancement'));
+router.post('/parse-vin', disabled('Gemini VIN parsing'));
 
 export default router;

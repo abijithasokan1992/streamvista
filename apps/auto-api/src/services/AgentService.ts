@@ -1,5 +1,4 @@
 import { executeQuery } from '../config/db';
-import { GeminiService } from './GeminiService';
 
 export interface AgentActivity {
   agentName: string;
@@ -16,14 +15,13 @@ export class AgentService {
   static async logActivity(activity: AgentActivity) {
     this.activities.unshift(activity);
     if (this.activities.length > 50) this.activities.pop();
-    
-    // In a real implementation, we would also save to the audit_logs table
+
     const sql = `
       INSERT INTO audit_logs (user_id, action, details)
       VALUES (0, :action, :details)
     `;
     try {
-      await executeQuery(sql, { 
+      await executeQuery(sql, {
         action: `${activity.agentName}: ${activity.action}`,
         details: JSON.stringify({ thought: activity.thought, ...activity.metadata })
       });
@@ -40,16 +38,12 @@ export class AgentService {
 export class ProcurementAgent {
   static async analyzeInventory() {
     console.log('[ProcurementAgent] Analyzing inventory trends...');
-    
-    const thought = "Analyzing current stock levels against sales velocity to identify potential shortages.";
-    
     try {
-      // 1. Fetch low stock items
       const lowStockSql = `
-        SELECT i.*, p.product_name, p.sku, p.price, w.warehouse_name 
-        FROM inventory i 
-        JOIN products p ON i.product_id = p.product_id 
-        JOIN warehouses w ON i.warehouse_id = w.warehouse_id 
+        SELECT i.*, p.product_name, p.sku, p.price, w.warehouse_name
+        FROM inventory i
+        JOIN products p ON i.product_id = p.product_id
+        JOIN warehouses w ON i.warehouse_id = w.warehouse_id
         WHERE i.quantity <= 10
       `;
       const result: any = await executeQuery(lowStockSql);
@@ -68,8 +62,8 @@ export class ProcurementAgent {
         }
         return { message: `${items.length} draft purchase orders generated.` };
       }
-      
-      return { message: "Inventory levels are optimal. No action required." };
+
+      return { message: 'Inventory levels are optimal. No action required.' };
     } catch (err: any) {
       await AgentService.logActivity({
         agentName: 'Procurement AI',
@@ -87,11 +81,8 @@ export class ProcurementAgent {
 export class RightsNegotiatorAgent {
   static async negotiate(assetId: string, counterParty: string, initialOffer: number) {
     console.log(`[RightsNegotiator] Negotiating rights for asset ${assetId} with ${counterParty}...`);
-    const thought = `Automated negotiation agent evaluating offer of ₹${initialOffer} against baseline valuation.`;
-    
-    // Simulate negotiation logic
     const counterOffer = Math.round(initialOffer * 1.15);
-    
+
     await AgentService.logActivity({
       agentName: 'Rights Negotiator AI',
       action: 'Negotiation Strategy Generated',
@@ -157,9 +148,6 @@ export class A2ASalesAgent {
 export class BusinessOrchestratorAgent {
   static async evaluateRights(projectId: string) {
     console.log(`[BusinessOrchestrator] Evaluating rights and licensing for project ${projectId}...`);
-    const thought = "Determining available territories and platform exclusions to maximize distribution ROI.";
-    
-    // Logic to check rights in DB and propose licensing strategy
     return {
       projectId,
       availableTerritories: ['Global', 'India', 'Middle East'],
@@ -170,7 +158,6 @@ export class BusinessOrchestratorAgent {
 
   static async manageDelivery(projectId: string, buyer: string) {
     console.log(`[BusinessOrchestrator] Orchestrating delivery to ${buyer}...`);
-    // Workflow for EML/DPP delivery specification compliance
     return {
       status: 'PACKAGING',
       compliance: 'DPP Standard',
@@ -181,37 +168,7 @@ export class BusinessOrchestratorAgent {
 
 export class MarketScoutAgent {
   static async findPartnerships() {
-    console.log('[MarketScoutAgent] Scanning global automotive market for partnership opportunities...');
-    
-    const prompt = `
-      As an AI Market Scout for "UNION Auto Spares" (based in Kerala, India), 
-      identify 3 global automotive brands (Parts/EV/Energy) currently looking for direct distribution 
-      partners in the Indian market. 
-      Focus on Road, Air, Water, and EV transport.
-      Provide:
-      1. Brand Name
-      2. Strategic Fit Reason
-      3. Suggested Pitch Point based on UNION's 40-year legacy.
-      Return as a clean JSON array of objects.
-    `;
-
-    try {
-      const response = await GeminiService.enhanceSearchQuery(prompt);
-      
-      for (const partner of response) {
-        await AgentService.logActivity({
-          agentName: 'Market Scout',
-          action: `Proposed Partnership: ${partner.brand_name || partner.Brand}`,
-          thought: `Strategic fit found: ${partner.strategic_fit_reason || partner.Reason}. Levering legacy of Asokan Chettan for trust.`,
-          timestamp: new Date(),
-          status: 'PENDING',
-          metadata: { partner }
-        });
-      }
-      return response;
-    } catch (err) {
-      console.error('Market Scout Error:', err);
-      throw err;
-    }
+    console.warn('[MarketScoutAgent] AI provider disabled for production baseline build.');
+    return [];
   }
 }

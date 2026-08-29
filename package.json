@@ -3,6 +3,8 @@
     "dev:web": "vite",
     "dev:api": "ts-node-dev --respawn --transpile-only --project apps/auto-api/tsconfig.json apps/auto-api/src/server.ts",
     "dev": "npm run dev:web & npm run dev:api",
+    "test": "node --test tests/*.test.mjs",
+    "lint": "oxlint apps/web apps/auto-api --quiet",
     "build:web": "vite build",
     "build:api": "tsc -p apps/auto-api/tsconfig.json",
     "build": "npm run build:web && npm run build:api",
@@ -48,6 +50,7 @@
     "@types/oracledb": "^7.0.2",
     "@types/xml2js": "^0.4.14",
     "esbuild": "^0.28.2",
+    "oxlint": "1.71.0",
     "ts-node": "^10.9.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.7.3"

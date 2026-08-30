@@ -4,50 +4,42 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-/**
- * StreamVista Payment Gateway Service
- * Handles Razorpay order creation and payment verification.
- */
+function requireSecret(name: string): string {
+  const value = process.env[name];
+  if (!value || value === 'YOUR_KEY_ID' || value === 'YOUR_KEY_SECRET') {
+    throw new Error(`${name} is not configured`);
+  }
+  return value;
+}
+
 class PaymentService {
-    private razorpay: any;
+  private client: Razorpay | null = null;
 
-    constructor() {
-        this.razorpay = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID || 'YOUR_KEY_ID',
-            key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_KEY_SECRET',
-        });
+  private getClient() {
+    if (!this.client) {
+      this.client = new Razorpay({
+        key_id: requireSecret('RAZORPAY_KEY_ID'),
+        key_secret: requireSecret('RAZORPAY_KEY_SECRET'),
+      });
     }
+    return this.client;
+  }
 
-    /**
-     * Create a new order for a film asset license or subscription.
-     * @param amount - Amount in paise (e.g., 50000 for ₹500.00)
-     * @param currency - Default 'INR'
-     * @param receipt - Unique identifier for the transaction
-     */
-    async createOrder(amount: number, currency: string = 'INR', receipt: string) {
-        const options = {
-            amount: amount,
-            currency: currency,
-            receipt: receipt,
-        };
-        try {
-            const order = await this.razorpay.orders.create(options);
-            return order;
-        } catch (error) {
-            console.error('Razorpay Order Creation Error:', error);
-            throw error;
-        }
-    }
+  async createOrder(amount: number, currency = 'INR', receipt: string) {
+    return this.getClient().orders.create({ amount, currency, receipt });
+  }
 
-    /**
-     * Verify the payment signature received from the frontend.
-     */
-    verifySignature(orderId: string, paymentId: string, signature: string): boolean {
-        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET as string);
-        hmac.update(orderId + "|" + paymentId);
-        const generated_signature = hmac.digest('hex');
-        return generated_signature === signature;
-    }
+  verifySignature(orderId: string, paymentId: string, signature: string): boolean {
+    const secret = requireSecret('RAZORPAY_KEY_SECRET');
+    const expected = crypto.createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
+    return expected === signature;
+  }
+
+  verifyWebhook(rawBody: string, signature: string): boolean {
+    const secret = requireSecret('RAZORPAY_WEBHOOK_SECRET');
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+    return expected === signature;
+  }
 }
 
 export const paymentService = new PaymentService();

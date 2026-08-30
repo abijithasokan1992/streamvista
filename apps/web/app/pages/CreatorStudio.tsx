@@ -1,347 +1,182 @@
-import React, { useState } from 'react';
-import { Database, Upload, HardDrive, Camera, Cpu, Activity, ShieldCheck, Plus } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+
+type TitleRow = {
+  id: string;
+  name?: string | null;
+  title?: string | null;
+  language?: string | null;
+  year?: number | string | null;
+  status?: string | null;
+  synopsis?: string | null;
+};
+
+const ASSET_KINDS = ['poster', 'trailer', 'film', 'subs'] as const;
+type AssetKind = (typeof ASSET_KINDS)[number];
+
+function titleLabel(row: TitleRow) {
+  return row.name || row.title || row.id;
+}
 
 export default function CreatorStudio() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedSource, setSelectedSource] = useState('card');
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [tab, setTab] = useState<'titles' | 'create' | 'assets'>('titles');
+  const [titles, setTitles] = useState<TitleRow[]>([]);
+  const [loadError, setLoadError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [vault, setVault] = useState<'checking' | 'available' | 'unavailable'>('checking');
 
-  const handleHardwareUpload = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUploading(true);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsUploading(false);
-          setUploadProgress(0);
-          alert("Asset safely routed to Oracle CRAYONS-CREATOR-RAW & Vault Storage!");
-          setActiveTab('dashboard');
-        }, 800);
-      }
-    }, 200);
+  const [name, setName] = useState('');
+  const [language, setLanguage] = useState('Malayalam');
+  const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [synopsis, setSynopsis] = useState('');
+
+  const [assetKind, setAssetKind] = useState<AssetKind>('poster');
+  const [assetFile, setAssetFile] = useState<File | null>(null);
+
+  const refreshTitles = useCallback(async () => {
+    setLoadError('');
+    if (!supabase) {
+      setLoadError('Supabase is not configured.');
+      setVault('unavailable');
+      return;
+    }
+    const [{ data, error }, { data: buckets, error: bucketError }] = await Promise.all([
+      supabase.from('sv_app_titles').select('*').limit(100),
+      supabase.storage.listBuckets(),
+    ]);
+    if (error) {
+      setTitles([]);
+      setLoadError(error.message);
+    } else {
+      setTitles((data as TitleRow[]) || []);
+    }
+    setVault(bucketError || !buckets?.some((b) => b.name === 'streamvista-films') ? 'unavailable' : 'available');
+  }, []);
+
+  useEffect(() => {
+    void refreshTitles();
+  }, [refreshTitles]);
+
+  const createTitle = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setMessage('');
+    if (!supabase) { setMessage('Supabase is not configured.'); return; }
+    if (!name.trim()) { setMessage('Title name is required.'); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setMessage('Session expired. Sign in again.'); return; }
+    setBusy(true);
+    const payload = {
+      name: name.trim(),
+      title: name.trim(),
+      language: language.trim(),
+      year: Number(year) || null,
+      synopsis: synopsis.trim() || null,
+      status: 'draft',
+      owner_id: user.id,
+    };
+    const { error } = await supabase.from('sv_app_titles').insert(payload);
+    setBusy(false);
+    if (error) { setMessage(`Create failed: ${error.message}`); return; }
+    setName('');
+    setSynopsis('');
+    setMessage('Title saved as draft.');
+    setTab('titles');
+    await refreshTitles();
+  };
+
+  const uploadAsset = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setMessage('');
+    if (!supabase) { setMessage('Supabase is not configured.'); return; }
+    if (!assetFile) { setMessage('Select a file first.'); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setMessage('Session expired. Sign in again.'); return; }
+    setBusy(true);
+    const path = `${user.id}/${assetKind}/${crypto.randomUUID()}-${assetFile.name}`;
+    const { error } = await supabase.storage.from('streamvista-films').upload(path, assetFile, { upsert: false });
+    setBusy(false);
+    if (error) { setMessage(`Upload failed: ${error.message}`); return; }
+    setAssetFile(null);
+    setMessage(`${assetKind} stored at ${path}`);
   };
 
   return (
-    <div className="studio-container">
-      <div className="studio-header">
-        <div className="title-section">
-          <h1 className="display-text">Creator Studio</h1>
-          <p className="subtitle">High-Fidelity Production Ingest & Management</p>
-        </div>
-        <div className="studio-actions">
-          <button onClick={() => setActiveTab('ingest')} className="action-btn primary">
-            <Plus size={18} />
-            <span>New Ingest</span>
+    <div className="mx-auto max-w-5xl p-8 text-zinc-100">
+      <h1 className="text-3xl font-semibold">Creator workspace</h1>
+      <p className="mt-2 text-sm text-zinc-400">Titles, metadata and private vault assets. No mock metrics.</p>
+      <p className="mt-2 text-xs text-zinc-500">Vault: {vault}</p>
+
+      <div className="mt-6 flex gap-2">
+        {(['titles', 'create', 'assets'] as const).map((id) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold ${
+              tab === id ? 'bg-cyan-500 text-black' : 'border border-white/10 bg-white/5'
+            }`}
+          >
+            {id === 'titles' ? 'Titles' : id === 'create' ? 'New title' : 'Assets'}
           </button>
-        </div>
+        ))}
       </div>
 
-      <div className="studio-grid">
-        {/* Sidebar Mini Navigation */}
-        <aside className="studio-nav">
-          <button onClick={() => setActiveTab('dashboard')} className={activeTab === 'dashboard' ? 'active' : ''}>
-            <Activity size={18} /> Dashboard
-          </button>
-          <button onClick={() => setActiveTab('ingest')} className={activeTab === 'ingest' ? 'active' : ''}>
-            <Upload size={18} /> Ingest Gate
-          </button>
-          <button className="disabled"><Database size={18} /> Master Delivery</button>
-          <button className="disabled"><ShieldCheck size={18} /> QC Registry</button>
-        </aside>
+      {message && <p className="mt-4 text-sm text-cyan-300" role="status">{message}</p>}
+      {loadError && <p className="mt-4 text-sm text-red-400">{loadError}</p>}
 
-        {/* Content Area */}
-        <main className="studio-main">
-          {activeTab === 'dashboard' && (
-            <div className="dashboard-view">
-              <div className="metrics-row">
-                <div className="metric-card">
-                  <span className="label">Live Operations</span>
-                  <span className="value">12 Projects</span>
-                  <div className="metric-footer">Active Studio Sessions</div>
-                </div>
-                <div className="metric-card">
-                  <span className="label">Syncing Pipeline</span>
-                  <span className="value">8.4 TB</span>
-                  <div className="metric-footer">Ingested This Month</div>
-                </div>
-                <div className="metric-card gold">
-                  <span className="label">Vault Storage</span>
-                  <span className="value">142 / 250 TB</span>
-                  <div className="metric-footer">Oracle Cloud Infrastructure</div>
-                </div>
-              </div>
-
-              <div className="recent-activity">
-                <h3>Recent Metadata Syncs</h3>
-                <div className="activity-list">
-                  <div className="activity-item">
-                    <span className="time">2m ago</span>
-                    <span className="desc">SHA-256 Audit Passed: CRIMSON_HORIZON_REEL1.mxf</span>
-                    <span className="status success">VERIFIED</span>
-                  </div>
-                  <div className="activity-item">
-                    <span className="time">15m ago</span>
-                    <span className="desc">Ingest Complete: SILENT_VALLEY_EP4_RAW</span>
-                    <span className="status info">STORED</span>
-                  </div>
+      {tab === 'titles' && (
+        <div className="mt-6 divide-y divide-white/10 rounded-xl border border-white/10">
+          {titles.length === 0 && !loadError && (
+            <p className="p-6 text-zinc-400">No titles visible under current RLS.</p>
+          )}
+          {titles.map((row) => (
+            <div key={row.id} className="flex items-center justify-between p-4">
+              <div>
+                <div className="font-medium">{titleLabel(row)}</div>
+                <div className="text-xs text-zinc-500">
+                  {[row.language, row.year, row.status || 'draft'].filter(Boolean).join(' · ')}
                 </div>
               </div>
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
-          {activeTab === 'ingest' && (
-            <div className="ingest-view">
-              <div className="ingest-form-container">
-                <h2>Hardware Media Ingest Gate</h2>
-                <p>Route raw camera feeds and shuttle drives to secure vault storage.</p>
+      {tab === 'create' && (
+        <form onSubmit={createTitle} className="mt-6 max-w-lg space-y-4">
+          <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Title name" value={name} onChange={(e) => setName(e.target.value)} />
+          <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Language" value={language} onChange={(e) => setLanguage(e.target.value)} />
+          <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} />
+          <textarea className="w-full rounded-lg bg-black/40 p-3" placeholder="Synopsis" value={synopsis} onChange={(e) => setSynopsis(e.target.value)} />
+          <button disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
+            {busy ? 'Saving…' : 'Save draft'}
+          </button>
+        </form>
+      )}
 
-                <form onSubmit={handleHardwareUpload} className="ingest-form">
-                  <div className="source-selector">
-                    <button type="button" onClick={() => setSelectedSource('camera')} className={selectedSource === 'camera' ? 'active' : ''}>
-                      <Camera size={20} /> <span>Camera (C2C)</span>
-                    </button>
-                    <button type="button" onClick={() => setSelectedSource('card')} className={selectedSource === 'card' ? 'active' : ''}>
-                      <Cpu size={20} /> <span>Memory Card</span>
-                    </button>
-                    <button type="button" onClick={() => setSelectedSource('harddisk')} className={selectedSource === 'harddisk' ? 'active' : ''}>
-                      <HardDrive size={20} /> <span>Hard Disk</span>
-                    </button>
-                  </div>
-
-                  <div className="drop-zone">
-                    <Upload className="upload-icon" />
-                    <p>{selectedSource === 'camera' ? 'Awaiting Live Camera API Sync...' : 'Select source to scan attached hardware file array'}</p>
-                    <span>Supports .mxf, .exr, .raw, .braw</span>
-                  </div>
-
-                  <div className="form-actions">
-                    <button type="button" onClick={() => setActiveTab('dashboard')} className="btn-secondary">Cancel</button>
-                    <button type="submit" className="btn-primary" disabled={isUploading}>
-                      {isUploading ? `Ingesting... ${uploadProgress}%` : 'Execute Sync & Commit'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
-
-      <style>{`
-        .studio-container {
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        .studio-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: 40px;
-        }
-
-        .subtitle {
-          color: var(--studio-silver-muted);
-          font-size: 0.9rem;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-
-        .action-btn.primary {
-          background: var(--royal-gold);
-          color: var(--obsidian);
-          padding: 10px 20px;
-          border-radius: 4px;
-          font-weight: 700;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          text-transform: uppercase;
-          font-size: 0.8rem;
-        }
-
-        .studio-grid {
-          display: grid;
-          grid-template-columns: 240px 1fr;
-          gap: 40px;
-        }
-
-        .studio-nav {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .studio-nav button {
-          text-align: left;
-          padding: 12px 16px;
-          border-radius: 6px;
-          color: var(--studio-silver-muted);
-          font-size: 0.9rem;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          border: 1px solid transparent;
-        }
-
-        .studio-nav button.active {
-          background: rgba(212, 175, 55, 0.1);
-          border-color: var(--glass-border);
-          color: var(--royal-gold);
-        }
-
-        .studio-nav button:hover:not(.disabled) {
-          background: rgba(255, 255, 255, 0.05);
-          color: white;
-        }
-
-        .studio-nav button.disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
-
-        .metrics-row {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
-          margin-bottom: 40px;
-        }
-
-        .metric-card {
-          background: var(--glass-surface);
-          border: 1px solid var(--glass-border);
-          padding: 24px;
-          border-radius: 8px;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .metric-card.gold {
-          border-color: var(--royal-gold-muted);
-        }
-
-        .metric-card .label {
-          font-size: 0.7rem;
-          text-transform: uppercase;
-          color: var(--studio-silver-muted);
-          margin-bottom: 8px;
-        }
-
-        .metric-card .value {
-          font-size: 1.8rem;
-          font-weight: 700;
-          color: white;
-          margin-bottom: 4px;
-        }
-
-        .metric-card.gold .value { color: var(--royal-gold); }
-
-        .metric-card .metric-footer {
-          font-size: 0.65rem;
-          color: var(--studio-silver-muted);
-        }
-
-        .recent-activity {
-          background: var(--glass-surface);
-          border: 1px solid var(--glass-border);
-          border-radius: 8px;
-          padding: 30px;
-        }
-
-        .recent-activity h3 {
-          font-family: var(--font-display);
-          font-size: 1.2rem;
-          margin-bottom: 24px;
-          color: var(--royal-gold);
-        }
-
-        .activity-item {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          padding: 16px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-          font-size: 0.85rem;
-        }
-
-        .activity-item .time { color: var(--studio-silver-muted); min-width: 60px; }
-        .activity-item .desc { flex: 1; color: var(--studio-silver); }
-        .activity-item .status { font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-        .activity-item .status.success { color: #10b981; background: rgba(16, 185, 129, 0.1); }
-        .activity-item .status.info { color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-
-        .ingest-view {
-          background: var(--glass-surface);
-          border: 1px solid var(--glass-border);
-          border-radius: 12px;
-          padding: 40px;
-          max-width: 800px;
-        }
-
-        .ingest-view h2 { font-family: var(--font-display); color: var(--royal-gold); margin-bottom: 8px; }
-        .ingest-view p { color: var(--studio-silver-muted); margin-bottom: 30px; font-size: 0.9rem; }
-
-        .source-selector {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .source-selector button {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-          padding: 20px;
-          background: rgba(0,0,0,0.3);
-          border: 1px solid var(--glass-border);
-          border-radius: 8px;
-          color: var(--studio-silver-muted);
-          font-size: 0.8rem;
-        }
-
-        .source-selector button.active {
-          border-color: var(--royal-gold);
-          color: var(--royal-gold);
-          background: rgba(212, 175, 55, 0.05);
-        }
-
-        .drop-zone {
-          border: 2px dashed var(--glass-border);
-          border-radius: 12px;
-          padding: 60px 20px;
-          text-align: center;
-          margin-bottom: 30px;
-          transition: var(--transition-smooth);
-        }
-
-        .drop-zone:hover { border-color: var(--royal-gold-muted); }
-        .upload-icon { width: 48px; height: 48px; color: var(--royal-gold-muted); margin-bottom: 16px; }
-        .drop-zone p { color: white; margin-bottom: 4px; }
-        .drop-zone span { font-size: 0.75rem; color: var(--studio-silver-muted); }
-
-        .form-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 16px;
-        }
-
-        .btn-secondary { color: var(--studio-silver-muted); font-weight: 600; font-size: 0.9rem; }
-        .btn-primary { 
-          background: var(--royal-gold); 
-          color: var(--obsidian); 
-          padding: 12px 30px; 
-          border-radius: 6px; 
-          font-weight: 700;
-          text-transform: uppercase;
-        }
-      `}</style>
+      {tab === 'assets' && (
+        <form onSubmit={uploadAsset} className="mt-6 max-w-lg space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {ASSET_KINDS.map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => setAssetKind(kind)}
+                className={`rounded-lg px-3 py-2 text-sm ${
+                  assetKind === kind ? 'bg-cyan-500 text-black' : 'border border-white/10'
+                }`}
+              >
+                {kind}
+              </button>
+            ))}
+          </div>
+          <input type="file" onChange={(e) => setAssetFile(e.target.files?.[0] ?? null)} />
+          <p className="text-xs text-zinc-500">Uploads to streamvista-films / {'{userId}/{kind}/'}. QC submit is not auto-approved.</p>
+          <button disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
+            {busy ? 'Uploading…' : `Upload ${assetKind}`}
+          </button>
+        </form>
+      )}
     </div>
   );
 }

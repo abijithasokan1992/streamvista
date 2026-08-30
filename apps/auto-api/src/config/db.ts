@@ -1,67 +1,31 @@
-import oracledb from 'oracledb';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbConfig = {
-  user: process.env.ORACLE_DB_USER,
-  password: process.env.ORACLE_DB_PASSWORD,
-  connectString: process.env.ORACLE_DB_CONNECTION_STRING,
-};
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-let isMock = false;
-
-export async function initializeDb() {
-  if (!dbConfig.user || !dbConfig.password || !dbConfig.connectString) {
-    console.warn('Oracle DB credentials missing. Operating in ZERO-COST MOCK MODE.');
-    isMock = true;
-    return;
-  }
-
-  try {
-    await oracledb.createPool({
-      user: dbConfig.user,
-      password: dbConfig.password,
-      connectString: dbConfig.connectString,
-      poolMax: 10,
-      poolMin: 2,
-      poolIncrement: 2,
-    });
-    console.log('Oracle DB Connection Pool initialized');
-  } catch (err) {
-    console.error('Oracle DB initialization failed. Falling back to MOCK MODE:', err);
-    isMock = true;
-  }
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error('Missing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Production backend must fail closed.');
 }
 
-export async function getDbConnection() {
-  if (isMock) return null;
-  return await oracledb.getConnection();
+let client: SupabaseClient | null = null;
+
+export async function initializeDb(): Promise<void> {
+  if (client) return;
+  client = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { error } = await client.from('sv_app_profiles').select('id', { head: true, count: 'exact' }).limit(1);
+  if (error) throw new Error(`Supabase initialization failed: ${error.message}`);
 }
 
-export async function executeQuery(sql: string, params: any = [], options: oracledb.ExecuteOptions = {}) {
-  if (isMock) {
-    console.log(`[MockDB] Executing: ${sql.substring(0, 100)}...`);
-    // Return empty results to avoid breaking logic
-    return { rows: [], outBinds: { productId: [Math.floor(Math.random() * 1000)] } };
-  }
+export function getDbClient(): SupabaseClient {
+  if (!client) throw new Error('Database not initialized');
+  return client;
+}
 
-  let connection;
-  try {
-    connection = await getDbConnection();
-    if (!connection) throw new Error('Could not get connection');
-    const result = await connection.execute(sql, params, { ...options, outFormat: oracledb.OUT_FORMAT_OBJECT, autoCommit: true });
-    return result;
-  } catch (err) {
-    console.error('Database query error:', err);
-    throw err;
-  } finally {
-    if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error('Error closing database connection:', err);
-      }
-    }
-  }
+export async function executeQuery<T = unknown>(query: string): Promise<{ rows: T[] }> {
+  throw new Error(`Raw SQL execution is intentionally disabled in the application API: ${query}`);
 }

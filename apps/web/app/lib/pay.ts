@@ -19,6 +19,22 @@ async function loadCheckout(): Promise<boolean> {
   });
 }
 
+const PLAN_AMOUNT_PAISE: Record<PaidCycle, number> = {
+  creator: 76700,
+  topup: 76700,
+};
+
+async function createOrder(onboardingId: string, amount: number, accessToken: string) {
+  const { data, error } = await supabase!.functions.invoke('create-razorpay-order', {
+    body: { onboardingId, amount, currency: 'INR' },
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (error || !data?.orderId || !data?.keyId) {
+    throw new Error(data?.error ?? error?.message ?? 'Order create failed');
+  }
+  return data as { orderId: string; keyId: string; amount: number; currency: string };
+}
+
 export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean; error?: string }> {
   if (!supabase) return { ok: false, error: 'Auth is not configured' };
 
@@ -35,57 +51,58 @@ export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean
       submitter_user_id: session.user.id,
       payment_status: 'pending',
       onboarding_status: 'pending_payment',
+      amount_paise: PLAN_AMOUNT_PAISE[cycle],
+      currency: 'INR',
     })
     .select('id')
     .single();
 
   if (insertErr || !row?.id) {
-    return { ok: false, error: insertErr?.message ?? 'Could not create order row' };
+    return { ok: false, error: insertErr?.message ?? 'Could not create payment request' };
   }
 
-  const { data: order, error: orderErr } = await supabase.functions.invoke('create-razorpay-order', {
-    body: { onboardingId: row.id },
-  });
-  if (orderErr || !order?.orderId || !order?.keyId) {
-    return { ok: false, error: order?.error ?? orderErr?.message ?? 'Order create failed' };
-  }
+  try {
+    const order = await createOrder(row.id, PLAN_AMOUNT_PAISE[cycle], session.access_token);
+    const scriptOk = await loadCheckout();
+    if (!scriptOk) return { ok: false, error: 'Razorpay checkout failed to load' };
 
-  const scriptOk = await loadCheckout();
-  if (!scriptOk) return { ok: false, error: 'Razorpay checkout failed to load' };
-
-  return new Promise((resolve) => {
-    const rzp = new window.Razorpay({
-      key: order.keyId,
-      amount: order.amount,
-      currency: order.currency ?? 'INR',
-      name: 'StreamVista',
-      description: cycle === 'creator' ? 'Creator plan' : '1 TB top-up',
-      order_id: order.orderId,
-      prefill: { email: session.user.email ?? '' },
-      theme: { color: '#22d3ee' },
-      handler: async (response: {
-        razorpay_order_id: string;
-        razorpay_payment_id: string;
-        razorpay_signature: string;
-      }) => {
-        const { data: verified, error: verifyErr } = await supabase.functions.invoke(
-          'verify-razorpay-payment',
-          {
-            body: {
-              onboardingId: row.id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
+    return new Promise((resolve) => {
+      const rzp = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency ?? 'INR',
+        name: 'StreamVista',
+        description: cycle === 'creator' ? 'Creator plan — 1 TB / month' : '1 TB storage top-up',
+        order_id: order.orderId,
+        prefill: { email: session.user.email ?? '' },
+        theme: { color: '#22d3ee' },
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          const { data: verified, error: verifyErr } = await supabase!.functions.invoke(
+            'verify-razorpay-payment',
+            {
+              body: {
+                onboardingId: row.id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              },
+              headers: { Authorization: `Bearer ${session.access_token}` },
             },
-          },
-        );
-        if (verifyErr || !verified?.verified) {
-          resolve({ ok: false, error: verifyErr?.message ?? 'Payment verification failed' });
-          return;
-        }
-        resolve({ ok: true });
-      },
+          );
+          if (verifyErr || !verified?.verified) {
+            resolve({ ok: false, error: verifyErr?.message ?? verified?.error ?? 'Payment verification failed' });
+            return;
+          }
+          resolve({ ok: true });
+        },
+      });
+      rzp.open();
     });
-    rzp.open();
-  });
+  } catch (error: any) {
+    return { ok: false, error: error?.message ?? 'Payment order failed' };
+  }
 }

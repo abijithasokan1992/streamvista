@@ -16,6 +16,31 @@ function sessionUser(req: any): string | null {
   return req.user?.userId || req.user?.id || null;
 }
 
+async function issueEntitlement(db: any, paymentId: string) {
+  const { data: payment, error } = await db
+    .from('sv_payments')
+    .select('id,user_id,title_id,deal_id,status')
+    .eq('id', paymentId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!payment || !['verified', 'captured', 'authorized'].includes(payment.status) || !payment.user_id) return null;
+
+  const { data, error: entitlementError } = await db
+    .from('entitlements')
+    .upsert({
+      user_id: payment.user_id,
+      title_id: payment.title_id,
+      deal_id: payment.deal_id,
+      payment_id: payment.id,
+      entitlement_type: 'title-license',
+      status: 'active',
+    }, { onConflict: 'user_id,payment_id,entitlement_type' })
+    .select('*')
+    .single();
+  if (entitlementError) throw new Error(entitlementError.message);
+  return data;
+}
+
 router.post('/create-order', async (req: any, res) => {
   try {
     const userId = sessionUser(req);
@@ -39,9 +64,7 @@ router.post('/create-order', async (req: any, res) => {
       .select('id,status,provider_order_id,amount,currency')
       .eq('idempotency_key', idempotencyKey)
       .maybeSingle();
-    if (existing?.provider_order_id) {
-      return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id }, payment: existing });
-    }
+    if (existing?.provider_order_id) return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id }, payment: existing });
 
     const commercial = title.commercial_profile && typeof title.commercial_profile === 'object' ? title.commercial_profile as Record<string, unknown> : {};
     const configuredPrice = Number(commercial.price ?? commercial.amount ?? 0);
@@ -60,9 +83,9 @@ router.post('/create-order', async (req: any, res) => {
       idempotency_key: idempotencyKey,
     }).select('id,status,provider_order_id,amount,currency').single();
     if (error) return res.status(503).json({ error: error.message });
-    res.json({ success: true, order, payment });
+    return res.json({ success: true, order, payment });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Payment order failed closed' });
+    return res.status(503).json({ error: err.message || 'Payment order failed closed' });
   }
 });
 
@@ -97,9 +120,10 @@ router.post('/verify', async (req: any, res) => {
     };
     const { data, error } = await db.from('sv_payments').update(patch).eq('id', existing.id).select('id,status,verified_at,provider_order_id,provider_payment_id').single();
     if (error) return res.status(503).json({ error: error.message });
-    res.json({ success: true, payment: data });
+    const entitlement = await issueEntitlement(db, existing.id);
+    return res.json({ success: true, payment: data, entitlement });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Payment verification failed closed' });
+    return res.status(503).json({ error: err.message || 'Payment verification failed closed' });
   }
 });
 
@@ -128,19 +152,21 @@ router.post('/webhook', async (req: any, res) => {
     if (logError) return res.status(503).json({ error: logError.message });
 
     if (event?.event === 'payment.captured' && payment?.order_id && payment?.id) {
-      await db.from('sv_payments').update({
+      const { data: updated, error: updateError } = await db.from('sv_payments').update({
         provider_payment_id: payment.id,
         status: 'captured',
         verified_at: new Date().toISOString(),
         amount: Number(payment.amount || 0) / 100,
         currency: payment.currency || 'INR',
-      }).eq('provider_order_id', payment.order_id);
+      }).eq('provider_order_id', payment.order_id).select('id').maybeSingle();
+      if (updateError) throw new Error(updateError.message);
+      if (updated?.id) await issueEntitlement(db, updated.id);
     }
 
     await db.from('sv_payment_webhook_events').update({ processed_at: new Date().toISOString(), status: 'processed' }).eq('event_id', eventId);
-    res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Webhook failed closed' });
+    return res.status(503).json({ error: err.message || 'Webhook failed closed' });
   }
 });
 
@@ -151,9 +177,9 @@ router.get('/revenue', async (req: any, res) => {
     const db = admin();
     const { data, error } = await db.from('sv_payments').select('id,title_id,deal_id,status,verified_at,provider_payment_id,amount,currency').eq('user_id', userId).in('status', ['captured', 'authorized', 'verified']);
     if (error) return res.status(503).json({ error: error.message });
-    res.json({ success: true, payments: data || [], count: data?.length || 0 });
+    return res.json({ success: true, payments: data || [], count: data?.length || 0 });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Revenue list failed closed' });
+    return res.status(503).json({ error: err.message || 'Revenue list failed closed' });
   }
 });
 

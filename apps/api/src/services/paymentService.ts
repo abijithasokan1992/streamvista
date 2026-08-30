@@ -4,62 +4,52 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-/**
- * StreamVista Payment Gateway Service
- * Handles Razorpay order creation and payment verification.
- */
+function requireSecret(name: string): string {
+  const value = process.env[name];
+  if (!value || value === 'YOUR_KEY_ID' || value === 'YOUR_KEY_SECRET') {
+    throw new Error(`${name} is not configured`);
+  }
+  return value;
+}
+
 class PaymentService {
-    private razorpay: Razorpay;
+  private razorpay: Razorpay | null = null;
 
-    constructor() {
-        const keyId = process.env.RAZORPAY_KEY_ID;
-        const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
-        if (!keyId || !keySecret) {
-            throw new Error('Razorpay server credentials are not configured');
-        }
-
-        this.razorpay = new Razorpay({
-            key_id: keyId,
-            key_secret: keySecret,
-        });
+  private getClient() {
+    if (!this.razorpay) {
+      this.razorpay = new Razorpay({
+        key_id: requireSecret('RAZORPAY_KEY_ID'),
+        key_secret: requireSecret('RAZORPAY_KEY_SECRET'),
+      });
     }
+    return this.razorpay;
+  }
 
-    /**
-     * Create a new order for a film asset license or subscription.
-     * @param amount - Amount in paise (e.g., 50000 for ₹500.00)
-     * @param currency - Default 'INR'
-     * @param receipt - Unique identifier for the transaction
-     */
-    async createOrder(amount: number, currency: string = 'INR', receipt: string) {
-        const options = {
-            amount,
-            currency,
-            receipt,
-        };
-        try {
-            return await this.razorpay.orders.create(options);
-        } catch (error) {
-            console.error('Razorpay Order Creation Error:', error);
-            throw error;
-        }
+  async createOrder(amount: number, currency: string = 'INR', receipt: string) {
+    return this.getClient().orders.create({ amount, currency, receipt });
+  }
+
+  verifySignature(orderId: string, paymentId: string, signature: string): boolean {
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret || !signature) return false;
+    const expected = crypto.createHmac('sha256', keySecret).update(`${orderId}|${paymentId}`).digest('hex');
+    try {
+      return crypto.timingSafeEqual(Buffer.from(expected, 'utf8'), Buffer.from(signature, 'utf8'));
+    } catch {
+      return false;
     }
+  }
 
-    /**
-     * Verify the payment signature received from the frontend.
-     */
-    verifySignature(orderId: string, paymentId: string, signature: string): boolean {
-        const keySecret = process.env.RAZORPAY_KEY_SECRET;
-        if (!keySecret) return false;
-
-        const hmac = crypto.createHmac('sha256', keySecret);
-        hmac.update(`${orderId}|${paymentId}`);
-        const generatedSignature = hmac.digest('hex');
-        return crypto.timingSafeEqual(
-            Buffer.from(generatedSignature, 'utf8'),
-            Buffer.from(signature, 'utf8'),
-        );
+  verifyWebhook(rawBody: string, signature: string): boolean {
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!secret || !signature) return false;
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+    try {
+      return crypto.timingSafeEqual(Buffer.from(expected, 'utf8'), Buffer.from(signature, 'utf8'));
+    } catch {
+      return false;
     }
+  }
 }
 
 export const paymentService = new PaymentService();

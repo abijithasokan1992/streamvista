@@ -4,8 +4,8 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api/((?!health$).*)",
-      "destination": "https://command.streamvista.in/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://command.streamvista.in/api/:path*"
     },
     {
       "source": "/(.*)",

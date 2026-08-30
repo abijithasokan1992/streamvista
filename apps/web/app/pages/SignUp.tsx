@@ -5,10 +5,10 @@ import { supabase } from '../lib/supabase';
 
 type UserRole = 'creator' | 'studio' | 'buyer';
 
-const ROLE_OPTIONS: Array<{ value: UserRole; label: string; description: string }> = [
-  { value: 'creator', label: 'Creator', description: 'Create, manage and license your content' },
-  { value: 'studio', label: 'Studio', description: 'Manage productions, rights and delivery' },
-  { value: 'buyer', label: 'Buyer', description: 'Discover, review and license content' },
+const ROLE_OPTIONS: Array<{ value: UserRole; label: string; description: string; route: string }> = [
+  { value: 'creator', label: 'Creator', description: 'Create, manage and license your content', route: '/creator-studio' },
+  { value: 'studio', label: 'Studio', description: 'Manage productions, rights and delivery', route: '/creator-studio' },
+  { value: 'buyer', label: 'Buyer', description: 'Discover, review and license content', route: '/crayons-bridge' },
 ];
 
 export default function SignUp() {
@@ -25,13 +25,14 @@ export default function SignUp() {
     if (!supabase) return setMessage('Authentication is not configured yet.');
     if (!role) return setMessage('Select your user role to continue.');
     if (password.length < 8) return setMessage('Use a password with at least 8 characters.');
+
     setBusy(true);
     setMessage(null);
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name, role } },
+      options: { data: { full_name: name, signup_role: role } },
     });
 
     if (error) {
@@ -39,6 +40,8 @@ export default function SignUp() {
       return setMessage(error.message);
     }
 
+    // Client-selected roles are limited to self-service roles.
+    // Admin/super-admin access must never be self-assigned from the signup client.
     if (data.user) {
       const { error: roleError } = await supabase
         .from('user_roles')
@@ -51,8 +54,12 @@ export default function SignUp() {
     }
 
     setBusy(false);
-    if (data.session) navigate('/creator-studio', { replace: true });
-    else setMessage('Account created. Check your email to confirm your address, then sign in.');
+    if (data.session) {
+      const destination = ROLE_OPTIONS.find((option) => option.value === role)?.route ?? '/creator-studio';
+      navigate(destination, { replace: true });
+    } else {
+      setMessage('Account created. Check your email to confirm your address, then sign in.');
+    }
   };
 
   return (
@@ -64,6 +71,7 @@ export default function SignUp() {
           <h1 className="mt-2 text-2xl font-semibold text-white">Create your account</h1>
           <p className="mt-2 text-sm text-zinc-500">Choose your workspace role. Access is governed by RBAC.</p>
         </div>
+
         <form onSubmit={submit} className="space-y-5">
           <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Full name" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
           <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="email" placeholder="Email address" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
@@ -75,6 +83,7 @@ export default function SignUp() {
               value={role}
               onChange={(e) => setRole(e.target.value as UserRole | '')}
               required
+              aria-describedby="user-role-help"
               className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-cyan-500/60"
             >
               <option value="" disabled>Select your role</option>
@@ -84,6 +93,9 @@ export default function SignUp() {
                 </option>
               ))}
             </select>
+            <p id="user-role-help" className="mt-2 text-xs text-zinc-500">
+              Admin access is provisioned separately by authorized StreamVista administrators.
+            </p>
           </div>
 
           <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={8} autoComplete="new-password" placeholder="Password (8+ characters)" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
@@ -94,6 +106,7 @@ export default function SignUp() {
             {!busy && <ArrowRight className="h-4 w-4" />}
           </button>
         </form>
+
         <p className="mt-6 text-center text-sm text-zinc-500">Already registered? <Link to="/login" className="text-cyan-400 hover:text-cyan-300">Sign in</Link></p>
       </div>
     </div>

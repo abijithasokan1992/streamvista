@@ -14,8 +14,7 @@ export async function createOrder(req: Request, res: Response) {
     const amount = Number((req.body as any)?.amount);
     const titleId = (req.body as any)?.titleId || (req.body as any)?.assetId;
     const userId = (req as any).user?.userId || (req as any).user?.id;
-    const idempotencyKey =
-      String(req.headers['idempotency-key'] || (req.body as any)?.idempotencyKey || '').trim();
+    const idempotencyKey = String(req.headers['idempotency-key'] || (req.body as any)?.idempotencyKey || '').trim();
     if (!amount || amount <= 0 || !titleId || !userId) {
       return res.status(400).json({ error: 'amount, titleId and session are required' });
     }
@@ -25,17 +24,17 @@ export async function createOrder(req: Request, res: Response) {
     const db = admin();
     const { data: existing } = await db
       .from('sv_payments')
-      .select('id,status,razorpay_order_id')
+      .select('id,status,provider_order_id')
       .eq('idempotency_key', idempotencyKey)
       .maybeSingle();
-    if (existing?.razorpay_order_id) {
-      return res.json({ success: true, duplicate: true, order: { id: existing.razorpay_order_id }, payment: existing });
+    if (existing?.provider_order_id) {
+      return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id }, payment: existing });
     }
     const order = await paymentService.createOrder(amount, 'INR', `sv_${idempotencyKey}`.slice(0, 40));
     const { error } = await db.from('sv_payments').insert({
       user_id: userId,
       title_id: titleId,
-      razorpay_order_id: order.id,
+      provider_order_id: order.id,
       status: 'created',
       idempotency_key: idempotencyKey,
     });

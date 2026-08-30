@@ -9,13 +9,6 @@ import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 
 dotenv.config();
 
-const logExporter = new OTLPLogExporter({
-  url: 'https://telemetry.googleapis.com/v1/logs',
-  headers: { 'x-goog-user-project': 'streamvista-495500' },
-});
-const sdk = new NodeSDK({ logRecordProcessor: new SimpleLogRecordProcessor({ exporter: logExporter }) });
-void sdk.start();
-
 import { initializeDb } from './config/db';
 import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
@@ -26,6 +19,14 @@ import razorpayWebhook from './routes/razorpayWebhook';
 import aiRoutes from './routes/ai';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
+import { assertProductionRuntime, providerAvailability } from './lib/productionReadiness';
+
+const logExporter = new OTLPLogExporter({
+  url: 'https://telemetry.googleapis.com/v1/logs',
+  headers: { 'x-goog-user-project': 'streamvista-495500' },
+});
+const sdk = new NodeSDK({ logRecordProcessor: new SimpleLogRecordProcessor({ exporter: logExporter }) });
+void sdk.start();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -67,7 +68,8 @@ app.use('/api/agents', authorize(), agentRoutes);
 app.use('/api/notifications', authorize(), notificationRoutes);
 
 app.use(express.static(path.join(__dirname, '../../../dist')));
-app.get('/api/health', (_req, res) => res.json({ status: 'OK', timestamp: new Date().toISOString(), service: 'StreamVista' }));
+app.get('/api/health', (_req, res) => res.json({ status: 'OK', timestamp: new Date().toISOString(), service: 'StreamVista', providers: providerAvailability() }));
+app.get('/api/runtime/readiness', (_req, res) => res.json(providerAvailability()));
 app.get('/api/storage/status', (_req, res) => {
   const provider = process.env.STORAGE_PROVIDER;
   const bucket = process.env.OCI_BUCKET_NAME || process.env.S3_BUCKET_NAME || process.env.GCS_BUCKET_NAME;
@@ -79,6 +81,7 @@ app.get('/{*splat}', (_req, res) => res.sendFile(path.join(__dirname, '../../../
 
 async function startServer() {
   try {
+    assertProductionRuntime();
     await initializeDb();
     app.listen(PORT, () => console.log(`StreamVista API is running on port ${PORT}`));
   } catch (err) {

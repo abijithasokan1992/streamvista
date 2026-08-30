@@ -10,7 +10,7 @@ async function resolveSupabaseUser(token: string): Promise<AuthUser | null> {
   if (!response.ok) return null;
   const authUser = await response.json() as { id: string; email?: string; user_metadata?: Record<string, string> };
   let profile: Record<string, string> = {};
-  const profileResponse = await fetch(`${url}/rest/v1/sv_app_profiles?select=*&user_id=eq.${encodeURIComponent(authUser.id)}&limit=1`, {
+  const profileResponse = await fetch(`${url}/rest/v1/sv_app_profiles?select=id,email,app_role,org_id&email=eq.${encodeURIComponent(authUser.email || '')}&limit=1`, {
     headers: { Authorization: `Bearer ${token}`, apikey: key },
   });
   if (profileResponse.ok) profile = ((await profileResponse.json()) as Record<string, string>[])[0] || {};
@@ -18,8 +18,8 @@ async function resolveSupabaseUser(token: string): Promise<AuthUser | null> {
     userId: authUser.id,
     email: authUser.email,
     fullName: authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email,
-    workspace: profile.workspace || authUser.user_metadata?.workspace || 'creator-studio',
-    role: profile.role || authUser.user_metadata?.role || 'creator',
+    workspace: authUser.user_metadata?.workspace || 'creator-studio',
+    role: profile.app_role || authUser.user_metadata?.role || 'creator',
   };
 }
 

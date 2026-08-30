@@ -177,52 +177,54 @@ $$;
 revoke all on function cps.is_member(uuid) from public;
 grant execute on function cps.is_member(uuid) to authenticated;
 
-create policy cps_workspace_select on cps.workspaces
-for select to authenticated using (cps.is_member(id) or owner_user_id = (select auth.uid()));
-create policy cps_workspace_insert on cps.workspaces
-for insert to authenticated with check (owner_user_id = (select auth.uid()));
-create policy cps_workspace_update on cps.workspaces
-for update to authenticated using (owner_user_id = (select auth.uid()));
+drop policy if exists cps_workspace_select on cps.workspaces;
+drop policy if exists cps_workspace_insert on cps.workspaces;
+drop policy if exists cps_workspace_update on cps.workspaces;
+create policy cps_workspace_select on cps.workspaces for select to authenticated using (cps.is_member(id) or owner_user_id = (select auth.uid()));
+create policy cps_workspace_insert on cps.workspaces for insert to authenticated with check (owner_user_id = (select auth.uid()));
+create policy cps_workspace_update on cps.workspaces for update to authenticated using (owner_user_id = (select auth.uid()));
 
-create policy cps_member_select on cps.workspace_members
-for select to authenticated using (cps.is_member(workspace_id));
-create policy cps_member_insert on cps.workspace_members
-for insert to authenticated with check (cps.is_member(workspace_id));
-create policy cps_member_update on cps.workspace_members
-for update to authenticated using (cps.is_member(workspace_id));
-create policy cps_member_delete on cps.workspace_members
-for delete to authenticated using (cps.is_member(workspace_id));
+drop policy if exists cps_member_select on cps.workspace_members;
+drop policy if exists cps_member_insert on cps.workspace_members;
+drop policy if exists cps_member_update on cps.workspace_members;
+drop policy if exists cps_member_delete on cps.workspace_members;
+create policy cps_member_select on cps.workspace_members for select to authenticated using (cps.is_member(workspace_id));
+create policy cps_member_insert on cps.workspace_members for insert to authenticated with check (cps.is_member(workspace_id));
+create policy cps_member_update on cps.workspace_members for update to authenticated using (cps.is_member(workspace_id));
+create policy cps_member_delete on cps.workspace_members for delete to authenticated using (cps.is_member(workspace_id));
 
-create policy cps_project_select on cps.projects
-for select to authenticated using (cps.is_member(workspace_id));
-create policy cps_project_insert on cps.projects
-for insert to authenticated with check (cps.is_member(workspace_id) and created_by = (select auth.uid()));
-create policy cps_project_update on cps.projects
-for update to authenticated using (cps.is_member(workspace_id));
-create policy cps_project_delete on cps.projects
-for delete to authenticated using (cps.is_member(workspace_id));
+drop policy if exists cps_project_select on cps.projects;
+drop policy if exists cps_project_insert on cps.projects;
+drop policy if exists cps_project_update on cps.projects;
+drop policy if exists cps_project_delete on cps.projects;
+create policy cps_project_select on cps.projects for select to authenticated using (cps.is_member(workspace_id));
+create policy cps_project_insert on cps.projects for insert to authenticated with check (cps.is_member(workspace_id) and created_by = (select auth.uid()));
+create policy cps_project_update on cps.projects for update to authenticated using (cps.is_member(workspace_id));
+create policy cps_project_delete on cps.projects for delete to authenticated using (cps.is_member(workspace_id));
 
-create policy cps_asset_select on cps.assets
-for select to authenticated using (cps.is_member(workspace_id));
-create policy cps_asset_insert on cps.assets
-for insert to authenticated with check (cps.is_member(workspace_id) and owner_user_id = (select auth.uid()));
-create policy cps_asset_update on cps.assets
-for update to authenticated using (cps.is_member(workspace_id));
-create policy cps_asset_delete on cps.assets
-for delete to authenticated using (cps.is_member(workspace_id));
+drop policy if exists cps_asset_select on cps.assets;
+drop policy if exists cps_asset_insert on cps.assets;
+drop policy if exists cps_asset_update on cps.assets;
+drop policy if exists cps_asset_delete on cps.assets;
+create policy cps_asset_select on cps.assets for select to authenticated using (cps.is_member(workspace_id));
+create policy cps_asset_insert on cps.assets for insert to authenticated with check (cps.is_member(workspace_id) and owner_user_id = (select auth.uid()));
+create policy cps_asset_update on cps.assets for update to authenticated using (cps.is_member(workspace_id));
+create policy cps_asset_delete on cps.assets for delete to authenticated using (cps.is_member(workspace_id));
 
-create policy cps_ai_run_select on cps.ai_runs
-for select to authenticated using (cps.is_member(workspace_id));
-create policy cps_render_job_select on cps.render_jobs
-for select to authenticated using (cps.is_member(workspace_id));
-create policy cps_render_job_insert on cps.render_jobs
-for insert to authenticated with check (cps.is_member(workspace_id) and requested_by = (select auth.uid()));
-create policy cps_usage_select on cps.usage_ledger
-for select to authenticated using (cps.is_member(workspace_id));
-create policy cps_audit_select on cps.audit_events
-for select to authenticated using (cps.is_member(workspace_id) and actor_user_id = (select auth.uid()));
+drop policy if exists cps_ai_run_select on cps.ai_runs;
+create policy cps_ai_run_select on cps.ai_runs for select to authenticated using (cps.is_member(workspace_id));
 
--- AI execution, payment reconciliation, webhooks and worker mutations must use a server-side role.
+drop policy if exists cps_render_job_select on cps.render_jobs;
+drop policy if exists cps_render_job_insert on cps.render_jobs;
+create policy cps_render_job_select on cps.render_jobs for select to authenticated using (cps.is_member(workspace_id));
+create policy cps_render_job_insert on cps.render_jobs for insert to authenticated with check (cps.is_member(workspace_id) and requested_by = (select auth.uid()));
+
+drop policy if exists cps_usage_select on cps.usage_ledger;
+create policy cps_usage_select on cps.usage_ledger for select to authenticated using (cps.is_member(workspace_id) and user_id = (select auth.uid()));
+
+drop policy if exists cps_audit_select on cps.audit_events;
+create policy cps_audit_select on cps.audit_events for select to authenticated using (cps.is_member(workspace_id) and actor_user_id = (select auth.uid()));
+
 revoke all on all tables in schema cps from anon;
 revoke all on cps.webhook_events from authenticated;
 revoke all on cps.render_job_attempts from authenticated;

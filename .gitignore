@@ -6,25 +6,19 @@ dist/
 .vscode/
 thumbnails/
 uploads/
-.local/lib/python3.12/site-packages/llvmlite/binding/libllvmlite.so
-.cache/cloud-code/cloudcode_cli/cloudcode_cli/6aca8e36/cloudcode_cli
-
-libllvmlite.so
-cloudcode_cli
-*.zip
-node_modules/
-dist/
-.cache/
 .local/
-.gemini/
+.npm/
 
-# Cloud Shell & System Cache
-.cache/
-.local/
-.gemini/
-*.so
-*.dylib
-*.dll
-.bash_history
-.npm/
-.npm/
+# Local/runtime configuration
+.env
+.env.*
+!.env.example
+
+# Credentials / service accounts
+**/*service-account*.json
+**/google-service-account.json
+**/*credentials*.json
+
+# Logs and local workspace state
+*.log
+.codeoss/

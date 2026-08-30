@@ -1,0 +1,49 @@
+name: Crayons Pictures Production Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [codex/crayons-pictures-production-slice]
+
+jobs:
+  production-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build web and API
+        run: npm run build
+
+      - name: Reject tracked secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          forbidden=("google-service-account.json" ".env" ".env.production" ".env.local")
+          for f in "${forbidden[@]}"; do
+            if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
+              echo "Tracked secret/config file detected: $f"
+              exit 1
+            fi
+          done
+
+      - name: Reject production mock/fallback markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE --exclude-dir=node_modules --exclude-dir=.git \
+            'ZERO-COST MOCK MODE|MockDB|memoryUsers|memoryProjects|memoryFiles|memoryBridgeSubmissions|memoryDeliveryPackages|fallback JWT secret|streamvista_super_secret_key_2026' \
+            apps packages supabase 2>/dev/null; then
+            echo "Production gate failed: mock/in-memory/fallback implementation remains in product source."
+            exit 1
+          fi

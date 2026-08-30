@@ -1,22 +1,34 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_your_key_id',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'your_key_secret',
-});
+function getCredentials() {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) {
+    throw new Error('Razorpay server credentials are not configured');
+  }
+  return { keyId, keySecret };
+}
+
+function getClient() {
+  const { keyId, keySecret } = getCredentials();
+  return { client: new Razorpay({ key_id: keyId, key_secret: keySecret }), keyId, keySecret };
+}
 
 export class PaymentService {
   static async createRazorpayOrder(amount: number, currency: string = 'INR') {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error('Invalid payment amount');
+    }
+    const { client, keyId } = getClient();
     const options = {
-      amount: Math.round(amount * 100), // Razorpay expects amount in paise
+      amount: Math.round(amount * 100),
       currency,
       receipt: `receipt_${Date.now()}`,
     };
-
     try {
-      const order = await razorpay.orders.create(options);
-      return order;
+      const order = await client.orders.create(options);
+      return { order, keyId };
     } catch (err) {
       console.error('Razorpay Order Creation Error:', err);
       throw new Error('Failed to initiate payment with Razorpay');
@@ -24,12 +36,26 @@ export class PaymentService {
   }
 
   static verifySignature(orderId: string, paymentId: string, signature: string) {
-    const body = orderId + "|" + paymentId;
+    if (!orderId || !paymentId || !signature) return false;
+    const { keySecret } = getCredentials();
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'your_key_secret')
-      .update(body.toString())
+      .createHmac('sha256', keySecret)
+      .update(`${orderId}|${paymentId}`)
       .digest('hex');
+    const expected = Buffer.from(expectedSignature, 'utf8');
+    const received = Buffer.from(signature, 'utf8');
+    return expected.length === received.length && crypto.timingSafeEqual(expected, received);
+  }
 
-    return expectedSignature === signature;
+  static verifyWebhookSignature(rawBody: Buffer | string, signature: string) {
+    if (!signature) return false;
+    const { keySecret } = getCredentials();
+    const expectedSignature = crypto
+      .createHmac('sha256', keySecret)
+      .update(rawBody)
+      .digest('hex');
+    const expected = Buffer.from(expectedSignature, 'utf8');
+    const received = Buffer.from(signature, 'utf8');
+    return expected.length === received.length && crypto.timingSafeEqual(expected, received);
   }
 }

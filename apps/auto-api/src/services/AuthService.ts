@@ -2,13 +2,18 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { executeQuery } from '../config/db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'autoos_secret_key_2026';
+function jwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET is not configured');
+  return secret;
+}
 
 export class AuthService {
   static async signup(userData: any) {
     const { email, password } = userData;
-    const passwordHash = await bcrypt.hash(password, 10);
+    if (!email || !password) throw new Error('Email and password are required');
 
+    const passwordHash = await bcrypt.hash(password, 12);
     const sql = `
       INSERT INTO users (username, email, password_hash)
       VALUES (:email, :email, :passwordHash)
@@ -18,30 +23,27 @@ export class AuthService {
     const result: any = await executeQuery(sql, {
       email,
       passwordHash,
-      userId: { type: 2002, dir: 3003 } // oracledb.NUMBER, oracledb.BIND_OUT
+      userId: { type: 2002, dir: 3003 }
     });
 
     return result.outBinds.userId[0];
   }
 
   static async login(email: string, password: string) {
+    if (!email || !password) throw new Error('Email and password are required');
+
     const sql = `SELECT * FROM users WHERE email = :email`;
     const result: any = await executeQuery(sql, { email });
 
-    if (result.rows.length === 0) {
-      throw new Error('User not found');
-    }
+    if (result.rows.length === 0) throw new Error('User not found');
 
     const user = result.rows[0];
     const isPasswordValid = await bcrypt.compare(password, user.PASSWORD_HASH);
-
-    if (!isPasswordValid) {
-      throw new Error('Invalid password');
-    }
+    if (!isPasswordValid) throw new Error('Invalid password');
 
     const token = jwt.sign(
       { userId: user.USER_ID, email: user.EMAIL, username: user.USERNAME },
-      JWT_SECRET,
+      jwtSecret(),
       { expiresIn: '24h' }
     );
 

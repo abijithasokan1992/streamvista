@@ -22,15 +22,23 @@ export default function SignUp() {
     e.preventDefault();
     if (!supabase) return setMessage('Authentication is not configured yet.');
     if (password.length < 8) return setMessage('Use a password with at least 8 characters.');
-    setBusy(true);
-    setMessage(null);
+    setBusy(true); setMessage(null);
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: { data: { full_name: name.trim(), role, workspace: role === 'buyer' ? 'crayons-bridge' : 'creator-studio' } },
     });
+    if (error) { setBusy(false); return setMessage(error.message); }
+    if (data.user) {
+      const userId = data.user.id;
+      const profileRes = await supabase.from('profiles').upsert({ id: userId, email: email.trim(), display_name: name.trim(), account_type: role }, { onConflict: 'id' });
+      const roleRes = await supabase.from('user_roles').upsert({ user_id: userId, role }, { onConflict: 'user_id' });
+      if (profileRes.error || roleRes.error) {
+        setBusy(false);
+        return setMessage(profileRes.error?.message || roleRes.error?.message || 'Account profile setup failed.');
+      }
+    }
     setBusy(false);
-    if (error) return setMessage(error.message);
     if (data.session) navigate('/creator-studio', { replace: true });
     else setMessage('Account created. Check your email to confirm your address, then sign in.');
   };

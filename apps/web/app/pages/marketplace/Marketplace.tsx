@@ -1,265 +1,244 @@
-import React, { useState } from 'react';
-import { Search, Filter, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, Loader2, Search } from 'lucide-react';
 import AssetCard from '../../components/AssetCard';
 import LicenseCheckout from '../../components/LicenseCheckout';
+import { supabase } from '../../lib/supabase';
+
+type MarketplaceItem = {
+  id: string;
+  title: string;
+  language: string;
+  resolution: string;
+  price: number;
+  qcStatus: 'PASSED' | 'PENDING' | 'FAILED';
+  type: 'CONTENT';
+  titleId: string;
+};
 
 const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAsset, setSelectedAsset] = useState<any>(null);
-  const [activeCategory, setActiveCategory] = useState('ALL');
-  
-  // Mock data for Assets
-  const assets = [
-    { id: 'ML-4501', title: 'Drishyam 2: The Resumption', language: 'Malayalam', resolution: '4K UHD', price: 45000, qcStatus: 'PASSED', type: 'CONTENT' },
-    { id: 'TE-2204', title: 'Pushpa: The Rise', language: 'Telugu', resolution: '8K Master', price: 85000, qcStatus: 'PASSED', type: 'CONTENT' },
-    { id: 'HI-8812', title: 'Jawan: Extended Cut', language: 'Hindi', resolution: '4K ProRes', price: 62000, qcStatus: 'PASSED', type: 'CONTENT' },
-  ];
+  const [selectedAsset, setSelectedAsset] = useState<MarketplaceItem | null>(null);
+  const [activeCategory, setActiveCategory] = useState('CONTENT');
+  const [assets, setAssets] = useState<MarketplaceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [role, setRole] = useState<string | null>(null);
 
-  // MediaTech & AI Services Catalog
-  const services = [
-    { id: 'SVC-QC-01', title: 'Content QC Certificate', language: 'GLOBAL', resolution: 'OTT SPEC', price: 4999, qcStatus: 'PASSED', type: 'SERVICE' },
-    { id: 'SVC-AI-01', title: 'AI Audio Enhancement', language: 'INDIC', resolution: 'HI-RES', price: 2999, qcStatus: 'PASSED', type: 'SERVICE' },
-    { id: 'SVC-DEL-01', title: 'Encrypted Master Delivery', language: 'SECURE', resolution: 'DCP/IMF', price: 9999, qcStatus: 'PASSED', type: 'SERVICE' },
-    { id: 'SVC-LOC-01', title: 'AI Multi-Lang Dubbing', language: 'PAN-INDIA', resolution: 'TONE-SYNC', price: 15000, qcStatus: 'PASSED', type: 'SERVICE' },
-  ];
+  useEffect(() => {
+    let active = true;
 
-  const allItems = [...assets, ...services];
-  const filteredItems = allItems.filter(item => 
-    (activeCategory === 'ALL' || item.type === activeCategory) &&
-    (item.title.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+    const load = async () => {
+      setLoading(true);
+      setError('');
+
+      if (!supabase) {
+        setError('Supabase is not configured for this deployment.');
+        setLoading(false);
+        return;
+      }
+
+      const { data: auth } = await supabase.auth.getUser();
+      const user = auth.user;
+      if (!user) {
+        setError('Please sign in to access Crayons Bridge.');
+        setLoading(false);
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('sv_app_profiles')
+        .select('app_role, verification_status')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        setError(profileError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (active) setRole(profile?.app_role ?? null);
+
+      const { data, error: titleError } = await supabase
+        .from('sv_app_titles')
+        .select('id,title,primary_language,status,commercial_profile,metadata')
+        .in('status', ['approved', 'ready_for_distribution'])
+        .order('created_at', { ascending: false });
+
+      if (titleError) {
+        setError(titleError.message);
+        setLoading(false);
+        return;
+      }
+
+      const rows = (data ?? []) as Array<{
+        id: string;
+        title: string;
+        primary_language: string | null;
+        status: string;
+        commercial_profile: Record<string, unknown> | null;
+        metadata: Record<string, unknown> | null;
+      }>;
+
+      const mapped = rows.map((row) => {
+        const commercial = row.commercial_profile ?? {};
+        const metadata = row.metadata ?? {};
+        const configuredPrice = Number(commercial.price ?? commercial.license_price ?? metadata.price ?? 0);
+        const configuredResolution = String(metadata.resolution ?? commercial.resolution ?? 'MASTER');
+        const status = String(metadata.qc_status ?? commercial.qc_status ?? 'PASSED').toUpperCase();
+        return {
+          id: `TITLE-${row.id.slice(0, 8).toUpperCase()}`,
+          title: row.title,
+          language: row.primary_language || String(metadata.language ?? 'GLOBAL'),
+          resolution: configuredResolution,
+          price: Number.isFinite(configuredPrice) ? configuredPrice : 0,
+          qcStatus: status === 'FAILED' ? 'FAILED' : status === 'PENDING' ? 'PENDING' : 'PASSED',
+          type: 'CONTENT' as const,
+          titleId: row.id,
+        };
+      }).filter((item) => item.price > 0);
+
+      if (active) {
+        setAssets(mapped);
+        setLoading(false);
+      }
+    };
+
+    void load();
+    return () => { active = false; };
+  }, []);
+
+  const filteredItems = useMemo(() => {
+    const needle = searchQuery.trim().toLowerCase();
+    return assets.filter((item) => !needle || [item.title, item.language, item.resolution, item.id].some((value) => value.toLowerCase().includes(needle)));
+  }, [assets, searchQuery]);
+
+  const handleLicense = (asset: MarketplaceItem) => {
+    if (role !== 'buyer') {
+      setError('Licensing is available to approved buyer accounts.');
+      return;
+    }
+    setError('');
+    setSelectedAsset(asset);
+  };
 
   return (
     <div className="marketplace-container">
       <header className="marketplace-header">
         <div className="header-info">
+          <div className="eyebrow">CRAYONS BRIDGE · LIVE MARKETPLACE</div>
           <h1>Asset Marketplace</h1>
-          <p>Rights-Cleared, QC-Verified Regional Film Content.</p>
+          <p>Rights-cleared, QC-verified content from the canonical StreamVista data plane.</p>
         </div>
-        
         <div className="search-bar">
           <Search size={18} className="search-icon" />
-          <input 
-            type="text" 
-            placeholder="Search by title, actor, or language..." 
+          <input
+            type="text"
+            placeholder="Search title, language, resolution…"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
           />
         </div>
       </header>
+
+      <div className="status-row">
+        <span className="status-pill">{role ? `ROLE · ${role.toUpperCase()}` : 'AUTHENTICATED'}</span>
+        <span className="status-pill">{loading ? 'SYNCING SUPABASE…' : `${filteredItems.length} LIVE TITLES`}</span>
+      </div>
+
+      {error && <div className="marketplace-error">{error}</div>}
 
       <div className="marketplace-layout">
         <aside className="filters-sidebar">
           <div className="filter-group">
             <h3>Language</h3>
-            <label className="filter-item"><input type="checkbox" /> Malayalam</label>
-            <label className="filter-item"><input type="checkbox" /> Tamil</label>
-            <label className="filter-item"><input type="checkbox" /> Hindi</label>
-            <label className="filter-item"><input type="checkbox" /> Telugu</label>
+            {['Malayalam', 'Tamil', 'Hindi', 'Telugu'].map((language) => (
+              <label className="filter-item" key={language}><input type="checkbox" disabled /> {language}</label>
+            ))}
           </div>
-
           <div className="filter-group">
-            <h3>Resolution</h3>
-            <label className="filter-item"><input type="checkbox" /> 8K Master</label>
-            <label className="filter-item"><input type="checkbox" /> 4K ProRes</label>
-            <label className="filter-item"><input type="checkbox" /> 4K UHD</label>
-          </div>
-
-          <div className="filter-group">
-            <h3>Rights Type</h3>
-            <label className="filter-item"><input type="checkbox" /> OTT Worldwide</label>
-            <label className="filter-item"><input type="checkbox" /> AI Training Data</label>
-            <label className="filter-item"><input type="checkbox" /> FAST Channel</label>
+            <h3>Rights</h3>
+            {['OTT Worldwide', 'AI Training Data', 'FAST Channel'].map((right) => (
+              <label className="filter-item" key={right}><input type="checkbox" disabled /> {right}</label>
+            ))}
           </div>
         </aside>
 
         <main className="assets-grid">
           <div className="grid-header">
             <div className="category-toggles">
-              <button onClick={() => setActiveCategory('ALL')} className={activeCategory === 'ALL' ? 'active' : ''}>All</button>
-              <button onClick={() => setActiveCategory('CONTENT')} className={activeCategory === 'CONTENT' ? 'active' : ''}>Film Assets</button>
-              <button onClick={() => setActiveCategory('SERVICE')} className={activeCategory === 'SERVICE' ? 'active' : ''}>MediaTech Services</button>
+              <button className="active" type="button">Film Assets</button>
             </div>
-            <button className="sort-btn">Sort by: Premium <ChevronDown size={14} /></button>
+            <button className="sort-btn" type="button" disabled>
+              Live catalog <ChevronDown size={14} />
+            </button>
           </div>
-          
-          <div className="grid">
-            {filteredItems.map(item => (
-              <AssetCard 
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                language={item.language}
-                resolution={item.resolution}
-                price={item.price.toLocaleString()}
-                qcStatus={item.qcStatus as any}
-                onLicense={() => setSelectedAsset(item)}
-              />
-            ))}
-          </div>
+
+          {loading ? (
+            <div className="empty-state"><Loader2 className="animate-spin" /> Loading verified titles…</div>
+          ) : filteredItems.length === 0 ? (
+            <div className="empty-state">No approved, commercially priced titles are available yet.</div>
+          ) : (
+            <div className="grid">
+              {filteredItems.map((item) => (
+                <AssetCard
+                  key={item.titleId}
+                  id={item.id}
+                  title={item.title}
+                  language={item.language}
+                  resolution={item.resolution}
+                  price={item.price.toLocaleString('en-IN')}
+                  qcStatus={item.qcStatus}
+                  onLicense={() => handleLicense(item)}
+                />
+              ))}
+            </div>
+          )}
         </main>
       </div>
 
       {selectedAsset && (
-        <LicenseCheckout 
-          assetId={selectedAsset.id}
+        <LicenseCheckout
+          assetId={selectedAsset.titleId}
           title={selectedAsset.title}
           price={selectedAsset.price}
-          onSuccess={() => console.log('License acquired!')}
+          onSuccess={() => {
+            setSelectedAsset(null);
+          }}
           onClose={() => setSelectedAsset(null)}
         />
       )}
 
       <style>{`
-        .marketplace-container {
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        .marketplace-header {
-          display: flex;
-          flex-direction: column;
-          gap: 30px;
-          margin-bottom: 50px;
-        }
-
-        @media (min-width: 768px) {
-          .marketplace-header {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: flex-end;
-          }
-        }
-
-        .header-info h1 {
-          font-size: 2.5rem;
-          margin-bottom: 8px;
-        }
-
-        .header-info p {
-          color: var(--studio-silver-muted);
-          font-size: 0.9rem;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-
-        .search-bar {
-          background: var(--glass-surface);
-          border: 1px solid var(--glass-border);
-          padding: 12px 20px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          width: 100%;
-          max-width: 400px;
-        }
-
-        .search-icon {
-          color: var(--royal-gold);
-        }
-
-        .search-bar input {
-          background: transparent;
-          border: none;
-          color: white;
-          width: 100%;
-          outline: none;
-          font-size: 0.9rem;
-        }
-
-        .marketplace-layout {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 40px;
-        }
-
-        @media (min-width: 1024px) {
-          .marketplace-layout {
-            grid-template-columns: 240px 1fr;
-          }
-        }
-
-        .filters-sidebar {
-          display: none;
-        }
-
-        @media (min-width: 1024px) {
-          .filters-sidebar {
-            display: block;
-          }
-        }
-
-        .filter-group {
-          margin-bottom: 32px;
-        }
-
-        .filter-group h3 {
-          font-size: 0.8rem;
-          margin-bottom: 16px;
-          color: var(--royal-gold);
-        }
-
-        .filter-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 0.85rem;
-          color: var(--studio-silver-muted);
-          margin-bottom: 10px;
-          cursor: pointer;
-        }
-
-        .filter-item:hover {
-          color: white;
-        }
-
-        .assets-grid {
-          flex: 1;
-        }
-
-        .grid-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 24px;
-          font-size: 0.8rem;
-          color: var(--studio-silver-muted);
-        }
-
-        .category-toggles {
-          display: flex;
-          gap: 12px;
-        }
-
-        .category-toggles button {
-          padding: 6px 16px;
-          border-radius: 20px;
-          border: 1px solid var(--glass-border);
-          color: var(--studio-silver-muted);
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          font-weight: 600;
-        }
-
-        .category-toggles button.active {
-          background: var(--royal-gold);
-          color: var(--obsidian);
-          border-color: var(--royal-gold);
-        }
-
-        .sort-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          color: var(--royal-gold);
-        }
-
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 30px;
-        }
+        .marketplace-container { max-width: 1400px; margin: 0 auto; }
+        .marketplace-header { display:flex; flex-direction:column; gap:30px; margin-bottom:20px; }
+        @media (min-width:768px){ .marketplace-header{ flex-direction:row; justify-content:space-between; align-items:flex-end; } }
+        .eyebrow{ color:var(--royal-gold); font-size:.68rem; font-weight:700; letter-spacing:.25em; margin-bottom:10px; }
+        .header-info h1{ font-size:2.5rem; margin-bottom:8px; }
+        .header-info p{ color:var(--studio-silver-muted); font-size:.9rem; letter-spacing:.5px; }
+        .search-bar{ background:var(--glass-surface); border:1px solid var(--glass-border); padding:12px 20px; border-radius:8px; display:flex; align-items:center; gap:12px; width:100%; max-width:400px; }
+        .search-icon{ color:var(--royal-gold); }
+        .search-bar input{ background:transparent; border:none; color:white; width:100%; outline:none; font-size:.9rem; }
+        .status-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
+        .status-pill{ border:1px solid var(--glass-border); background:rgba(255,255,255,.03); border-radius:999px; padding:7px 10px; color:var(--studio-silver-muted); font-size:.68rem; letter-spacing:.12em; }
+        .marketplace-error{ margin-bottom:24px; border:1px solid rgba(248,113,113,.25); background:rgba(248,113,113,.05); color:#fca5a5; padding:12px 14px; border-radius:8px; font-size:.85rem; }
+        .marketplace-layout{ display:grid; grid-template-columns:1fr; gap:40px; }
+        @media (min-width:1024px){ .marketplace-layout{ grid-template-columns:240px 1fr; } }
+        .filters-sidebar{ display:none; }
+        @media (min-width:1024px){ .filters-sidebar{ display:block; } }
+        .filter-group{ margin-bottom:32px; }
+        .filter-group h3{ font-size:.8rem; margin-bottom:16px; color:var(--royal-gold); }
+        .filter-item{ display:flex; align-items:center; gap:10px; font-size:.85rem; color:var(--studio-silver-muted); margin-bottom:10px; }
+        .assets-grid{ flex:1; }
+        .grid-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; font-size:.8rem; color:var(--studio-silver-muted); }
+        .category-toggles{ display:flex; gap:12px; }
+        .category-toggles button{ padding:6px 16px; border-radius:20px; border:1px solid var(--glass-border); color:var(--studio-silver-muted); font-size:.75rem; text-transform:uppercase; font-weight:600; }
+        .category-toggles button.active{ background:var(--royal-gold); color:var(--obsidian); border-color:var(--royal-gold); }
+        .sort-btn{ display:flex; align-items:center; gap:6px; color:var(--royal-gold); background:transparent; border:0; }
+        .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:30px; }
+        .empty-state{ min-height:280px; border:1px dashed var(--glass-border); border-radius:16px; display:flex; gap:10px; align-items:center; justify-content:center; color:var(--studio-silver-muted); }
+        .animate-spin{ animation:spin 1s linear infinite; }
+        @keyframes spin{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
       `}</style>
     </div>
   );

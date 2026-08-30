@@ -10,9 +10,12 @@ const Navbar = () => {
 
   React.useEffect(() => {
     if (!supabase) return;
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
-    return () => data.subscription.unsubscribe();
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => { if (mounted) setSession(data.session); });
+    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (mounted) setSession(nextSession);
+    });
+    return () => { mounted = false; data.subscription.unsubscribe(); };
   }, []);
 
   const handleLogout = async () => {

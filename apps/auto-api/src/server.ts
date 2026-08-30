@@ -8,7 +8,7 @@ import paymentRoutes from './routes/payments';
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 3000;
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -128,4 +128,9 @@ app.get('/api/readiness', async (_req, res) => {
 app.use(express.static(path.join(__dirname, '../../../dist')));
 app.get('/{*splat}', (_req, res) => res.sendFile(path.join(__dirname, '../../../dist/index.html')));
 
-app.listen(PORT, () => console.log(`StreamVista Command API listening on port ${PORT}`));
+// Vercel imports the app as a serverless handler; local/VM deployments still use listen().
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => console.log(`StreamVista Command API listening on port ${PORT}`));
+}
+
+export default app;

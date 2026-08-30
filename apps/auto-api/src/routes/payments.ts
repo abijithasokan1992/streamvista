@@ -7,22 +7,30 @@ const router = Router();
 router.post('/create-order', async (req: any, res) => {
   try {
     if (!req.user?.userId) return res.status(401).json({ error: 'Authenticated user required' });
-    const { amount, assetId, titleId, dealId, purpose } = req.body || {};
+    const { amount, titleId, dealId, purpose } = req.body || {};
     const normalizedAmount = Number(amount);
     if (!Number.isFinite(normalizedAmount) || normalizedAmount <= 0) {
       return res.status(400).json({ error: 'Invalid payment amount' });
     }
+    if (!titleId && !dealId) {
+      return res.status(400).json({ error: 'Title or deal is required' });
+    }
+    if (titleId && !/^[0-9a-f-]{36}$/i.test(String(titleId))) {
+      return res.status(400).json({ error: 'Invalid title id' });
+    }
+    if (dealId && !/^[0-9a-f-]{36}$/i.test(String(dealId))) {
+      return res.status(400).json({ error: 'Invalid deal id' });
+    }
 
     const result = await PaymentService.createRazorpayOrder(normalizedAmount, 'INR');
-    const idempotencyKey = `payment:${req.user.userId}:${result.order.id}`;
     const payment = await SupabasePaymentService.createPayment({
       userId: req.user.userId,
-      titleId: titleId || assetId || null,
+      titleId: titleId || null,
       dealId: dealId || null,
       amount: normalizedAmount,
       currency: result.order.currency || 'INR',
       providerOrderId: result.order.id,
-      idempotencyKey,
+      idempotencyKey: `payment:${req.user.userId}:${result.order.id}`,
       purpose: purpose || 'marketplace_license',
     });
 

@@ -3,6 +3,7 @@ import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { createClient } from '@supabase/supabase-js';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
@@ -31,21 +32,42 @@ import { ProductService } from './services/ProductService';
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'streamvista_super_secret_key_2026';
+const supabaseVerifier = (() => {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return url && key ? createClient(url, key, { auth: { persistSession: false } }) : null;
+})();
 
-app.use(cors());
+app.use(cors({ origin: true }));
 app.use('/api/razorpay/webhook', razorpayWebhook);
 app.use(express.json());
 
-export const authorize = (roles: string[] = []) => (req: any, res: any, next: any) => {
+export const authorize = (roles: string[] = []) => async (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Access token missing' });
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) return res.status(403).json({ error: 'Invalid or expired token' });
-    if (roles.length > 0 && !roles.includes(user.role)) return res.status(403).json({ error: 'Insufficient permissions' });
-    req.user = user;
-    next();
-  });
+
+  let user: any = null;
+  try {
+    user = jwt.verify(token, JWT_SECRET);
+  } catch {
+    if (supabaseVerifier) {
+      const { data } = await supabaseVerifier.auth.getUser(token);
+      if (data.user) {
+        user = {
+          userId: data.user.id,
+          id: data.user.id,
+          email: data.user.email,
+          role: data.user.user_metadata?.role || 'creator',
+        };
+      }
+    }
+  }
+
+  if (!user) return res.status(403).json({ error: 'Invalid or expired token' });
+  if (roles.length > 0 && !roles.includes(user.role)) return res.status(403).json({ error: 'Insufficient permissions' });
+  req.user = user;
+  next();
 };
 
 app.use('/api/auth', authRoutes);

@@ -23,6 +23,8 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({ assetId, title, price
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
+      const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existing) return resolve(true);
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => resolve(true);
@@ -34,60 +36,72 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({ assetId, title, price
   const handlePayment = async () => {
     setLoading(true);
     setStatus('PROCESSING');
-    
+    setError('');
+
     const token = localStorage.getItem('token');
     const resScript = await loadRazorpayScript();
 
+    if (!token) {
+      setError('Your secure session has expired. Please sign in again.');
+      setStatus('ERROR');
+      setLoading(false);
+      return;
+    }
+
     if (!resScript) {
-      setError('Razorpay SDK failed to load. Are you online?');
+      setError('Razorpay checkout failed to load.');
       setStatus('ERROR');
       setLoading(false);
       return;
     }
 
     try {
-      // 1. Create Order on Backend
       const orderRes = await axios.post('/api/payments/create-order', {
-        amount: price * 100, // Razorpay expects paise
-        assetId: assetId
+        amount: price * 100,
+        assetId,
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const { order } = orderRes.data;
+      const { order, keyId } = orderRes.data || {};
+      if (!order?.id || !keyId) {
+        throw new Error('Payment configuration unavailable');
+      }
 
-      // 2. Open Razorpay Modal
       const options = {
-        key: import.meta.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TUIQlNefHd62nl',
+        key: keyId,
         amount: order.amount,
         currency: order.currency,
         name: 'StreamVista Marketplace',
         description: `License for ${title}`,
         order_id: order.id,
         handler: async (response: any) => {
-          // 3. Verify Payment on Backend
           try {
             const verifyRes = await axios.post('/api/payments/verify', {
               orderId: order.id,
               paymentId: response.razorpay_payment_id,
               signature: response.razorpay_signature,
-              assetId: assetId
+              assetId,
             }, {
-              headers: { Authorization: `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (verifyRes.data.success) {
-              setStatus('SUCCESS');
-              onSuccess();
+            if (!verifyRes.data?.success) {
+              throw new Error('Payment verification failed');
             }
-          } catch (err) {
+
+            setStatus('SUCCESS');
+            onSuccess();
+          } catch {
             setError('Payment verification failed.');
             setStatus('ERROR');
           }
         },
-        prefill: {
-          name: 'Abijith Asokan',
-          email: 'abijithasokan@crayonspictures.com',
+        modal: {
+          ondismiss: () => {
+            setLoading(false);
+            setStatus('IDLE');
+          },
         },
         theme: {
           color: '#D4AF37',

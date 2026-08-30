@@ -30,12 +30,12 @@ import aiRoutes from './routes/ai';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
 import { ProductService } from './services/ProductService';
+import { authorizeSupabase } from './middleware/supabaseAuth';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'streamvista_super_secret_key_2026';
 
 app.use(cors());
 app.use(express.json());

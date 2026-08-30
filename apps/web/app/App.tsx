@@ -58,9 +58,12 @@ function BridgeHome() {
         <div className="max-w-3xl">
           <div className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-400">StreamVista</div>
           <h1 className="mt-5 text-5xl font-semibold tracking-tight md:text-7xl">Crayons Bridge</h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">A secure workspace for creators, rights, deal flow, delivery and revenue.</p>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
+            Secure workspace for creators, rights, delivery and paid plans.
+          </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/login" className="rounded-lg bg-cyan-500 px-6 py-3 font-semibold text-black hover:bg-cyan-400">Enter Bridge</a>
+            <a href="/pricing" className="rounded-lg border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white hover:bg-white/10">Pay plans</a>
             <a href="/signup" className="rounded-lg border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white hover:bg-white/10">Create account</a>
           </div>
         </div>

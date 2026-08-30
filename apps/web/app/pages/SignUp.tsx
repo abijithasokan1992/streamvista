@@ -27,13 +27,30 @@ export default function SignUp() {
     if (password.length < 8) return setMessage('Use a password with at least 8 characters.');
     setBusy(true);
     setMessage(null);
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: name, role } },
     });
+
+    if (error) {
+      setBusy(false);
+      return setMessage(error.message);
+    }
+
+    if (data.user) {
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .upsert({ user_id: data.user.id, role }, { onConflict: 'user_id' });
+
+      if (roleError) {
+        setBusy(false);
+        return setMessage(`Account created, but role provisioning failed: ${roleError.message}`);
+      }
+    }
+
     setBusy(false);
-    if (error) return setMessage(error.message);
     if (data.session) navigate('/creator-studio', { replace: true });
     else setMessage('Account created. Check your email to confirm your address, then sign in.');
   };
@@ -43,9 +60,9 @@ export default function SignUp() {
       <div className="w-full max-w-md rounded-2xl border border-cyan-900/40 bg-black/50 p-8 backdrop-blur-xl">
         <div className="mb-8 text-center">
           <Shield className="mx-auto mb-4 h-10 w-10 text-cyan-400" />
-          <div className="text-xs uppercase tracking-[0.35em] text-cyan-500">Crayons Bridge</div>
+          <div className="text-xs uppercase tracking-[0.35em] text-cyan-500">StreamVista</div>
           <h1 className="mt-2 text-2xl font-semibold text-white">Create your account</h1>
-          <p className="mt-2 text-sm text-zinc-500">Secure access starts with your verified identity.</p>
+          <p className="mt-2 text-sm text-zinc-500">Choose your workspace role. Access is governed by RBAC.</p>
         </div>
         <form onSubmit={submit} className="space-y-5">
           <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Full name" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />

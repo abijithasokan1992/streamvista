@@ -2,6 +2,12 @@ import { supabase } from './supabase';
 
 export type PaidCycle = 'creator' | 'topup';
 
+const COMMAND_API_URL = 'https://command.streamvista.in';
+const PLAN_AMOUNT_PAISE: Record<PaidCycle, number> = {
+  creator: 76700,
+  topup: 76700,
+};
+
 declare global {
   interface Window {
     Razorpay: new (options: Record<string, unknown>) => { open: () => void };
@@ -19,20 +25,19 @@ async function loadCheckout(): Promise<boolean> {
   });
 }
 
-const PLAN_AMOUNT_PAISE: Record<PaidCycle, number> = {
-  creator: 76700,
-  topup: 76700,
-};
-
-async function createOrder(onboardingId: string, amount: number, accessToken: string) {
-  const { data, error } = await supabase!.functions.invoke('create-razorpay-order', {
-    body: { onboardingId, amount, currency: 'INR' },
-    headers: { Authorization: `Bearer ${accessToken}` },
+async function commandRequest<T>(path: string, accessToken: string, body: Record<string, unknown>, idempotencyKey?: string): Promise<T> {
+  const response = await fetch(`${COMMAND_API_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+      ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+    },
+    body: JSON.stringify(body),
   });
-  if (error || !data?.orderId || !data?.keyId) {
-    throw new Error(data?.error ?? error?.message ?? 'Order create failed');
-  }
-  return data as { orderId: string; keyId: string; amount: number; currency: string };
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.error ?? `Payment API failed (${response.status})`);
+  return data as T;
 }
 
 export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean; error?: string }> {
@@ -40,9 +45,10 @@ export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean
 
   const { data: sessionData } = await supabase.auth.getSession();
   const session = sessionData.session;
-  if (!session?.access_token || !session.user) {
-    return { ok: false, error: 'Login required' };
-  }
+  if (!session?.access_token || !session.user) return { ok: false, error: 'Login required' };
+
+  const idempotencyKey = `plan:${session.user.id}:${cycle}:${crypto.randomUUID()}`;
+  const amount = PLAN_AMOUNT_PAISE[cycle];
 
   const { data: row, error: insertErr } = await supabase
     .from('onboarding_requests')
@@ -51,55 +57,55 @@ export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean
       submitter_user_id: session.user.id,
       payment_status: 'pending',
       onboarding_status: 'pending_payment',
-      amount_paise: PLAN_AMOUNT_PAISE[cycle],
+      amount_paise: amount,
       currency: 'INR',
     })
     .select('id')
     .single();
 
-  if (insertErr || !row?.id) {
-    return { ok: false, error: insertErr?.message ?? 'Could not create payment request' };
-  }
+  if (insertErr || !row?.id) return { ok: false, error: insertErr?.message ?? 'Could not create payment request' };
 
   try {
-    const order = await createOrder(row.id, PLAN_AMOUNT_PAISE[cycle], session.access_token);
+    const order = await commandRequest<{ success: boolean; order: { id: string; amount: number; currency: string; }; payment?: { id: string } }>('/api/payments/create-order', session.access_token, {
+      onboardingId: row.id,
+      amount,
+      currency: 'INR',
+      cycle,
+    }, idempotencyKey);
+
+    if (!order?.order?.id) throw new Error('Payment order was not created');
     const scriptOk = await loadCheckout();
-    if (!scriptOk) return { ok: false, error: 'Razorpay checkout failed to load' };
+    if (!scriptOk) throw new Error('Razorpay checkout failed to load');
 
     return new Promise((resolve) => {
       const rzp = new window.Razorpay({
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency ?? 'INR',
+        key: (import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined) || '',
+        amount: order.order.amount,
+        currency: order.order.currency ?? 'INR',
         name: 'StreamVista',
         description: cycle === 'creator' ? 'Creator plan — 1 TB / month' : '1 TB storage top-up',
-        order_id: order.orderId,
+        order_id: order.order.id,
         prefill: { email: session.user.email ?? '' },
         theme: { color: '#22d3ee' },
-        handler: async (response: {
-          razorpay_order_id: string;
-          razorpay_payment_id: string;
-          razorpay_signature: string;
-        }) => {
-          const { data: verified, error: verifyErr } = await supabase!.functions.invoke(
-            'verify-razorpay-payment',
-            {
-              body: {
-                onboardingId: row.id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              },
-              headers: { Authorization: `Bearer ${session.access_token}` },
-            },
-          );
-          if (verifyErr || !verified?.verified) {
-            resolve({ ok: false, error: verifyErr?.message ?? verified?.error ?? 'Payment verification failed' });
-            return;
+        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          try {
+            const verified = await commandRequest<{ success: boolean }>('/api/payments/verify', session.access_token, {
+              onboardingId: row.id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              cycle,
+            }, idempotencyKey);
+            resolve(verified?.success ? { ok: true } : { ok: false, error: 'Payment verification failed' });
+          } catch (error: any) {
+            resolve({ ok: false, error: error?.message ?? 'Payment verification failed' });
           }
-          resolve({ ok: true });
         },
       });
+      if (!order.order.amount) {
+        resolve({ ok: false, error: 'Invalid payment amount returned by server' });
+        return;
+      }
       rzp.open();
     });
   } catch (error: any) {

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Shield, Loader2 } from 'lucide-react';
+import { Lock, Shield, Loader2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -46,14 +48,20 @@ export default function ResetPassword() {
               New password
               <div className="mt-2 flex items-center rounded-lg border border-white/10 bg-zinc-950 px-3">
                 <Lock className="mr-2 h-4 w-4 text-zinc-500" />
-                <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={8} autoComplete="new-password" className="w-full bg-transparent py-3 text-white outline-none" />
+                <input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} required minLength={8} autoComplete="new-password" className="w-full bg-transparent py-3 text-white outline-none" />
+                <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide new password' : 'Show new password'} className="ml-2 text-zinc-500 hover:text-zinc-200">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </label>
             <label className="block text-sm text-zinc-300">
               Confirm password
               <div className="mt-2 flex items-center rounded-lg border border-white/10 bg-zinc-950 px-3">
                 <Lock className="mr-2 h-4 w-4 text-zinc-500" />
-                <input value={confirm} onChange={(e) => setConfirm(e.target.value)} type="password" required minLength={8} autoComplete="new-password" className="w-full bg-transparent py-3 text-white outline-none" />
+                <input value={confirm} onChange={(e) => setConfirm(e.target.value)} type={showConfirm ? 'text' : 'password'} required minLength={8} autoComplete="new-password" className="w-full bg-transparent py-3 text-white outline-none" />
+                <button type="button" onClick={() => setShowConfirm((v) => !v)} aria-label={showConfirm ? 'Hide confirmation password' : 'Show confirmation password'} className="ml-2 text-zinc-500 hover:text-zinc-200">
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </label>
             {message && <p className="rounded-lg border border-white/10 bg-zinc-950 p-3 text-sm text-zinc-300">{message}</p>}

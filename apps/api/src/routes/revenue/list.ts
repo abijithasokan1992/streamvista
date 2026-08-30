@@ -15,7 +15,7 @@ export async function listRevenue(req: Request, res: Response) {
     const db = admin();
     const { data, error } = await db
       .from('sv_payments')
-      .select('id,title_id,deal_id,status,verified_at,razorpay_payment_id')
+      .select('id,title_id,deal_id,status,verified_at,provider_payment_id')
       .eq('user_id', userId)
       .eq('status', 'verified');
     if (error) return res.status(503).json({ error: error.message });

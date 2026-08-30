@@ -1,29 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Database, Upload, HardDrive, Camera, Cpu, Activity, ShieldCheck, Plus } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function CreatorStudio() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedSource, setSelectedSource] = useState('card');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [projectCount, setProjectCount] = useState<number | null>(null);
+  const [storageStatus, setStorageStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [message, setMessage] = useState('');
 
-  const handleHardwareUpload = (e: React.FormEvent) => {
+  useEffect(() => {
+    let active = true;
+    const loadProductionState = async () => {
+      if (!supabase) { if (active) setStorageStatus('unavailable'); return; }
+      const [{ count, error }, { data: buckets, error: bucketError }] = await Promise.all([
+        supabase.from('sv_app_titles').select('id', { count: 'exact', head: true }),
+        supabase.storage.listBuckets()
+      ]);
+      if (!active) return;
+      setProjectCount(error ? null : count ?? 0);
+      setStorageStatus(bucketError || !buckets?.some((bucket) => bucket.name === 'streamvista-films') ? 'unavailable' : 'available');
+    };
+    void loadProductionState();
+    return () => { active = false; };
+  }, []);
+
+  const handleHardwareUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    setMessage('');
+    if (!supabase) { setMessage('Supabase is not configured. Ingest is unavailable.'); return; }
+    if (!selectedFile) { setMessage('Select a media file before committing ingest.'); return; }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setMessage('Your secure session has expired. Sign in again.'); return; }
     setIsUploading(true);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsUploading(false);
-          setUploadProgress(0);
-          alert("Asset safely routed to Oracle CRAYONS-CREATOR-RAW & Vault Storage!");
-          setActiveTab('dashboard');
-        }, 800);
-      }
-    }, 200);
+    setUploadProgress(10);
+    const path = `${user.id}/${crypto.randomUUID()}-${selectedFile.name}`;
+    const { error } = await supabase.storage.from('streamvista-films').upload(path, selectedFile, { upsert: false });
+    setUploadProgress(100);
+    setIsUploading(false);
+    setUploadProgress(0);
+    if (error) { setMessage(`Ingest failed: ${error.message}`); return; }
+    setMessage('Asset stored in the production StreamVista vault.');
+    setSelectedFile(null);
   };
 
   return (
@@ -61,35 +82,24 @@ export default function CreatorStudio() {
               <div className="metrics-row">
                 <div className="metric-card">
                   <span className="label">Live Operations</span>
-                  <span className="value">12 Projects</span>
-                  <div className="metric-footer">Active Studio Sessions</div>
+                  <span className="value">{projectCount === null ? 'Unavailable' : `${projectCount} Projects`}</span>
+                  <div className="metric-footer">Production Supabase records</div>
                 </div>
                 <div className="metric-card">
                   <span className="label">Syncing Pipeline</span>
-                  <span className="value">8.4 TB</span>
-                  <div className="metric-footer">Ingested This Month</div>
+                  <span className="value">Unavailable</span>
+                  <div className="metric-footer">Usage telemetry not available</div>
                 </div>
                 <div className="metric-card gold">
                   <span className="label">Vault Storage</span>
-                  <span className="value">142 / 250 TB</span>
-                  <div className="metric-footer">Oracle Cloud Infrastructure</div>
+                  <span className="value">{storageStatus === 'available' ? 'Connected' : storageStatus === 'checking' ? 'Checking…' : 'Unavailable'}</span>
+                  <div className="metric-footer">Supabase streamvista-films bucket</div>
                 </div>
               </div>
 
               <div className="recent-activity">
                 <h3>Recent Metadata Syncs</h3>
-                <div className="activity-list">
-                  <div className="activity-item">
-                    <span className="time">2m ago</span>
-                    <span className="desc">SHA-256 Audit Passed: CRIMSON_HORIZON_REEL1.mxf</span>
-                    <span className="status success">VERIFIED</span>
-                  </div>
-                  <div className="activity-item">
-                    <span className="time">15m ago</span>
-                    <span className="desc">Ingest Complete: SILENT_VALLEY_EP4_RAW</span>
-                    <span className="status info">STORED</span>
-                  </div>
-                </div>
+                <div className="activity-list"><div className="activity-item"><span className="desc">Live activity feed is not configured.</span><span className="status info">UNAVAILABLE</span></div></div>
               </div>
             </div>
           )}
@@ -117,7 +127,10 @@ export default function CreatorStudio() {
                     <Upload className="upload-icon" />
                     <p>{selectedSource === 'camera' ? 'Awaiting Live Camera API Sync...' : 'Select source to scan attached hardware file array'}</p>
                     <span>Supports .mxf, .exr, .raw, .braw</span>
+                    <input type="file" accept=".mxf,.exr,.raw,.braw" onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
                   </div>
+
+                  {message && <p role="status">{message}</p>}
 
                   <div className="form-actions">
                     <button type="button" onClick={() => setActiveTab('dashboard')} className="btn-secondary">Cancel</button>
@@ -345,3 +358,4 @@ export default function CreatorStudio() {
     </div>
   );
 }
+

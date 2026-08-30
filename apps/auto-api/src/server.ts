@@ -26,6 +26,7 @@ import razorpayWebhook from './routes/razorpayWebhook';
 import aiRoutes from './routes/ai';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
+import analyticsRoutes from './routes/analytics';
 import { ProductService } from './services/ProductService';
 
 const app = express();
@@ -70,6 +71,7 @@ app.use('/api/payments', authorize(), paymentRoutes);
 app.use('/api/ai', authorize(), aiRoutes);
 app.use('/api/agents', authorize(), agentRoutes);
 app.use('/api/notifications', authorize(), notificationRoutes);
+app.use('/api/analytics', authorize(), analyticsRoutes);
 
 app.use(express.static(path.join(__dirname, '../../../dist')));
 app.get('/api/health', (_req, res) => res.json({

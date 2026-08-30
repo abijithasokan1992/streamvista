@@ -9,12 +9,19 @@ dotenv.config();
  * Handles Razorpay order creation and payment verification.
  */
 class PaymentService {
-    private razorpay: any;
+    private razorpay: Razorpay;
 
     constructor() {
+        const keyId = process.env.RAZORPAY_KEY_ID;
+        const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+        if (!keyId || !keySecret) {
+            throw new Error('Razorpay server credentials are not configured');
+        }
+
         this.razorpay = new Razorpay({
-            key_id: process.env.RAZORPAY_KEY_ID || 'YOUR_KEY_ID',
-            key_secret: process.env.RAZORPAY_KEY_SECRET || 'YOUR_KEY_SECRET',
+            key_id: keyId,
+            key_secret: keySecret,
         });
     }
 
@@ -26,13 +33,12 @@ class PaymentService {
      */
     async createOrder(amount: number, currency: string = 'INR', receipt: string) {
         const options = {
-            amount: amount,
-            currency: currency,
-            receipt: receipt,
+            amount,
+            currency,
+            receipt,
         };
         try {
-            const order = await this.razorpay.orders.create(options);
-            return order;
+            return await this.razorpay.orders.create(options);
         } catch (error) {
             console.error('Razorpay Order Creation Error:', error);
             throw error;
@@ -43,10 +49,16 @@ class PaymentService {
      * Verify the payment signature received from the frontend.
      */
     verifySignature(orderId: string, paymentId: string, signature: string): boolean {
-        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET as string);
-        hmac.update(orderId + "|" + paymentId);
-        const generated_signature = hmac.digest('hex');
-        return generated_signature === signature;
+        const keySecret = process.env.RAZORPAY_KEY_SECRET;
+        if (!keySecret) return false;
+
+        const hmac = crypto.createHmac('sha256', keySecret);
+        hmac.update(`${orderId}|${paymentId}`);
+        const generatedSignature = hmac.digest('hex');
+        return crypto.timingSafeEqual(
+            Buffer.from(generatedSignature, 'utf8'),
+            Buffer.from(signature, 'utf8'),
+        );
     }
 }
 

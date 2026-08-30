@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
@@ -30,36 +29,19 @@ import aiRoutes from './routes/ai';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
 import { ProductService } from './services/ProductService';
+import { authorizeSupabase } from './middleware/supabaseAuth';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'streamvista_super_secret_key_2026';
 
 app.use(cors());
 app.use(express.json());
 
-// Basic RBAC Middleware
-export const authorize = (roles: string[] = []) => {
-  return (req: any, res: any, next: any) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) return res.status(401).json({ error: 'Access token missing' });
-
-    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-      if (err) return res.status(403).json({ error: 'Invalid or expired token' });
-      
-      if (roles.length > 0 && !roles.includes(user.role)) {
-        return res.status(403).json({ error: 'Insufficient permissions' });
-      }
-
-      req.user = user;
-      next();
-    });
-  };
-};
+// Supabase Auth is the production identity authority. The adapter preserves the
+// existing req.user contract (userId, workspace, role) for downstream routes.
+export const authorize = (roles: string[] = []) => authorizeSupabase(roles);
 
 // Routes
 app.use('/api/auth', authRoutes);

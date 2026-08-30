@@ -1,35 +1,53 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_your_key_id',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'your_key_secret',
-});
+function requireSecret(name: string): string {
+  const value = process.env[name];
+  if (!value || value.startsWith('YOUR_') || value.startsWith('your_')) {
+    throw new Error(`${name} is not configured`);
+  }
+  return value;
+}
+
+function timingSafeEqualText(expected: string, received: string): boolean {
+  const a = Buffer.from(expected);
+  const b = Buffer.from(received);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function getRazorpay() {
+  return new Razorpay({
+    key_id: requireSecret('RAZORPAY_KEY_ID'),
+    key_secret: requireSecret('RAZORPAY_KEY_SECRET'),
+  });
+}
 
 export class PaymentService {
-  static async createRazorpayOrder(amount: number, currency: string = 'INR') {
+  static async createRazorpayOrder(amount: number, currency: string = 'INR', receipt?: string) {
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error('Amount must be greater than zero');
     const options = {
-      amount: Math.round(amount * 100), // Razorpay expects amount in paise
+      amount: Math.round(amount),
       currency,
-      receipt: `receipt_${Date.now()}`,
+      receipt: receipt || `sv_${Date.now()}`,
     };
-
-    try {
-      const order = await razorpay.orders.create(options);
-      return order;
-    } catch (err) {
-      console.error('Razorpay Order Creation Error:', err);
-      throw new Error('Failed to initiate payment with Razorpay');
-    }
+    return getRazorpay().orders.create(options);
   }
 
   static verifySignature(orderId: string, paymentId: string, signature: string) {
-    const body = orderId + "|" + paymentId;
+    if (!orderId || !paymentId || !signature) return false;
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'your_key_secret')
-      .update(body.toString())
+      .createHmac('sha256', requireSecret('RAZORPAY_KEY_SECRET'))
+      .update(`${orderId}|${paymentId}`)
       .digest('hex');
+    return timingSafeEqualText(expectedSignature, signature);
+  }
 
-    return expectedSignature === signature;
+  static verifyWebhook(rawBody: string, signature: string) {
+    if (!rawBody || !signature) return false;
+    const expectedSignature = crypto
+      .createHmac('sha256', requireSecret('RAZORPAY_WEBHOOK_SECRET'))
+      .update(rawBody)
+      .digest('hex');
+    return timingSafeEqualText(expectedSignature, signature);
   }
 }

@@ -1,0 +1,40 @@
+# Crayons Pictures production environment contract
+# Copy to the deployment secret manager; NEVER commit real values.
+
+NODE_ENV=production
+PORT=3000
+JWT_SECRET=<32+ random chars>
+CORS_ORIGINS=https://streamvista.in,https://crayonspictures.com
+
+ORACLE_DB_USER=<required only for legacy AutoOS routes>
+ORACLE_DB_PASSWORD=<secret>
+ORACLE_DB_CONNECTION_STRING=<secure connection string>
+
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<server-only secret>
+
+RAZORPAY_KEY_ID=<live key id>
+RAZORPAY_KEY_SECRET=<live secret>
+RAZORPAY_WEBHOOK_SECRET=<webhook secret>
+
+STORAGE_PROVIDER=oci
+
+SMTP_HOST=<Hostinger SMTP host>
+SMTP_PORT=465
+SMTP_USER=abijithasokan@crayonspictures.com
+SMTP_PASSWORD=<mailbox password>
+MAIL_FROM=abijithasokan@crayonspictures.com
+
+OPENAI_API_KEY=<optional provider secret>
+OPENAI_MODEL=<optional model override>
+ANTHROPIC_API_KEY=<optional provider secret>
+ANTHROPIC_MODEL=<optional model override>
+GEMINI_API_KEY=<optional provider secret>
+GEMINI_MODEL=<optional model override>
+
+POSTHOG_API_KEY=<project key>
+POSTHOG_HOST=https://us.i.posthog.com
+AMPLITUDE_API_KEY=<optional secondary analytics key>
+
+RENDER_WORKER_BASE_URL=<private worker URL>
+RENDER_WORKER_TOKEN=<private worker token>

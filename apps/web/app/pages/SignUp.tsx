@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2, Shield } from 'lucide-react';
+import { ArrowRight, Loader2, Shield, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function SignUp() {
@@ -8,6 +8,7 @@ export default function SignUp() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -40,7 +41,12 @@ export default function SignUp() {
         <form onSubmit={submit} className="space-y-5">
           <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Full name" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
           <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="email" placeholder="Email address" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={8} autoComplete="new-password" placeholder="Password (8+ characters)" className="w-full rounded-lg border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none" />
+          <div className="flex items-center rounded-lg border border-white/10 bg-zinc-950 px-4">
+            <input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} required minLength={8} autoComplete="new-password" placeholder="Password (8+ characters)" className="w-full bg-transparent py-3 text-white outline-none" />
+            <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="ml-2 text-zinc-500 hover:text-zinc-200">
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {message && <p className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-3 text-sm text-cyan-300">{message}</p>}
           <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 py-3 font-semibold text-black hover:bg-cyan-400 disabled:opacity-60">
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}

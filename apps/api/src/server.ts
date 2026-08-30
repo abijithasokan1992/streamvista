@@ -12,7 +12,7 @@ import { QCService } from "./services/QCService";
 import { GoogleDriveService } from "./services/GoogleDriveService";
 import { PublicIntelligenceService } from "./services/PublicIntelligenceService";
 import { EmailService } from "./services/EmailService";
-import { paymentService } from "./services/paymentService";
+import { mountPaymentRoutes } from "./routes/payments/mount";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -157,6 +157,9 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(cors());
+  // Webhook raw-body is registered first; JSON parser is installed inside the mount
+  // so /order and /verify still receive a parsed body.
+  mountPaymentRoutes(app, authenticateToken);
   app.use(express.json());
 
   // Catalog Endpoint
@@ -164,42 +167,10 @@ async function startServer() {
     res.json({ success: true, services: serviceCatalog });
   });
 
-  // Payment Endpoints
-  app.post("/api/payments/create-order", authenticateToken, async (req: any, res) => {
-    const { amount, assetId } = req.body;
-    if (!amount || !assetId) return res.status(400).json({ error: "Amount and Asset ID are required." });
-
-    try {
-      const receipt = `rcpt_${assetId}_${Date.now()}`;
-      const order = await paymentService.createOrder(amount, 'INR', receipt);
-      res.json({ success: true, order });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to create payment order." });
-    }
-  });
-
-  app.post("/api/payments/verify", authenticateToken, async (req: any, res) => {
-    const { orderId, paymentId, signature, assetId } = req.body;
-    
-    if (!orderId || !paymentId || !signature) {
-      return res.status(400).json({ error: "Missing verification parameters." });
-    }
-
-    const isValid = paymentService.verifySignature(orderId, paymentId, signature);
-    
-    if (isValid) {
-      // In production, update the DB to reflect the licensed status
-      // memoryBridgeSubmissions.push({ assetId, licensedTo: req.user.email, date: new Date() });
-      
-      res.json({ 
-        success: true, 
-        message: "Payment verified successfully.",
-        certificateUrl: `/api/assets/${assetId}/clearance-certificate` 
-      });
-    } else {
-      res.status(400).json({ success: false, error: "Invalid payment signature." });
-    }
+  // Legacy alias. Canonical handlers live in mountPaymentRoutes:
+  // POST /api/payments/order, POST /api/payments/verify, POST /api/razorpay/webhook
+  app.post("/api/payments/create-order", authenticateToken, async (_req: any, res) => {
+    res.status(410).json({ error: "Use POST /api/payments/order" });
   });
 
   app.post("/api/qc/trigger", authenticateToken, async (req: any, res) => {
@@ -534,45 +505,8 @@ async function startServer() {
     }
   });
 
-  app.post("/api/webhooks/razorpay", async (req, res) => {
-    const crypto = require('crypto');
-    const secret = process.env.RAZORPAY_WEBHOOK_SECRET || "streamvista_secret";
-    
-    // In production, verify signature here using crypto
-    // const shasum = crypto.createHmac('sha256', secret);
-    // shasum.update(JSON.stringify(req.body));
-    // const digest = shasum.digest('hex');
-    // if (digest !== req.headers['x-razorpay-signature']) return res.status(400).send('Invalid signature');
-
-    const event = req.body;
-    if (event.event === 'payment.captured') {
-        const userId = event.payload.payment.entity.notes.userId;
-        const plan = event.payload.payment.entity.notes.plan || 'Creator';
-        
-        // Define plan storage limits
-        const limits: Record<string, number> = { 'Free': 1024, 'Creator': 10240, 'Studio': 102400 };
-        const limit = limits[plan] || 1024;
-        
-        let connection;
-        try {
-            connection = await getDbConnection();
-            if (connection) {
-               // Aligning with users table in schema.sql
-               await connection.execute(
-                 `UPDATE users SET storage_limit = :limit WHERE user_id = :userId`,
-                 { limit, userId },
-                 { autoCommit: true }
-               );
-               console.log(`Revenue Confirmed: Storage limit updated for user ${userId} to ${plan}`);
-            }
-        } catch (err) {
-            console.error("Failed to update storage in Oracle:", err);
-        } finally {
-            if (connection) { try { await connection.close(); } catch (err) {} }
-        }
-    }
-    
-    res.status(200).send("OK");
+  app.post("/api/webhooks/razorpay", (_req, res) => {
+    res.status(410).json({ error: "Use POST /api/razorpay/webhook" });
   });
 
   // Activity Logs Endpoint

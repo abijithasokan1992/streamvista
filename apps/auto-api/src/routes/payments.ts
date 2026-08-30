@@ -21,13 +21,58 @@ router.post('/create-order', async (req: any, res) => {
   try {
     const userId = sessionUser(req);
     const amount = Number(req.body?.amount);
-    const titleId = req.body?.titleId || req.body?.assetId;
+    const titleId = req.body?.titleId || req.body?.assetId || null;
+    const onboardingId = req.body?.onboardingId || null;
+    const cycle = req.body?.cycle || null;
     const idempotencyKey = String(req.headers['idempotency-key'] || req.body?.idempotencyKey || '').trim();
     if (!userId) return res.status(401).json({ error: 'Session required' });
-    if (!Number.isFinite(amount) || amount <= 0 || !titleId) return res.status(400).json({ error: 'amount and titleId are required' });
+    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Amount is required' });
+    if (!titleId && !onboardingId) return res.status(400).json({ error: 'titleId or onboardingId is required' });
     if (!idempotencyKey) return res.status(400).json({ error: 'Idempotency-Key header is required' });
 
     const db = admin();
+    if (onboardingId) {
+      const { data: onboarding, error: onboardingErr } = await db
+        .from('onboarding_requests')
+        .select('id,submitter_user_id,selected_cycle,amount_paise,payment_status,onboarding_status,razorpay_order_id')
+        .eq('id', onboardingId)
+        .maybeSingle();
+      if (onboardingErr || !onboarding) return res.status(404).json({ error: 'Payment request not found' });
+      if (onboarding.submitter_user_id !== userId) return res.status(403).json({ error: 'Payment request does not belong to this session' });
+      if (onboarding.amount_paise !== amount) return res.status(400).json({ error: 'Payment amount does not match the selected plan' });
+      if (onboarding.razorpay_order_id) {
+        return res.json({ success: true, duplicate: true, order: { id: onboarding.razorpay_order_id, amount, currency: 'INR' } });
+      }
+      const { data: existing } = await db.from('sv_payments')
+        .select('id,status,provider_order_id,amount,currency')
+        .eq('idempotency_key', idempotencyKey)
+        .maybeSingle();
+      if (existing?.provider_order_id) {
+        return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id, amount: Number(existing.amount) * 100, currency: existing.currency || 'INR' }, payment: existing });
+      }
+      const order = await PaymentService.createRazorpayOrder(amount, 'INR', `sv_${onboardingId}`.slice(0, 40));
+      const paymentRow = {
+        user_id: userId,
+        title_id: null,
+        deal_id: null,
+        provider_order_id: order.id,
+        amount: amount / 100,
+        currency: 'INR',
+        purpose: cycle || onboarding.selected_cycle,
+        status: 'created',
+        idempotency_key: idempotencyKey,
+      };
+      const { error: paymentErr } = await db.from('sv_payments').insert(paymentRow);
+      if (paymentErr) return res.status(503).json({ error: paymentErr.message });
+      const { error: updateErr } = await db.from('onboarding_requests').update({
+        razorpay_order_id: order.id,
+        payment_status: 'created',
+        updated_at: new Date().toISOString(),
+      }).eq('id', onboardingId);
+      if (updateErr) return res.status(503).json({ error: updateErr.message });
+      return res.json({ success: true, order });
+    }
+
     const { data: existing } = await db.from('sv_payments')
       .select('id,status,provider_order_id')
       .eq('idempotency_key', idempotencyKey)
@@ -48,16 +93,16 @@ router.post('/create-order', async (req: any, res) => {
       idempotency_key: idempotencyKey,
     });
     if (error) return res.status(503).json({ error: error.message });
-    res.json({ success: true, order });
+    return res.json({ success: true, order });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Payment order failed closed' });
+    return res.status(503).json({ error: err.message || 'Payment order failed closed' });
   }
 });
 
 router.post('/verify', async (req: any, res) => {
   try {
     const userId = sessionUser(req);
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId, paymentId, signature, titleId, dealId } = req.body || {};
+    const { onboardingId, razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId, paymentId, signature, titleId, dealId, cycle } = req.body || {};
     const finalOrderId = razorpay_order_id || orderId;
     const finalPaymentId = razorpay_payment_id || paymentId;
     const finalSignature = razorpay_signature || signature;
@@ -68,6 +113,16 @@ router.post('/verify', async (req: any, res) => {
     }
 
     const db = admin();
+    if (onboardingId) {
+      const { data: onboarding } = await db.from('onboarding_requests')
+        .select('id,submitter_user_id,selected_cycle,amount_paise,razorpay_order_id')
+        .eq('id', onboardingId)
+        .maybeSingle();
+      if (!onboarding) return res.status(404).json({ error: 'Payment request not found' });
+      if (onboarding.submitter_user_id !== userId) return res.status(403).json({ error: 'Payment request does not belong to this session' });
+      if (onboarding.razorpay_order_id !== finalOrderId) return res.status(400).json({ error: 'Razorpay order mismatch' });
+    }
+
     const idempotencyKey = String(req.headers['idempotency-key'] || `${finalOrderId}:${finalPaymentId}`).trim();
     const { data: existing } = await db.from('sv_payments').select('id,status,verified_at').eq('idempotency_key', idempotencyKey).maybeSingle();
     const patch = {
@@ -79,14 +134,27 @@ router.post('/verify', async (req: any, res) => {
       status: 'captured',
       verified_at: new Date().toISOString(),
       idempotency_key: idempotencyKey,
+      purpose: cycle || (onboardingId ? 'creator' : 'streamvista'),
     };
     const result = existing
       ? await db.from('sv_payments').update(patch).eq('id', existing.id).select('id,status,verified_at').single()
       : await db.from('sv_payments').insert(patch).select('id,status,verified_at').single();
     if (result.error) return res.status(503).json({ error: result.error.message });
-    res.json({ success: true, payment: result.data });
+
+    if (onboardingId) {
+      const { error: onboardingErr } = await db.from('onboarding_requests').update({
+        razorpay_payment_id: finalPaymentId,
+        razorpay_signature: finalSignature,
+        payment_status: 'captured',
+        onboarding_status: 'active',
+        updated_at: new Date().toISOString(),
+      }).eq('id', onboardingId);
+      if (onboardingErr) return res.status(503).json({ error: onboardingErr.message });
+    }
+
+    return res.json({ success: true, payment: result.data, verified: true });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Payment verification failed closed' });
+    return res.status(503).json({ error: err.message || 'Payment verification failed closed' });
   }
 });
 
@@ -117,6 +185,7 @@ router.post('/webhook', async (req: any, res) => {
     if (event?.event === 'payment.captured' && payment?.order_id && payment?.id) {
       const userId = payment?.notes?.userId || payment?.notes?.user_id || null;
       const titleId = payment?.notes?.titleId || payment?.notes?.title_id || null;
+      const onboardingId = payment?.notes?.onboardingId || payment?.notes?.onboarding_id || null;
       await db.from('sv_payments').upsert({
         user_id: userId,
         title_id: titleId,
@@ -128,12 +197,20 @@ router.post('/webhook', async (req: any, res) => {
         verified_at: new Date().toISOString(),
         idempotency_key: `${payment.order_id}:${payment.id}`,
       }, { onConflict: 'idempotency_key' });
+      if (onboardingId) {
+        await db.from('onboarding_requests').update({
+          razorpay_payment_id: payment.id,
+          payment_status: 'captured',
+          onboarding_status: 'active',
+          updated_at: new Date().toISOString(),
+        }).eq('id', onboardingId);
+      }
     }
 
     await db.from('sv_payment_webhook_events').update({ processed_at: new Date().toISOString(), status: 'processed' }).eq('event_id', eventId);
-    res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Webhook failed closed' });
+    return res.status(503).json({ error: err.message || 'Webhook failed closed' });
   }
 });
 
@@ -142,15 +219,14 @@ router.get('/revenue', async (req: any, res) => {
     const userId = sessionUser(req);
     if (!userId) return res.status(401).json({ error: 'Session required' });
     const db = admin();
-    const { data, error } = await db.from('sv_payments').select('id,title_id,deal_id,status,verified_at,provider_payment_id,amount,currency').eq('user_id', userId).in('status', ['captured', 'authorized', 'verified']);
+    const { data, error } = await db.from('sv_payments').select('id,title_id,deal_id,status,verified_at,provider_payment_id,amount,currency,purpose').eq('user_id', userId).in('status', ['captured', 'authorized', 'verified']);
     if (error) return res.status(503).json({ error: error.message });
-    res.json({ success: true, payments: data || [], count: data?.length || 0 });
+    return res.json({ success: true, payments: data || [], count: data?.length || 0 });
   } catch (err: any) {
-    res.status(503).json({ error: err.message || 'Revenue list failed closed' });
+    return res.status(503).json({ error: err.message || 'Revenue list failed closed' });
   }
 });
 
-// Backward-compatible endpoint retained for existing checkout code.
 router.post('/verify-legacy', async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderData } = req.body;

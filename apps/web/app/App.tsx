@@ -13,6 +13,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import NOCDashboard from './admin/noc/page';
 import Layout from './components/Layout';
+import ImmersiveHome from './components/ImmersiveHome';
+import './immersive-home.css';
 import { supabase } from './lib/supabase';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -51,27 +53,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <Layout>{children}</Layout>;
 }
 
-function BridgeHome() {
-  return (
-    <div className="min-h-screen bg-[#020617] text-white">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-16">
-        <div className="max-w-3xl">
-          <div className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-400">StreamVista</div>
-          <h1 className="mt-5 text-5xl font-semibold tracking-tight md:text-7xl">Crayons Bridge</h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-400">
-            Secure workspace for creators, rights, delivery and paid plans.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/login" className="rounded-lg bg-cyan-500 px-6 py-3 font-semibold text-black hover:bg-cyan-400">Enter Bridge</a>
-            <a href="/pricing" className="rounded-lg border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white hover:bg-white/10">Pay plans</a>
-            <a href="/signup" className="rounded-lg border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white hover:bg-white/10">Create account</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const WorkspacePlaceholder = ({ name }: { name: string }) => (
   <div className="min-h-screen bg-[#08080a] text-zinc-100 flex items-center justify-center p-8">
     <div className="bg-zinc-950/60 backdrop-blur-2xl border border-white/10 rounded-xl p-10 max-w-lg w-full text-center">
@@ -85,7 +66,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<BridgeHome />} />
+        <Route path="/" element={<ImmersiveHome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

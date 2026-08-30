@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, Lock, Mail, Loader2 } from 'lucide-react';
+import { Shield, Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -45,7 +46,10 @@ export default function Login() {
             Password
             <div className="mt-2 flex items-center rounded-lg border border-white/10 bg-zinc-950 px-3">
               <Lock className="mr-2 h-4 w-4 text-zinc-500" />
-              <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required autoComplete="current-password" className="w-full bg-transparent py-3 text-white outline-none" />
+              <input value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? 'text' : 'password'} required autoComplete="current-password" className="w-full bg-transparent py-3 text-white outline-none" />
+              <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="ml-2 text-zinc-500 hover:text-zinc-200">
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </label>
           {message && <p className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-300">{message}</p>}

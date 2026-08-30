@@ -10,14 +10,19 @@ function admin() {
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
+function rawBody(req: Request): string | null {
+  if (Buffer.isBuffer(req.body)) return req.body.toString('utf8');
+  if (typeof req.body === 'string') return req.body;
+  return null;
+}
+
 export async function razorpayWebhook(req: Request, res: Response) {
   try {
     const signature = String(req.headers['x-razorpay-signature'] || '');
-    const raw = Buffer.isBuffer(req.body)
-      ? req.body.toString('utf8')
-      : typeof req.body === 'string'
-        ? req.body
-        : JSON.stringify(req.body || {});
+    const raw = rawBody(req);
+    if (raw == null) {
+      return res.status(400).json({ error: 'Webhook body must be raw JSON before the parser' });
+    }
     if (!signature || !paymentService.verifyWebhook(raw, signature)) {
       return res.status(400).json({ error: 'Invalid webhook signature' });
     }

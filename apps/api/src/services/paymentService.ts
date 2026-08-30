@@ -12,6 +12,14 @@ function requireSecret(name: string): string {
   return value;
 }
 
+function timingSafeEqualText(expected: string, received: string): boolean {
+  if (!expected || !received) return false;
+  const a = Buffer.from(expected);
+  const b = Buffer.from(received);
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
 class PaymentService {
   private client: Razorpay | null = null;
 
@@ -30,15 +38,17 @@ class PaymentService {
   }
 
   verifySignature(orderId: string, paymentId: string, signature: string): boolean {
+    if (!orderId || !paymentId || !signature) return false;
     const secret = requireSecret('RAZORPAY_KEY_SECRET');
     const expected = crypto.createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
-    return expected === signature;
+    return timingSafeEqualText(expected, signature);
   }
 
   verifyWebhook(rawBody: string, signature: string): boolean {
+    if (!rawBody || !signature) return false;
     const secret = requireSecret('RAZORPAY_WEBHOOK_SECRET');
     const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
-    return expected === signature;
+    return timingSafeEqualText(expected, signature);
   }
 }
 

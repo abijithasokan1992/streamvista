@@ -9,13 +9,11 @@ const dbConfig = {
   connectString: process.env.ORACLE_DB_CONNECTION_STRING,
 };
 
-let isMock = false;
+let poolReady = false;
 
 export async function initializeDb() {
   if (!dbConfig.user || !dbConfig.password || !dbConfig.connectString) {
-    console.warn('Oracle DB credentials missing. Operating in ZERO-COST MOCK MODE.');
-    isMock = true;
-    return;
+    throw new Error('Oracle database credentials are not configured. Refusing to start in mock mode.');
   }
 
   try {
@@ -27,41 +25,33 @@ export async function initializeDb() {
       poolMin: 2,
       poolIncrement: 2,
     });
+    poolReady = true;
     console.log('Oracle DB Connection Pool initialized');
   } catch (err) {
-    console.error('Oracle DB initialization failed. Falling back to MOCK MODE:', err);
-    isMock = true;
+    console.error('Oracle DB initialization failed:', err);
+    throw err;
   }
 }
 
 export async function getDbConnection() {
-  if (isMock) return null;
+  if (!poolReady) throw new Error('Database pool is not initialized');
   return await oracledb.getConnection();
 }
 
 export async function executeQuery(sql: string, params: any = [], options: oracledb.ExecuteOptions = {}) {
-  if (isMock) {
-    console.log(`[MockDB] Executing: ${sql.substring(0, 100)}...`);
-    // Return empty results to avoid breaking logic
-    return { rows: [], outBinds: { productId: [Math.floor(Math.random() * 1000)] } };
-  }
+  if (!poolReady) throw new Error('Database is not initialized');
 
   let connection;
   try {
     connection = await getDbConnection();
-    if (!connection) throw new Error('Could not get connection');
-    const result = await connection.execute(sql, params, { ...options, outFormat: oracledb.OUT_FORMAT_OBJECT, autoCommit: true });
-    return result;
-  } catch (err) {
-    console.error('Database query error:', err);
-    throw err;
+    return await connection.execute(sql, params, {
+      ...options,
+      outFormat: oracledb.OUT_FORMAT_OBJECT,
+      autoCommit: true,
+    });
   } finally {
     if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error('Error closing database connection:', err);
-      }
+      await connection.close();
     }
   }
 }

@@ -17,7 +17,7 @@ if (!JWT_SECRET) throw new Error('JWT_SECRET is required in the production envir
 
 app.use(cors());
 app.use('/api/razorpay/webhook', express.raw({ type: 'application/json' }));
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
 export const authorize = (roles: string[] = []) => async (req: any, res: any, next: any) => {
   try {
@@ -27,7 +27,11 @@ export const authorize = (roles: string[] = []) => async (req: any, res: any, ne
 
     const user: any = jwt.verify(token, JWT_SECRET);
     const db = getDbClient();
-    const { data: profile, error } = await db.from('sv_app_profiles').select('id,app_role,verification_status').eq('id', user.userId || user.id).maybeSingle();
+    const { data: profile, error } = await db
+      .from('sv_app_profiles')
+      .select('id,app_role,verification_status')
+      .eq('id', user.userId || user.id)
+      .maybeSingle();
     if (error) return res.status(503).json({ error: error.message });
     if (!profile) return res.status(403).json({ error: 'Profile not provisioned' });
     if (roles.length > 0 && !roles.includes(profile.app_role)) return res.status(403).json({ error: 'Insufficient permissions' });
@@ -43,9 +47,18 @@ app.use('/api/payments', authorize(), paymentRoutes);
 app.use('/api/ai', authorize(), aiRoutes);
 app.use('/api/notifications', authorize(), notificationRoutes);
 
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', service: 'crayons-pictures-api', timestamp: new Date().toISOString() }));
+app.get('/api/health', async (_req, res) => {
+  try {
+    await initializeDb();
+    res.json({ status: 'ok', service: 'crayons-pictures-api', database: 'supabase', timestamp: new Date().toISOString() });
+  } catch {
+    res.status(503).json({ status: 'degraded', service: 'crayons-pictures-api', database: 'unavailable' });
+  }
+});
+
 app.get('/api/readiness', async (_req, res) => {
   try {
+    await initializeDb();
     const db = getDbClient();
     const { error } = await db.from('sv_app_profiles').select('id', { head: true, count: 'exact' }).limit(1);
     if (error) return res.status(503).json({ ready: false, checks: { database: false }, error: error.message });

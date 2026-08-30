@@ -3,65 +3,50 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbConfig = {
-  user: process.env.ORACLE_DB_USER,
-  password: process.env.ORACLE_DB_PASSWORD,
-  connectString: process.env.ORACLE_DB_CONNECTION_STRING,
-};
+function required(name: string): string {
+  const value = process.env[name]?.trim();
+  if (!value) throw new Error(`${name} is required`);
+  return value;
+}
 
-let isMock = false;
+let initialized = false;
 
 export async function initializeDb() {
-  if (!dbConfig.user || !dbConfig.password || !dbConfig.connectString) {
-    console.warn('Oracle DB credentials missing. Operating in ZERO-COST MOCK MODE.');
-    isMock = true;
-    return;
-  }
+  if (initialized) return;
+  const user = required('ORACLE_DB_USER');
+  const password = required('ORACLE_DB_PASSWORD');
+  const connectString = required('ORACLE_DB_CONNECTION_STRING');
 
-  try {
-    await oracledb.createPool({
-      user: dbConfig.user,
-      password: dbConfig.password,
-      connectString: dbConfig.connectString,
-      poolMax: 10,
-      poolMin: 2,
-      poolIncrement: 2,
-    });
-    console.log('Oracle DB Connection Pool initialized');
-  } catch (err) {
-    console.error('Oracle DB initialization failed. Falling back to MOCK MODE:', err);
-    isMock = true;
-  }
+  await oracledb.createPool({
+    user,
+    password,
+    connectString,
+    poolMax: 10,
+    poolMin: 2,
+    poolIncrement: 2,
+  });
+  initialized = true;
+  console.log('Oracle DB connection pool initialized');
 }
 
 export async function getDbConnection() {
-  if (isMock) return null;
-  return await oracledb.getConnection();
+  if (!initialized) await initializeDb();
+  return oracledb.getConnection();
 }
 
-export async function executeQuery(sql: string, params: any = [], options: oracledb.ExecuteOptions = {}) {
-  if (isMock) {
-    console.log(`[MockDB] Executing: ${sql.substring(0, 100)}...`);
-    // Return empty results to avoid breaking logic
-    return { rows: [], outBinds: { productId: [Math.floor(Math.random() * 1000)] } };
-  }
-
-  let connection;
+export async function executeQuery(
+  sql: string,
+  params: any = [],
+  options: oracledb.ExecuteOptions = {},
+) {
+  const connection = await getDbConnection();
   try {
-    connection = await getDbConnection();
-    if (!connection) throw new Error('Could not get connection');
-    const result = await connection.execute(sql, params, { ...options, outFormat: oracledb.OUT_FORMAT_OBJECT, autoCommit: true });
-    return result;
-  } catch (err) {
-    console.error('Database query error:', err);
-    throw err;
+    return await connection.execute(sql, params, {
+      ...options,
+      outFormat: oracledb.OUT_FORMAT_OBJECT,
+      autoCommit: true,
+    });
   } finally {
-    if (connection) {
-      try {
-        await connection.close();
-      } catch (err) {
-        console.error('Error closing database connection:', err);
-      }
-    }
+    await connection.close();
   }
 }

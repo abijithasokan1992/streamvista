@@ -29,12 +29,26 @@ import notificationRoutes from './routes/notifications';
 import { ProductService } from './services/ProductService';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'streamvista_super_secret_key_2026';
+const PORT = Number(process.env.PORT || 3000);
+const JWT_SECRET = process.env.JWT_SECRET;
+const isProduction = process.env.NODE_ENV === 'production';
 
-app.use(cors());
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be configured with at least 32 characters.');
+}
+
+const corsOrigins = String(process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+app.disable('x-powered-by');
+app.use(cors({
+  origin: corsOrigins.length > 0 ? corsOrigins : false,
+  credentials: true,
+}));
 app.use('/api/razorpay/webhook', razorpayWebhook);
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
 export const authorize = (roles: string[] = []) => (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
@@ -58,15 +72,27 @@ app.use('/api/agents', authorize(), agentRoutes);
 app.use('/api/notifications', authorize(), notificationRoutes);
 
 app.use(express.static(path.join(__dirname, '../../../dist')));
-app.get('/api/health', (_req, res) => res.json({ status: 'OK', timestamp: new Date(), service: 'StreamVista Cloud X' }));
-app.get('/api/storage/status', (_req, res) => res.json({ provider: 'OCI / GCP Multi-Cloud', region: 'ap-mumbai-1', bucket: 'bucket-20260526-1544', status: 'ACTIVE' }));
-app.get('/{*splat}', (_req, res) => res.sendFile(path.join(__dirname, '../../../dist/index.html')));
+app.get('/api/health', (_req, res) => res.json({
+  status: 'ok',
+  timestamp: new Date().toISOString(),
+  service: 'Crayons Pictures API',
+}));
+app.get('/api/storage/status', (_req, res) => res.json({
+  status: process.env.STORAGE_PROVIDER ? 'configured' : 'not_configured',
+  provider: process.env.STORAGE_PROVIDER || null,
+}));
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error(err);
+  const message = isProduction ? 'Internal server error' : (err?.message || 'Internal server error');
+  res.status(Number(err?.statusCode || 500)).json({ error: message });
+});
+app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
 async function startServer() {
   try {
     await initializeDb();
     await ProductService.seedCatalog();
-    app.listen(PORT, () => console.log(`AutoOS API is running on port ${PORT}`));
+    app.listen(PORT, () => console.log(`Crayons Pictures API is running on port ${PORT}`));
   } catch (err) {
     console.error('Failed to start server:', err);
     process.exit(1);

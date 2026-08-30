@@ -61,37 +61,24 @@ export default function CreatorStudio() {
               <div className="metrics-row">
                 <div className="metric-card">
                   <span className="label">Live Operations</span>
-                  <span className="value">12 Projects</span>
-                  <div className="metric-footer">Active Studio Sessions</div>
+                  <span className="value">Unavailable</span>
+                  <div className="metric-footer">Live production data not connected</div>
                 </div>
                 <div className="metric-card">
                   <span className="label">Syncing Pipeline</span>
-                  <span className="value">8.4 TB</span>
-                  <div className="metric-footer">Ingested This Month</div>
+                  <span className="value">Unavailable</span>
+                  <div className="metric-footer">Live production data not connected</div>
                 </div>
                 <div className="metric-card gold">
                   <span className="label">Vault Storage</span>
-                  <span className="value">142 / 250 TB</span>
-                  <div className="metric-footer">Oracle Cloud Infrastructure</div>
+                  <span className="value">Unavailable</span>
+                  <div className="metric-footer">Live production data not connected</div>
                 </div>
               </div>
 
               <div className="recent-activity">
                 <h3>Recent Metadata Syncs</h3>
-                <div className="activity-list">
-                  <div className="activity-item">
-                    <span className="time">2m ago</span>
-                    <span className="desc">SHA-256 Audit Passed: CRIMSON_HORIZON_REEL1.mxf</span>
-                    <span className="status success">VERIFIED</span>
-                  </div>
-                  <div className="activity-item">
-                    <span className="time">15m ago</span>
-                    <span className="desc">Ingest Complete: SILENT_VALLEY_EP4_RAW</span>
-                    <span className="status info">STORED</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                <div className="activity-list"><div className="activity-item"><span className="desc">Production activity is not available until backend ingest telemetry is connected.</span><span className="status info">NOT CONNECTED</span></div></div></div>
           )}
 
           {activeTab === 'ingest' && (
@@ -121,8 +108,8 @@ export default function CreatorStudio() {
 
                   <div className="form-actions">
                     <button type="button" onClick={() => setActiveTab('dashboard')} className="btn-secondary">Cancel</button>
-                    <button type="submit" className="btn-primary" disabled={isUploading}>
-                      {isUploading ? `Ingesting... ${uploadProgress}%` : 'Execute Sync & Commit'}
+                    <button type="submit" className="btn-primary" disabled={true}>
+                      {isUploading ? `Ingesting... ${uploadProgress}%` : 'Ingest unavailable — backend connection required'}
                     </button>
                   </div>
                 </form>

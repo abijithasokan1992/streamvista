@@ -15,6 +15,12 @@ function getClient() {
   return { client: new Razorpay({ key_id: keyId, key_secret: keySecret }), keyId, keySecret };
 }
 
+function timingSafe(expectedHex: string, signature: string) {
+  const expected = Buffer.from(expectedHex, 'utf8');
+  const received = Buffer.from(signature, 'utf8');
+  return expected.length === received.length && crypto.timingSafeEqual(expected, received);
+}
+
 export class PaymentService {
   static async createRazorpayOrder(amount: number, currency: string = 'INR') {
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -38,24 +44,15 @@ export class PaymentService {
   static verifySignature(orderId: string, paymentId: string, signature: string) {
     if (!orderId || !paymentId || !signature) return false;
     const { keySecret } = getCredentials();
-    const expectedSignature = crypto
-      .createHmac('sha256', keySecret)
-      .update(`${orderId}|${paymentId}`)
-      .digest('hex');
-    const expected = Buffer.from(expectedSignature, 'utf8');
-    const received = Buffer.from(signature, 'utf8');
-    return expected.length === received.length && crypto.timingSafeEqual(expected, received);
+    const expectedSignature = crypto.createHmac('sha256', keySecret).update(`${orderId}|${paymentId}`).digest('hex');
+    return timingSafe(expectedSignature, signature);
   }
 
   static verifyWebhookSignature(rawBody: Buffer | string, signature: string) {
     if (!signature) return false;
-    const { keySecret } = getCredentials();
-    const expectedSignature = crypto
-      .createHmac('sha256', keySecret)
-      .update(rawBody)
-      .digest('hex');
-    const expected = Buffer.from(expectedSignature, 'utf8');
-    const received = Buffer.from(signature, 'utf8');
-    return expected.length === received.length && crypto.timingSafeEqual(expected, received);
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) return false;
+    const expectedSignature = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    return timingSafe(expectedSignature, signature);
   }
 }

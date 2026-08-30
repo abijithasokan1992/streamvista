@@ -48,8 +48,13 @@ export class SupabasePaymentService {
     }
 
     const { error: eventError } = await supabase.from('sv_payment_webhook_events').insert({
-      event_id: input.eventId, event_name: input.eventName, payload_hash: input.payloadHash,
-      status: 'received', payment_id: paymentId, received_at: input.receivedAt,
+      event_id: input.eventId,
+      provider_event_id: input.eventId,
+      event_name: input.eventName,
+      payload_hash: input.payloadHash,
+      status: 'received',
+      payment_id: paymentId,
+      received_at: input.receivedAt,
     });
     if (eventError) throw new Error(`Webhook persistence failed: ${eventError.message}`);
 

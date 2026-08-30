@@ -31,11 +31,13 @@ import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
 import { ProductService } from './services/ProductService';
 import { authorizeSupabase } from './middleware/supabaseAuth';
+import { razorpayWebhook } from './routes/razorpayWebhook';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+app.post('/api/razorpay/webhook', express.raw({ type: 'application/json' }), razorpayWebhook);
 app.use(express.json());
 
 export const authorize = (roles: string[] = []) => authorizeSupabase(roles);

@@ -18,6 +18,7 @@ import paymentRoutes from './routes/payments';
 import razorpayWebhook from './routes/razorpayWebhook';
 import aiRoutes from './routes/ai';
 import aiJobRoutes from './routes/ai-jobs';
+import hostingerIncomingRoutes from './routes/hostingerIncoming';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
 import { assertProductionRuntime, providerAvailability } from './lib/productionReadiness';
@@ -40,13 +41,13 @@ function requiredJwtSecret() {
 
 app.use(cors({ origin: true }));
 app.use('/api/razorpay/webhook', razorpayWebhook);
-app.use(express.json());
+app.use('/api/hostinger-incoming', express.text({ type: '*/*', limit: '2mb' }), hostingerIncomingRoutes);
+app.use(express.json({ limit: '4mb' }));
 
 export const authorize = (roles: string[] = []) => (req: any, res: any, next: any) => {
   const authHeader = req.headers['authorization'];
   const token = typeof authHeader === 'string' ? authHeader.split(' ')[1] : null;
   if (!token) return res.status(401).json({ error: 'Access token missing' });
-
   try {
     const user = jwt.verify(token, requiredJwtSecret()) as Record<string, unknown>;
     if (roles.length > 0 && !roles.includes(String(user.role || ''))) {

@@ -61,7 +61,7 @@ export const authenticateToken = async (req: any, res: any, next: any) => {
   try {
     const user = await resolveUser(token);
     req.user = user;
-    next();
+    return next();
   } catch (error: any) {
     if (JWT_SECRET) {
       try {
@@ -80,7 +80,7 @@ export const authorize = (roles: string[] = []) => (req: any, res: any, next: an
   if (roles.length > 0 && !roles.includes(req.user?.role)) {
     return res.status(403).json({ error: 'Insufficient permissions' });
   }
-  next();
+  return next();
 };
 
 app.use(cors({

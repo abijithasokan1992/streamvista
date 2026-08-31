@@ -42,9 +42,18 @@ export default function CreatorStudio() {
       return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setTitles([]);
+      setLoadError('Session expired. Please sign in again.');
+      setVault('unavailable');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('sv_app_titles')
-      .select('id,title,primary_language,status,synopsis')
+      .select('id,title,primary_language,status,synopsis,creator_id')
+      .eq('creator_id', user.id)
       .order('created_at', { ascending: false })
       .limit(100);
 
@@ -59,9 +68,6 @@ export default function CreatorStudio() {
     setTitles(rows);
     setSelectedTitleId((current) => current || rows[0]?.id || '');
 
-    // The bucket is known to be private and provisioned server-side. Avoid client-side
-    // listBuckets(), which requires bucket-administration privileges and can falsely report
-    // the vault as unavailable to an authenticated creator.
     setVault('available');
   }, []);
 
@@ -112,7 +118,6 @@ export default function CreatorStudio() {
     if (!user) { setMessage('Session expired. Sign in again.'); return; }
 
     setBusy(true);
-    // Storage RLS is title-scoped: {titleId}/{kind}/{filename}.
     const safeName = assetFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${selectedTitleId}/${assetKind}/${crypto.randomUUID()}-${safeName}`;
     const { error } = await supabase.storage
@@ -135,6 +140,7 @@ export default function CreatorStudio() {
         {(['titles', 'create', 'assets'] as const).map((id) => (
           <button
             key={id}
+            type="button"
             onClick={() => setTab(id)}
             className={`rounded-lg px-4 py-2 text-sm font-semibold ${
               tab === id ? 'bg-cyan-500 text-black' : 'border border-white/10 bg-white/5'
@@ -146,7 +152,7 @@ export default function CreatorStudio() {
       </div>
 
       {message && <p className="mt-4 text-sm text-cyan-300" role="status">{message}</p>}
-      {loadError && <p className="mt-4 text-sm text-red-400">{loadError}</p>}
+      {loadError && <p className="mt-4 text-sm text-red-400" role="alert">{loadError}</p>}
 
       {tab === 'titles' && (
         <div className="mt-6 divide-y divide-white/10 rounded-xl border border-white/10">
@@ -177,7 +183,7 @@ export default function CreatorStudio() {
           <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Title name" value={name} onChange={(e) => setName(e.target.value)} />
           <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Language" value={language} onChange={(e) => setLanguage(e.target.value)} />
           <textarea className="w-full rounded-lg bg-black/40 p-3" placeholder="Synopsis" value={synopsis} onChange={(e) => setSynopsis(e.target.value)} />
-          <button disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
+          <button type="submit" disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
             {busy ? 'Saving…' : 'Save draft'}
           </button>
         </form>
@@ -210,7 +216,7 @@ export default function CreatorStudio() {
           </div>
           <input type="file" onChange={(e) => setAssetFile(e.target.files?.[0] ?? null)} />
           <p className="text-xs text-zinc-500">Private vault: streamvista-films / {'{titleId}/{kind}/'}. QC submission is not auto-approved.</p>
-          <button disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
+          <button type="submit" disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
             {busy ? 'Uploading…' : `Upload ${assetKind}`}
           </button>
         </form>

@@ -1,14 +1,40 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Film, Home, User, LogOut, Menu, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [sessionUser, setSessionUser] = React.useState<unknown>(null);
   const navigate = useNavigate();
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
+  React.useEffect(() => {
+    if (!supabase) {
+      setSessionUser(null);
+      return;
+    }
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setSessionUser(data.session?.user ?? null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setSessionUser(session?.user ?? null);
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const isAuthenticated = Boolean(sessionUser);
+
+  const handleLogout = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setSessionUser(null);
+    setIsOpen(false);
     navigate('/login');
   };
 

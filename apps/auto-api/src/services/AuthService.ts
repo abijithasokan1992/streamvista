@@ -1,62 +1,87 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { executeQuery } from '../config/db';
+import { createClient } from '@supabase/supabase-js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'autoos_secret_key_2026';
+function supabaseAdmin() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Supabase server configuration is missing');
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
 
 export class AuthService {
   static async signup(userData: any) {
-    const { email, password } = userData;
-    const passwordHash = await bcrypt.hash(password, 10);
+    const email = String(userData?.email || '').trim().toLowerCase();
+    const password = String(userData?.password || '');
+    if (!email || !password) throw new Error('Email and password are required');
 
-    const sql = `
-      INSERT INTO users (username, email, password_hash)
-      VALUES (:email, :email, :passwordHash)
-      RETURNING user_id INTO :userId
-    `;
-
-    const result: any = await executeQuery(sql, {
+    const client = supabaseAdmin();
+    const { data, error } = await client.auth.admin.createUser({
       email,
-      passwordHash,
-      userId: { type: 2002, dir: 3003 } // oracledb.NUMBER, oracledb.BIND_OUT
+      password,
+      email_confirm: false,
+      user_metadata: {
+        full_name: userData?.fullName || userData?.full_name || null,
+      },
     });
-
-    return result.outBinds.userId[0];
+    if (error || !data.user) throw new Error(error?.message || 'Unable to create user');
+    return data.user.id;
   }
 
   static async login(email: string, password: string) {
-    const sql = `SELECT * FROM users WHERE email = :email`;
-    const result: any = await executeQuery(sql, { email });
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail || !password) throw new Error('Email and password are required');
 
-    if (result.rows.length === 0) {
-      throw new Error('User not found');
-    }
+    const client = supabaseAdmin();
+    const { data, error } = await client.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
+    if (error || !data.user || !data.session) throw new Error(error?.message || 'Invalid credentials');
 
-    const user = result.rows[0];
-    const isPasswordValid = await bcrypt.compare(password, user.PASSWORD_HASH);
+    const { data: profile, error: profileError } = await client
+      .from('sv_app_profiles')
+      .select('id,email,app_role,is_active')
+      .eq('id', data.user.id)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (profileError) throw new Error(profileError.message);
 
-    if (!isPasswordValid) {
-      throw new Error('Invalid password');
-    }
-
-    const token = jwt.sign(
-      { userId: user.USER_ID, email: user.EMAIL, username: user.USERNAME },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    return { token, user: { id: user.USER_ID, email: user.EMAIL, username: user.USERNAME, fullName: user.FULL_NAME } };
+    return {
+      token: data.session.access_token,
+      user: {
+        id: data.user.id,
+        email: String(profile?.email || data.user.email || normalizedEmail),
+        username: data.user.user_metadata?.username || null,
+        fullName: data.user.user_metadata?.full_name || null,
+        role: profile?.app_role || null,
+      },
+    };
   }
 
-  static async getUserPermissions(userId: number) {
-    const sql = `
-      SELECT p.permission_name
-      FROM permissions p
-      JOIN role_permissions rp ON p.permission_id = rp.permission_id
-      JOIN user_roles ur ON rp.role_id = ur.role_id
-      WHERE ur.user_id = :userId
-    `;
-    const result: any = await executeQuery(sql, { userId });
-    return result.rows.map((row: any) => row.PERMISSION_NAME);
+  static async getUserPermissions(userId: string) {
+    if (!userId) throw new Error('User id is required');
+    const client = supabaseAdmin();
+    const { data, error } = await client
+      .from('sv_app_profiles')
+      .select('app_role')
+      .eq('id', userId)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+
+    const role = String(data?.app_role || '');
+    const permissionsByRole: Record<string, string[]> = {
+      platform_owner: ['*'],
+      founder: ['*'],
+      super_admin: ['*'],
+      admin: ['manage_users', 'manage_projects', 'manage_titles', 'manage_payments', 'view_audit'],
+      finance: ['view_payments', 'view_revenue'],
+      legal: ['manage_rights'],
+      qc: ['run_qc', 'view_assets'],
+      support: ['view_users', 'view_projects'],
+      creator: ['manage_own_projects', 'upload_assets'],
+      buyer: ['view_catalog', 'manage_deals'],
+      viewer: [],
+    };
+    return permissionsByRole[role] || [];
   }
 }

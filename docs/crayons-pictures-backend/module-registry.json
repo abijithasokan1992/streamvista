@@ -1,0 +1,39 @@
+{
+  "product": "Crayons Pictures — Digital Studio",
+  "version": 1,
+  "principle": "real-backend-only",
+  "modules": [
+    {"key":"studio.projects","domain":"studio","route":"/api/projects","state":"build"},
+    {"key":"studio.assets","domain":"studio","route":"/api/assets","state":"build"},
+    {"key":"studio.production","domain":"studio","route":"/api/production","state":"build"},
+    {"key":"creator.script","domain":"creator","route":"/api/tools/script","state":"build"},
+    {"key":"creator.storyboard","domain":"creator","route":"/api/tools/storyboard","state":"build"},
+    {"key":"creator.ott_package","domain":"creator","route":"/api/tools/ott-package","state":"build"},
+    {"key":"creator.subtitles","domain":"creator","route":"/api/tools/subtitles","state":"build"},
+    {"key":"ai.dubbing","domain":"ai","route":"/api/tools/dubbing","state":"build"},
+    {"key":"ai.voice","domain":"ai","route":"/api/tools/voice","state":"build"},
+    {"key":"ai.lipsync","domain":"ai","route":"/api/tools/lipsync","state":"build"},
+    {"key":"ai.spatial_3d","domain":"ai","route":"/api/tools/spatial-3d","state":"build"},
+    {"key":"ai.stylize","domain":"ai","route":"/api/tools/stylize","state":"build"},
+    {"key":"ai.render","domain":"ai","route":"/api/tools/render","state":"build"},
+    {"key":"bridge.match","domain":"bridge","route":"/api/bridge/match","state":"build"},
+    {"key":"bridge.enquiry","domain":"bridge","route":"/api/bridge/enquiry","state":"build"},
+    {"key":"bridge.screening","domain":"bridge","route":"/api/bridge/screening","state":"build"},
+    {"key":"bridge.deals","domain":"bridge","route":"/api/bridge/deals","state":"build"},
+    {"key":"bridge.delivery","domain":"bridge","route":"/api/bridge/delivery","state":"build"},
+    {"key":"payments.razorpay","domain":"commerce","route":"/api/payments","state":"build"},
+    {"key":"communications.email","domain":"communications","route":"/api/email","state":"build"},
+    {"key":"analytics.events","domain":"analytics","route":"/api/analytics","state":"build"},
+    {"key":"control.rbac","domain":"control","route":"/api/admin/rbac","state":"build"},
+    {"key":"control.approvals","domain":"control","route":"/api/admin/approvals","state":"build"},
+    {"key":"control.audit","domain":"control","route":"/api/admin/audit","state":"build"},
+    {"key":"control.integrations","domain":"control","route":"/api/admin/integrations","state":"build"}
+  ],
+  "execution": {
+    "job_states": ["queued","running","needs_approval","completed","failed","cancelled"],
+    "approval_for": ["rights-sensitive","external-side-effect","publishing","delivery","financial-write"],
+    "providers": ["gemini","openai","anthropic","replicate","elevenlabs","razorpay","hostinger-mail","amplitude","posthog"],
+    "storage": ["supabase-storage","optional-private-object-storage"]
+  },
+  "release_gate": "all critical modules must have a real persistence path and verification evidence before being marked ready"
+}

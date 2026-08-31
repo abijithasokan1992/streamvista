@@ -93,14 +93,14 @@ router.post('/sync', async (req: any, res: any) => {
     });
 
     const repos = await githubFetch(`/user/repos?per_page=100&affiliation=owner,collaborator,organization_member&sort=updated&direction=desc`);
-    const list = Array.isArray(repos) ? repos : [];
+    const list = (Array.isArray(repos) ? repos : []).filter((repo: any) => String(repo.owner?.login || '').toLowerCase() === GITHUB_OWNER.toLowerCase());
     const snapshotAt = new Date().toISOString();
 
     for (const repo of list) {
       const normalized = normalizeRepo(repo, snapshotAt);
       const { data: stored, error: repoError } = await db
         .from('command_center_repositories')
-        .upsert(normalized, { onConflict: 'provider,external_id' })
+        .upsert({ ...normalized, updated_at: snapshotAt }, { onConflict: 'provider,external_id' })
         .select('id')
         .single();
       if (repoError || !stored) throw new Error(repoError?.message || `Unable to persist ${normalized.full_name}`);

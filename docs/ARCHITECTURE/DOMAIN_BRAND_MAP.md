@@ -1,5 +1,7 @@
 # StreamVista Product & Domain Map
 
+Status: canonical architecture baseline
+
 ## Brand hierarchy
 
 - STREAMVISTA — parent visual-content platform and identity layer
@@ -63,3 +65,11 @@ Vercel is the canonical web deployment platform. GitHub main is the canonical so
 ## Security rule
 
 Supabase Auth is the canonical user identity. PostgreSQL/RLS is the canonical authorization boundary. Service-role credentials remain server-side only. No client-side secrets. No mock-data success paths in production.
+
+## Hostinger mail rule
+
+Use product-specific branded sender identities while keeping one communication infrastructure:
+- hello@streamvista.in
+- studio@crayonspictures.in
+- bridge@streamvista.in
+- delivery@crayonsloop.in

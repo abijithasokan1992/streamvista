@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 import paymentRoutes from './routes/payments';
+import githubControlPlaneRoutes from './routes/command-center-github';
 
 dotenv.config();
 
@@ -110,6 +111,10 @@ app.get('/api/payments/revenue', authenticateToken, async (req, res, next) => {
   return paymentRoutes(req, res, next);
 });
 
+// AI Command Center Phase 1 — GitHub Control Plane.
+// GitHub credentials and Supabase service credentials are server-only.
+app.use('/api/command-center/github', authenticateToken, githubControlPlaneRoutes);
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'OK', service: 'StreamVista Command API', timestamp: new Date().toISOString() });
 });
@@ -118,9 +123,11 @@ app.get('/api/readiness', async (_req, res) => {
   const checks: Record<string, string> = {
     supabase: 'not_configured',
     razorpay: 'not_configured',
+    github: 'not_configured',
   };
   if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) checks.supabase = 'configured';
   if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) checks.razorpay = 'configured';
+  if (process.env.GITHUB_TOKEN) checks.github = 'configured';
   const ready = checks.supabase === 'configured' && checks.razorpay === 'configured';
   res.status(ready ? 200 : 503).json({ ready, checks });
 });

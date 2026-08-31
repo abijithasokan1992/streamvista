@@ -19,6 +19,23 @@ async function loadCheckout(): Promise<boolean> {
   });
 }
 
+async function apiPost(path: string, token: string, body: Record<string, unknown>, headers: Record<string, string> = {}) {
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...headers,
+    },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(String(payload?.error || payload?.message || `Request failed (${response.status})`));
+  }
+  return payload;
+}
+
 export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean; error?: string }> {
   if (!supabase) return { ok: false, error: 'Auth is not configured' };
 
@@ -28,64 +45,56 @@ export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean
     return { ok: false, error: 'Login required' };
   }
 
-  const { data: row, error: insertErr } = await supabase
-    .from('onboarding_requests')
-    .insert({
-      selected_cycle: cycle,
-      submitter_user_id: session.user.id,
-      payment_status: 'pending',
-      onboarding_status: 'pending_payment',
-    })
-    .select('id')
-    .single();
+  try {
+    const onboarding = await apiPost('/api/payment/create-plan-order', session.access_token, {
+      cycle,
+    });
 
-  if (insertErr || !row?.id) {
-    return { ok: false, error: insertErr?.message ?? 'Could not create order row' };
-  }
+    if (!onboarding?.orderId || !onboarding?.keyId || !onboarding?.amount) {
+      return { ok: false, error: onboarding?.error ?? 'Order create failed' };
+    }
 
-  const { data: order, error: orderErr } = await supabase.functions.invoke('create-razorpay-order', {
-    body: { onboardingId: row.id },
-  });
-  if (orderErr || !order?.orderId || !order?.keyId) {
-    return { ok: false, error: order?.error ?? orderErr?.message ?? 'Order create failed' };
-  }
+    const scriptOk = await loadCheckout();
+    if (!scriptOk) return { ok: false, error: 'Razorpay checkout failed to load' };
 
-  const scriptOk = await loadCheckout();
-  if (!scriptOk) return { ok: false, error: 'Razorpay checkout failed to load' };
-
-  return new Promise((resolve) => {
-    const rzp = new window.Razorpay({
-      key: order.keyId,
-      amount: order.amount,
-      currency: order.currency ?? 'INR',
-      name: 'StreamVista',
-      description: cycle === 'creator' ? 'Creator plan' : '1 TB top-up',
-      order_id: order.orderId,
-      prefill: { email: session.user.email ?? '' },
-      theme: { color: '#22d3ee' },
-      handler: async (response: {
-        razorpay_order_id: string;
-        razorpay_payment_id: string;
-        razorpay_signature: string;
-      }) => {
-        const { data: verified, error: verifyErr } = await supabase.functions.invoke(
-          'verify-razorpay-payment',
-          {
-            body: {
-              onboardingId: row.id,
+    return await new Promise((resolve) => {
+      const rzp = new window.Razorpay({
+        key: onboarding.keyId,
+        amount: onboarding.amount,
+        currency: onboarding.currency ?? 'INR',
+        name: 'StreamVista',
+        description: cycle === 'creator' ? 'Creator plan' : '1 TB top-up',
+        order_id: onboarding.orderId,
+        prefill: { email: session.user.email ?? '' },
+        theme: { color: '#22d3ee' },
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            const verified = await apiPost('/api/payment/verify-plan-payment', session.access_token, {
+              onboardingId: onboarding.onboardingId,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-            },
-          },
-        );
-        if (verifyErr || !verified?.verified) {
-          resolve({ ok: false, error: verifyErr?.message ?? 'Payment verification failed' });
-          return;
-        }
-        resolve({ ok: true });
-      },
+            });
+            if (!verified?.verified) {
+              resolve({ ok: false, error: verified?.error ?? 'Payment verification failed' });
+              return;
+            }
+            resolve({ ok: true });
+          } catch (error) {
+            resolve({ ok: false, error: error instanceof Error ? error.message : 'Payment verification failed' });
+          }
+        },
+        modal: {
+          ondismiss: () => resolve({ ok: false, error: 'Payment checkout closed' }),
+        },
+      });
+      rzp.open();
     });
-    rzp.open();
-  });
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Payment service is not available' };
+  }
 }

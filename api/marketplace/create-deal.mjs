@@ -23,7 +23,7 @@ export default async function handler(request, response) {
 
     const { data: title, error: titleError } = await client
       .from("sv_app_titles")
-      .select("id,creator_id,title,status,commercial_profile")
+      .select("id,org_id,creator_id,title,status,commercial_profile")
       .eq("id", titleId)
       .in("status", ["approved", "ready_for_distribution"])
       .maybeSingle();
@@ -36,7 +36,7 @@ export default async function handler(request, response) {
 
     const { data: existing, error: existingError } = await client
       .from("sv_marketplace_deals")
-      .select("id,buyer_id,seller_id,title_id,status,contract_status,payment_status,price,created_at")
+      .select("id,buyer_id,title_id,stage,contract_status,payment_status,offer_amount,currency,created_at")
       .eq("buyer_id", user.id)
       .eq("title_id", titleId)
       .in("payment_status", ["unpaid", "pending", "created"])
@@ -48,8 +48,19 @@ export default async function handler(request, response) {
 
     const { data: deal, error: dealError } = await client
       .from("sv_marketplace_deals")
-      .insert({ buyer_id: user.id, seller_id: title.creator_id, title_id: title.id, status: "payment_pending", contract_status: "pending", payment_status: "unpaid", price })
-      .select("id,buyer_id,seller_id,title_id,status,contract_status,payment_status,price,created_at")
+      .insert({
+        org_id: title.org_id,
+        product: "streamvista",
+        buyer_id: user.id,
+        title_id: title.id,
+        stage: "payment_pending",
+        offer_amount: price,
+        currency: "INR",
+        rights_scope: {},
+        contract_status: "pending",
+        payment_status: "unpaid",
+      })
+      .select("id,buyer_id,title_id,stage,contract_status,payment_status,offer_amount,currency,created_at")
       .single();
     if (dealError) throw dealError;
 

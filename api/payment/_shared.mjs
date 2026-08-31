@@ -2,7 +2,14 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import { integerPaise, safeCurrency, verifyCheckoutSignature, verifyWebhookSignature } from "./_payment_crypto.mjs";
 
-export const CANONICAL_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
+// The production Supabase project is selected by deployment environment.
+// Keep an explicit allow-list so server-side payments cannot silently bind to an unknown project.
+export const ALLOWED_SUPABASE_PROJECT_REFS = new Set(
+  String(process.env.STREAMVISTA_SUPABASE_PROJECT_REFS || "uakpqqardziifcwzvgfx")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean),
+);
 export { integerPaise, safeCurrency, verifyCheckoutSignature, verifyWebhookSignature };
 
 export function json(response, status, body, headers = {}) {
@@ -15,7 +22,10 @@ export function canonicalSupabaseUrl() {
   const value = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim();
   if (!value) throw new Error("SUPABASE_URL is not configured");
   const url = new URL(value);
-  if (url.protocol !== "https:" || url.hostname !== `${CANONICAL_SUPABASE_PROJECT_REF}.supabase.co`) throw new Error("Supabase environment is not bound to the canonical project");
+  const match = url.hostname.match(/^([a-z0-9]+)\.supabase\.co$/i);
+  if (url.protocol !== "https:" || !match || !ALLOWED_SUPABASE_PROJECT_REFS.has(match[1])) {
+    throw new Error("Supabase environment is not bound to an allowed StreamVista project");
+  }
   return value.replace(/\/$/, "");
 }
 

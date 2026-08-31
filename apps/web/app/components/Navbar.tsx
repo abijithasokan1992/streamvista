@@ -1,39 +1,70 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Film, User, LogOut, Menu, X, ShieldCheck } from 'lucide-react';
+import { Film, Home, User, LogOut, Menu, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [sessionUser, setSessionUser] = React.useState<unknown>(null);
   const navigate = useNavigate();
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    navigate('/login');
+  React.useEffect(() => {
+    if (!supabase) {
+      setSessionUser(null);
+      return;
+    }
+
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setSessionUser(data.session?.user ?? null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) setSessionUser(session?.user ?? null);
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const isAuthenticated = Boolean(sessionUser);
+
+  const handleLogout = async () => {
+    if (supabase) await supabase.auth.signOut();
+    setSessionUser(null);
+    setIsOpen(false);
+    navigate('/login', { replace: true });
   };
+
+  const closeMenu = () => setIsOpen(false);
 
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-logo">
+        <Link to="/" className="nav-logo" aria-label="StreamVista Home">
           <Film className="logo-icon" />
           <span className="logo-text">StreamVista</span>
         </Link>
 
-        {/* Desktop Menu */}
         <div className="nav-links">
+          <Link to="/" className="home-btn nav-link nav-home-link" aria-label="Home">
+            <Home size={16} />
+            <span>Home</span>
+          </Link>
           <Link to="/crayons-bridge" className="nav-link">Crayons Bridge</Link>
           <Link to="/creator-studio" className="nav-link">Studio</Link>
           <Link to="/revenue" className="nav-link">Revenue</Link>
           <Link to="/crayons-loop" className="nav-link">Loop</Link>
-          
+
           {isAuthenticated ? (
             <div className="nav-auth">
               <Link to="/profile" className="profile-btn">
                 <User size={18} />
                 <span>Account</span>
               </Link>
-              <button onClick={handleLogout} className="logout-btn">
+              <button type="button" onClick={handleLogout} className="logout-btn" aria-label="Log out">
                 <LogOut size={18} />
               </button>
             </div>
@@ -42,26 +73,34 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Toggle */}
-        <button className="mobile-toggle" onClick={() => setIsOpen(!isOpen)}>
+        <button
+          type="button"
+          className="mobile-toggle"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={isOpen}
+        >
           {isOpen ? <X /> : <Menu />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="mobile-menu">
-          <Link to="/crayons-bridge" onClick={() => setIsOpen(false)}>Crayons Bridge</Link>
-          <Link to="/creator-studio" onClick={() => setIsOpen(false)}>Studio</Link>
-          <Link to="/revenue" onClick={() => setIsOpen(false)}>Revenue</Link>
-          <Link to="/crayons-loop" onClick={() => setIsOpen(false)}>Loop</Link>
+          <Link to="/" onClick={closeMenu} className="mobile-home-link">
+            <Home size={17} />
+            <span>Home</span>
+          </Link>
+          <Link to="/crayons-bridge" onClick={closeMenu}>Crayons Bridge</Link>
+          <Link to="/creator-studio" onClick={closeMenu}>Studio</Link>
+          <Link to="/revenue" onClick={closeMenu}>Revenue</Link>
+          <Link to="/crayons-loop" onClick={closeMenu}>Loop</Link>
           {isAuthenticated ? (
             <>
-              <Link to="/profile" onClick={() => setIsOpen(false)}>Profile</Link>
-              <button onClick={handleLogout}>Logout</button>
+              <Link to="/profile" onClick={closeMenu}>Profile</Link>
+              <button type="button" onClick={handleLogout}>Logout</button>
             </>
           ) : (
-            <Link to="/login" onClick={() => setIsOpen(false)}>Sign In</Link>
+            <Link to="/login" onClick={closeMenu}>Sign In</Link>
           )}
         </div>
       )}
@@ -132,6 +171,23 @@ const Navbar = () => {
           color: var(--royal-gold);
         }
 
+        .nav-home-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          color: var(--studio-silver);
+          padding: 7px 11px;
+          border: 1px solid var(--glass-border);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.035);
+        }
+
+        .nav-home-link:hover {
+          color: var(--royal-gold);
+          border-color: rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.06);
+        }
+
         .nav-auth {
           display: flex;
           align-items: center;
@@ -153,6 +209,8 @@ const Navbar = () => {
 
         .logout-btn {
           color: var(--studio-silver-muted);
+          background: transparent;
+          border: 0;
         }
 
         .logout-btn:hover {
@@ -172,6 +230,8 @@ const Navbar = () => {
         .mobile-toggle {
           display: block;
           color: var(--royal-gold);
+          background: transparent;
+          border: 0;
         }
 
         @media (min-width: 1024px) {
@@ -191,6 +251,29 @@ const Navbar = () => {
           flex-direction: column;
           gap: 20px;
           border-bottom: 1px solid var(--glass-border);
+        }
+
+        .mobile-menu a,
+        .mobile-menu button {
+          color: var(--studio-silver);
+          text-align: left;
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          background: transparent;
+          border: 0;
+          padding: 0;
+        }
+
+        .mobile-menu a:hover,
+        .mobile-menu button:hover {
+          color: var(--royal-gold);
+        }
+
+        .mobile-home-link {
+          padding-bottom: 16px;
+          border-bottom: 1px solid var(--glass-border);
+          font-weight: 600;
         }
       `}</style>
     </nav>

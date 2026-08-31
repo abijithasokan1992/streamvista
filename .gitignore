@@ -27,3 +27,14 @@ uploads/
 *.dll
 .bash_history
 .npm/
+.local/lib/python3.12/site-packages/llvmlite/binding/libllvmlite.so
+.cache/cloud-code/cloudcode_cli/cloudcode_cli/6aca8e36/cloudcode_cli
+
+libllvmlite.so
+cloudcode_cli
+.local/
+
+# Secrets / environment files
+.env
+.env.*
+!.env.example

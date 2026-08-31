@@ -3,9 +3,8 @@ import { supabase } from '../lib/supabase';
 
 type TitleRow = {
   id: string;
-  name?: string | null;
   title?: string | null;
-  language?: string | null;
+  primary_language?: string | null;
   year?: number | string | null;
   status?: string | null;
   synopsis?: string | null;
@@ -15,7 +14,7 @@ const ASSET_KINDS = ['poster', 'trailer', 'film', 'subs'] as const;
 type AssetKind = (typeof ASSET_KINDS)[number];
 
 function titleLabel(row: TitleRow) {
-  return row.name || row.title || row.id;
+  return row.title || row.id;
 }
 
 export default function CreatorStudio() {
@@ -28,30 +27,42 @@ export default function CreatorStudio() {
 
   const [name, setName] = useState('');
   const [language, setLanguage] = useState('Malayalam');
-  const [year, setYear] = useState(String(new Date().getFullYear()));
   const [synopsis, setSynopsis] = useState('');
 
+  const [selectedTitleId, setSelectedTitleId] = useState('');
   const [assetKind, setAssetKind] = useState<AssetKind>('poster');
   const [assetFile, setAssetFile] = useState<File | null>(null);
 
   const refreshTitles = useCallback(async () => {
     setLoadError('');
+    setVault('checking');
     if (!supabase) {
       setLoadError('Supabase is not configured.');
       setVault('unavailable');
       return;
     }
-    const [{ data, error }, { data: buckets, error: bucketError }] = await Promise.all([
-      supabase.from('sv_app_titles').select('*').limit(100),
-      supabase.storage.listBuckets(),
-    ]);
+
+    const { data, error } = await supabase
+      .from('sv_app_titles')
+      .select('id,title,primary_language,status,synopsis')
+      .order('created_at', { ascending: false })
+      .limit(100);
+
     if (error) {
       setTitles([]);
       setLoadError(error.message);
-    } else {
-      setTitles((data as TitleRow[]) || []);
+      setVault('unavailable');
+      return;
     }
-    setVault(bucketError || !buckets?.some((b) => b.name === 'streamvista-films') ? 'unavailable' : 'available');
+
+    const rows = (data as TitleRow[]) || [];
+    setTitles(rows);
+    setSelectedTitleId((current) => current || rows[0]?.id || '');
+
+    // The bucket is known to be private and provisioned server-side. Avoid client-side
+    // listBuckets(), which requires bucket-administration privileges and can falsely report
+    // the vault as unavailable to an authenticated creator.
+    setVault('available');
   }, []);
 
   useEffect(() => {
@@ -63,23 +74,28 @@ export default function CreatorStudio() {
     setMessage('');
     if (!supabase) { setMessage('Supabase is not configured.'); return; }
     if (!name.trim()) { setMessage('Title name is required.'); return; }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setMessage('Session expired. Sign in again.'); return; }
+
     setBusy(true);
-    const payload = {
-      name: name.trim(),
-      title: name.trim(),
-      language: language.trim(),
-      year: Number(year) || null,
-      synopsis: synopsis.trim() || null,
-      status: 'draft',
-      owner_id: user.id,
-    };
-    const { error } = await supabase.from('sv_app_titles').insert(payload);
+    const { data, error } = await supabase
+      .from('sv_app_titles')
+      .insert({
+        title: name.trim(),
+        primary_language: language.trim() || null,
+        synopsis: synopsis.trim() || null,
+        status: 'draft',
+        creator_id: user.id,
+      })
+      .select('id,title,primary_language,status,synopsis')
+      .single();
     setBusy(false);
+
     if (error) { setMessage(`Create failed: ${error.message}`); return; }
     setName('');
     setSynopsis('');
+    setSelectedTitleId(data?.id || '');
     setMessage('Title saved as draft.');
     setTab('titles');
     await refreshTitles();
@@ -89,16 +105,24 @@ export default function CreatorStudio() {
     event.preventDefault();
     setMessage('');
     if (!supabase) { setMessage('Supabase is not configured.'); return; }
+    if (!selectedTitleId) { setMessage('Create or select a title before uploading assets.'); return; }
     if (!assetFile) { setMessage('Select a file first.'); return; }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setMessage('Session expired. Sign in again.'); return; }
+
     setBusy(true);
-    const path = `${user.id}/${assetKind}/${crypto.randomUUID()}-${assetFile.name}`;
-    const { error } = await supabase.storage.from('streamvista-films').upload(path, assetFile, { upsert: false });
+    // Storage RLS is title-scoped: {titleId}/{kind}/{filename}.
+    const safeName = assetFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${selectedTitleId}/${assetKind}/${crypto.randomUUID()}-${safeName}`;
+    const { error } = await supabase.storage
+      .from('streamvista-films')
+      .upload(path, assetFile, { upsert: false, contentType: assetFile.type || undefined });
     setBusy(false);
+
     if (error) { setMessage(`Upload failed: ${error.message}`); return; }
     setAssetFile(null);
-    setMessage(`${assetKind} stored at ${path}`);
+    setMessage(`${assetKind} stored securely in the private vault.`);
   };
 
   return (
@@ -127,17 +151,23 @@ export default function CreatorStudio() {
       {tab === 'titles' && (
         <div className="mt-6 divide-y divide-white/10 rounded-xl border border-white/10">
           {titles.length === 0 && !loadError && (
-            <p className="p-6 text-zinc-400">No titles visible under current RLS.</p>
+            <p className="p-6 text-zinc-400">No titles yet. Create your first title.</p>
           )}
           {titles.map((row) => (
-            <div key={row.id} className="flex items-center justify-between p-4">
+            <button
+              key={row.id}
+              type="button"
+              onClick={() => setSelectedTitleId(row.id)}
+              className={`flex w-full items-center justify-between p-4 text-left ${selectedTitleId === row.id ? 'bg-white/5' : ''}`}
+            >
               <div>
                 <div className="font-medium">{titleLabel(row)}</div>
                 <div className="text-xs text-zinc-500">
-                  {[row.language, row.year, row.status || 'draft'].filter(Boolean).join(' · ')}
+                  {[row.primary_language, row.status || 'draft'].filter(Boolean).join(' · ')}
                 </div>
               </div>
-            </div>
+              {selectedTitleId === row.id && <span className="text-xs text-cyan-300">Selected</span>}
+            </button>
           ))}
         </div>
       )}
@@ -146,7 +176,6 @@ export default function CreatorStudio() {
         <form onSubmit={createTitle} className="mt-6 max-w-lg space-y-4">
           <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Title name" value={name} onChange={(e) => setName(e.target.value)} />
           <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Language" value={language} onChange={(e) => setLanguage(e.target.value)} />
-          <input className="w-full rounded-lg bg-black/40 p-3" placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} />
           <textarea className="w-full rounded-lg bg-black/40 p-3" placeholder="Synopsis" value={synopsis} onChange={(e) => setSynopsis(e.target.value)} />
           <button disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
             {busy ? 'Saving…' : 'Save draft'}
@@ -156,6 +185,15 @@ export default function CreatorStudio() {
 
       {tab === 'assets' && (
         <form onSubmit={uploadAsset} className="mt-6 max-w-lg space-y-4">
+          <select
+            value={selectedTitleId}
+            onChange={(e) => setSelectedTitleId(e.target.value)}
+            className="w-full rounded-lg bg-black/40 p-3"
+          >
+            <option value="">Select a title</option>
+            {titles.map((title) => <option key={title.id} value={title.id}>{titleLabel(title)}</option>)}
+          </select>
+
           <div className="flex flex-wrap gap-2">
             {ASSET_KINDS.map((kind) => (
               <button
@@ -171,7 +209,7 @@ export default function CreatorStudio() {
             ))}
           </div>
           <input type="file" onChange={(e) => setAssetFile(e.target.files?.[0] ?? null)} />
-          <p className="text-xs text-zinc-500">Uploads to streamvista-films / {'{userId}/{kind}/'}. QC submit is not auto-approved.</p>
+          <p className="text-xs text-zinc-500">Private vault: streamvista-films / {'{titleId}/{kind}/'}. QC submission is not auto-approved.</p>
           <button disabled={busy} className="rounded-lg bg-cyan-500 px-5 py-3 font-semibold text-black">
             {busy ? 'Uploading…' : `Upload ${assetKind}`}
           </button>

@@ -35,7 +35,7 @@ const Navbar = () => {
     if (supabase) await supabase.auth.signOut();
     setSessionUser(null);
     setIsOpen(false);
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   const closeMenu = () => setIsOpen(false);
@@ -64,7 +64,7 @@ const Navbar = () => {
                 <User size={18} />
                 <span>Account</span>
               </Link>
-              <button onClick={handleLogout} className="logout-btn" aria-label="Log out">
+              <button type="button" onClick={handleLogout} className="logout-btn" aria-label="Log out">
                 <LogOut size={18} />
               </button>
             </div>
@@ -74,6 +74,7 @@ const Navbar = () => {
         </div>
 
         <button
+          type="button"
           className="mobile-toggle"
           onClick={() => setIsOpen(!isOpen)}
           aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
@@ -96,7 +97,7 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               <Link to="/profile" onClick={closeMenu}>Profile</Link>
-              <button onClick={handleLogout}>Logout</button>
+              <button type="button" onClick={handleLogout}>Logout</button>
             </>
           ) : (
             <Link to="/login" onClick={closeMenu}>Sign In</Link>
@@ -208,6 +209,8 @@ const Navbar = () => {
 
         .logout-btn {
           color: var(--studio-silver-muted);
+          background: transparent;
+          border: 0;
         }
 
         .logout-btn:hover {
@@ -227,6 +230,8 @@ const Navbar = () => {
         .mobile-toggle {
           display: block;
           color: var(--royal-gold);
+          background: transparent;
+          border: 0;
         }
 
         @media (min-width: 1024px) {
@@ -255,6 +260,9 @@ const Navbar = () => {
           display: flex;
           align-items: center;
           gap: 9px;
+          background: transparent;
+          border: 0;
+          padding: 0;
         }
 
         .mobile-menu a:hover,

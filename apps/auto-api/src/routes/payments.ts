@@ -12,9 +12,7 @@ function admin() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
-function sessionUser(req: any): string | null {
-  return req.user?.userId || req.user?.id || null;
-}
+function sessionUser(req: any): string | null { return req.user?.userId || req.user?.id || null; }
 
 const PLAN_AMOUNT_PAISE: Record<string, number> = { creator: 76700, topup: 76700 };
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -29,24 +27,17 @@ router.post('/create-order', async (req: any, res) => {
     const idempotencyKey = String(req.headers['idempotency-key'] || req.body?.idempotencyKey || '').trim();
 
     if (!userId) return res.status(401).json({ error: 'Session required' });
-    if (!idempotencyKey) return res.status(400).json({ error: 'Idempotency-Key header is required' });
+    if (!idempotencyKey || !/^[A-Za-z0-9._:-]{8,128}$/.test(idempotencyKey)) return res.status(400).json({ error: 'A valid Idempotency-Key is required' });
     if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Invalid payment amount' });
     if (cycle && !PLAN_AMOUNT_PAISE[cycle]) return res.status(400).json({ error: 'Unsupported plan' });
     if (!cycle && !titleId) return res.status(400).json({ error: 'cycle or titleId is required' });
 
     const db = admin();
-    const { data: existing, error: existingError } = await db
-      .from('sv_payments')
-      .select('id,status,provider_order_id,amount,currency')
-      .eq('idempotency_key', idempotencyKey)
-      .maybeSingle();
+    const { data: existing, error: existingError } = await db.from('sv_payments')
+      .select('id,status,provider_order_id,amount,currency').eq('idempotency_key', idempotencyKey).maybeSingle();
     if (existingError) return res.status(503).json({ error: existingError.message });
     if (existing?.provider_order_id) {
-      return res.json({ success: true, duplicate: true, order: {
-        id: existing.provider_order_id,
-        amount: Math.round(Number(existing.amount || 0) * 100),
-        currency: existing.currency || 'INR',
-      }, payment: existing });
+      return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id, amount: Math.round(Number(existing.amount || 0) * 100), currency: existing.currency || 'INR' }, payment: existing, keyId: process.env.RAZORPAY_KEY_ID });
     }
 
     const order = await PaymentService.createRazorpayOrder(amount, 'INR', `sv_${idempotencyKey}`.slice(0, 40));
@@ -64,7 +55,7 @@ router.post('/create-order', async (req: any, res) => {
     }).select('id,status,provider_order_id,amount,currency').single();
     if (error) return res.status(503).json({ error: error.message });
 
-    return res.json({ success: true, order, payment });
+    return res.json({ success: true, order, payment, keyId: process.env.RAZORPAY_KEY_ID });
   } catch (err: any) {
     return res.status(503).json({ error: err.message || 'Payment order failed closed' });
   }
@@ -83,10 +74,7 @@ router.post('/verify', async (req: any, res) => {
 
     const providerAmount = await PaymentService.getOrderAmount(finalOrderId);
     const db = admin();
-    const { data: existing, error: existingError } = await db.from('sv_payments')
-      .select('id,status,user_id,amount,currency')
-      .eq('provider_order_id', finalOrderId)
-      .maybeSingle();
+    const { data: existing, error: existingError } = await db.from('sv_payments').select('id,status,user_id,amount,currency').eq('provider_order_id', finalOrderId).maybeSingle();
     if (existingError) return res.status(503).json({ error: existingError.message });
     if (existing?.user_id && existing.user_id !== userId) return res.status(403).json({ error: 'Payment does not belong to session' });
     if (existing?.amount != null && Math.round(Number(existing.amount) * 100) !== Number(providerAmount)) return res.status(409).json({ error: 'Payment amount mismatch' });
@@ -124,43 +112,18 @@ router.post('/webhook', async (req: any, res) => {
     const event = JSON.parse(raw);
     const eventId = String(event?.id || '').trim();
     if (!eventId) return res.status(400).json({ error: 'Missing event id' });
-
     const payloadHash = crypto.createHash('sha256').update(raw).digest('hex');
     const db = admin();
     const { data: seen } = await db.from('sv_payment_webhook_events').select('event_id').eq('event_id', eventId).maybeSingle();
     if (seen) return res.status(200).json({ ok: true, duplicate: true });
-
     const payment = event?.payload?.payment?.entity;
-    const userId = payment?.notes?.userId || payment?.notes?.user_id || null;
-    const titleId = payment?.notes?.titleId || payment?.notes?.title_id || null;
-    const safeTitleId = UUID_RE.test(String(titleId || '')) ? titleId : null;
-    const amount = Number(payment?.amount || 0);
-
-    const { error: logError } = await db.from('sv_payment_webhook_events').insert({
-      event_id: eventId,
-      event_name: event?.event || 'unknown',
-      payload_hash: payloadHash,
-      payment_id: payment?.id || null,
-      received_at: new Date().toISOString(),
-      status: 'received',
-    });
+    const { error: logError } = await db.from('sv_payment_webhook_events').insert({ event_id: eventId, event_name: event?.event || 'unknown', payload_hash: payloadHash, payment_id: payment?.id || null, received_at: new Date().toISOString(), status: 'received' });
     if (logError) return res.status(503).json({ error: logError.message });
-
-    if (event?.event === 'payment.captured' && payment?.order_id && payment?.id) {
-      const { error: upsertError } = await db.from('sv_payments').upsert({
-        user_id: userId,
-        title_id: safeTitleId,
-        provider_order_id: payment.order_id,
-        provider_payment_id: payment.id,
-        amount: amount / 100,
-        currency: payment.currency || 'INR',
-        status: 'captured',
-        verified_at: new Date().toISOString(),
-        idempotency_key: `${payment.order_id}:${payment.id}`,
-      }, { onConflict: 'idempotency_key' });
-      if (upsertError) return res.status(503).json({ error: upsertError.message });
+    if (['payment.captured', 'payment.authorized', 'payment.failed'].includes(event?.event) && payment?.order_id && payment?.id) {
+      const status = event.event === 'payment.captured' ? 'captured' : event.event === 'payment.authorized' ? 'authorized' : 'failed';
+      const { error } = await db.from('sv_payments').update({ provider_payment_id: payment.id, provider_event_id: eventId, status, verified_at: new Date().toISOString(), raw_event_hash: payloadHash }).eq('provider_order_id', payment.order_id).eq('provider', 'razorpay');
+      if (error) return res.status(503).json({ error: error.message });
     }
-
     await db.from('sv_payment_webhook_events').update({ status: 'processed', processed_at: new Date().toISOString() }).eq('event_id', eventId);
     return res.status(200).json({ ok: true });
   } catch (err: any) {
@@ -173,15 +136,10 @@ router.get('/revenue', async (req: any, res) => {
     const userId = sessionUser(req);
     if (!userId) return res.status(401).json({ error: 'Session required' });
     const db = admin();
-    const { data, error } = await db.from('sv_payments')
-      .select('id,title_id,deal_id,purpose,status,verified_at,provider_payment_id,amount,currency')
-      .eq('user_id', userId)
-      .in('status', ['captured', 'authorized']);
+    const { data, error } = await db.from('sv_payments').select('id,title_id,deal_id,purpose,status,verified_at,provider_payment_id,amount,currency').eq('user_id', userId).in('status', ['captured', 'authorized']);
     if (error) return res.status(503).json({ error: error.message });
     return res.json({ success: true, payments: data || [], count: data?.length || 0 });
-  } catch (err: any) {
-    return res.status(503).json({ error: err.message || 'Revenue list failed closed' });
-  }
+  } catch (err: any) { return res.status(503).json({ error: err.message || 'Revenue list failed closed' }); }
 });
 
 export default router;

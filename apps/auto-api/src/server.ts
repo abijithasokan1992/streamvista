@@ -17,6 +17,7 @@ import orderRoutes from './routes/orders';
 import paymentRoutes from './routes/payments';
 import razorpayWebhook from './routes/razorpayWebhook';
 import aiRoutes from './routes/ai';
+import aiJobRoutes from './routes/ai-jobs';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
 import { assertProductionRuntime, providerAvailability } from './lib/productionReadiness';
@@ -64,6 +65,7 @@ app.use('/api/inventory', authorize(['admin', 'staff']), inventoryRoutes);
 app.use('/api/orders', authorize(), orderRoutes);
 app.use('/api/payments', authorize(), paymentRoutes);
 app.use('/api/ai', authorize(), aiRoutes);
+app.use('/api/ai-jobs', authorize(), aiJobRoutes);
 app.use('/api/agents', authorize(), agentRoutes);
 app.use('/api/notifications', authorize(), notificationRoutes);
 

@@ -11,20 +11,9 @@ uploads/
 
 libllvmlite.so
 cloudcode_cli
-*.zip
-node_modules/
-dist/
-.cache/
 .local/
-.gemini/
 
-# Cloud Shell & System Cache
-.cache/
-.local/
-.gemini/
-*.so
-*.dylib
-*.dll
-.bash_history
-.npm/
-.npm/
+# Secrets / environment files
+.env
+.env.*
+!.env.example

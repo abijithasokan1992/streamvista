@@ -33,12 +33,9 @@ router.post('/create-order', async (req: any, res) => {
     if (!cycle && !titleId) return res.status(400).json({ error: 'cycle or titleId is required' });
 
     const db = admin();
-    const { data: existing, error: existingError } = await db.from('sv_payments')
-      .select('id,status,provider_order_id,amount,currency').eq('idempotency_key', idempotencyKey).maybeSingle();
+    const { data: existing, error: existingError } = await db.from('sv_payments').select('id,status,provider_order_id,amount,currency').eq('idempotency_key', idempotencyKey).maybeSingle();
     if (existingError) return res.status(503).json({ error: existingError.message });
-    if (existing?.provider_order_id) {
-      return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id, amount: Math.round(Number(existing.amount || 0) * 100), currency: existing.currency || 'INR' }, payment: existing, keyId: process.env.RAZORPAY_KEY_ID });
-    }
+    if (existing?.provider_order_id) return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id, amount: Math.round(Number(existing.amount || 0) * 100), currency: existing.currency || 'INR' }, payment: existing, keyId: process.env.RAZORPAY_KEY_ID });
 
     const order = await PaymentService.createRazorpayOrder(amount, 'INR', `sv_${idempotencyKey}`.slice(0, 40));
     if (Number(order.amount) !== amount) return res.status(502).json({ error: 'Payment provider returned an unexpected amount' });
@@ -54,8 +51,7 @@ router.post('/create-order', async (req: any, res) => {
       idempotency_key: idempotencyKey,
     }).select('id,status,provider_order_id,amount,currency').single();
     if (error) return res.status(503).json({ error: error.message });
-
-    return res.json({ success: true, order, payment, keyId: process.env.RAZORPAY_KEY_ID });
+    return res.json({ success: true, order: { id: order.id, amount: Number(order.amount), currency: order.currency || 'INR' }, payment, keyId: process.env.RAZORPAY_KEY_ID });
   } catch (err: any) {
     return res.status(503).json({ error: err.message || 'Payment order failed closed' });
   }
@@ -80,18 +76,7 @@ router.post('/verify', async (req: any, res) => {
     if (existing?.amount != null && Math.round(Number(existing.amount) * 100) !== Number(providerAmount)) return res.status(409).json({ error: 'Payment amount mismatch' });
 
     const idempotencyKey = String(req.headers['idempotency-key'] || `${finalOrderId}:${finalPaymentId}`).trim();
-    const patch: Record<string, unknown> = {
-      user_id: userId,
-      deal_id: dealId || null,
-      provider_order_id: finalOrderId,
-      provider_payment_id: finalPaymentId,
-      amount: Number(providerAmount) / 100,
-      currency: 'INR',
-      purpose: cycle ? `plan:${cycle}` : 'streamvista',
-      status: 'captured',
-      verified_at: new Date().toISOString(),
-      idempotency_key: idempotencyKey,
-    };
+    const patch: Record<string, unknown> = { user_id: userId, deal_id: dealId || null, provider_order_id: finalOrderId, provider_payment_id: finalPaymentId, amount: Number(providerAmount) / 100, currency: 'INR', purpose: cycle ? `plan:${cycle}` : 'streamvista', status: 'captured', verified_at: new Date().toISOString(), idempotency_key: idempotencyKey };
     if (UUID_RE.test(String(titleId || ''))) patch.title_id = titleId;
 
     const result = existing
@@ -126,9 +111,7 @@ router.post('/webhook', async (req: any, res) => {
     }
     await db.from('sv_payment_webhook_events').update({ status: 'processed', processed_at: new Date().toISOString() }).eq('event_id', eventId);
     return res.status(200).json({ ok: true });
-  } catch (err: any) {
-    return res.status(503).json({ error: err.message || 'Webhook failed closed' });
-  }
+  } catch (err: any) { return res.status(503).json({ error: err.message || 'Webhook failed closed' }); }
 });
 
 router.get('/revenue', async (req: any, res) => {

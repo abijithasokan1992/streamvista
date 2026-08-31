@@ -2,7 +2,6 @@ import express from 'express';
 import path from 'path';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 import paymentRoutes from './routes/payments';
 
@@ -13,7 +12,6 @@ const PORT = process.env.PORT || 3000;
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const JWT_SECRET = process.env.JWT_SECRET;
 
 function supabaseAdmin() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -25,9 +23,6 @@ function supabaseAdmin() {
 }
 
 async function resolveUser(accessToken: string) {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Supabase server configuration is missing');
-  }
   const client = supabaseAdmin();
   const { data, error } = await client.auth.getUser(accessToken);
   if (error || !data.user) throw new Error('Invalid or expired Supabase session');
@@ -59,20 +54,10 @@ export const authenticateToken = async (req: any, res: any, next: any) => {
   if (!token) return res.status(401).json({ error: 'Access token missing' });
 
   try {
-    const user = await resolveUser(token);
-    req.user = user;
-    next();
+    req.user = await resolveUser(token);
+    return next();
   } catch (error: any) {
-    if (JWT_SECRET) {
-      try {
-        const legacyUser = jwt.verify(token, JWT_SECRET) as any;
-        req.user = legacyUser;
-        return next();
-      } catch {
-        // Fall through to fail closed.
-      }
-    }
-    return res.status(401).json({ error: error?.message || 'Invalid or expired token' });
+    return res.status(401).json({ error: error?.message || 'Invalid or expired Supabase session' });
   }
 };
 
@@ -80,7 +65,7 @@ export const authorize = (roles: string[] = []) => (req: any, res: any, next: an
   if (roles.length > 0 && !roles.includes(req.user?.role)) {
     return res.status(403).json({ error: 'Insufficient permissions' });
   }
-  next();
+  return next();
 };
 
 app.use(cors({
@@ -90,7 +75,6 @@ app.use(cors({
   credentials: false,
 }));
 
-// JSON parser is intentionally mounted after the raw webhook parser.
 app.post('/api/razorpay/webhook', express.raw({ type: 'application/json' }), async (req: any, res: any, next: any) => {
   req.url = '/webhook';
   return paymentRoutes(req, res, next);
@@ -114,13 +98,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'OK', service: 'StreamVista Command API', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/readiness', async (_req, res) => {
+app.get('/api/readiness', (_req, res) => {
   const checks: Record<string, string> = {
-    supabase: 'not_configured',
-    razorpay: 'not_configured',
+    supabase: SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY ? 'configured' : 'not_configured',
+    razorpay: process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET ? 'configured' : 'not_configured',
   };
-  if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) checks.supabase = 'configured';
-  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) checks.razorpay = 'configured';
   const ready = checks.supabase === 'configured' && checks.razorpay === 'configured';
   res.status(ready ? 200 : 503).json({ ready, checks });
 });
@@ -128,7 +110,6 @@ app.get('/api/readiness', async (_req, res) => {
 app.use(express.static(path.join(__dirname, '../../../dist')));
 app.get('/{*splat}', (_req, res) => res.sendFile(path.join(__dirname, '../../../dist/index.html')));
 
-// Vercel imports the app as a serverless handler; local/VM deployments still use listen().
 if (process.env.VERCEL !== '1') {
   app.listen(PORT, () => console.log(`StreamVista Command API listening on port ${PORT}`));
 }

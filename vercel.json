@@ -2,6 +2,18 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "routes": [
     {
+      "src": "/api/film-os/(.*)",
+      "dest": "/api/film-os/$1"
+    },
+    {
+      "src": "/api/payment/(.*)",
+      "dest": "/api/payment/$1"
+    },
+    {
+      "src": "/api/payments/(.*)",
+      "dest": "/api/payment/$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/index.ts"
     },

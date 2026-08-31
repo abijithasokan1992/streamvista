@@ -44,7 +44,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (loading) {
-    return <div className="min-h-screen bg-[#030405] text-zinc-400 grid place-items-center">Loading secure session…</div>;
+    return <div className="min-h-screen bg-[#050607] text-zinc-400 grid place-items-center">Checking your session…</div>;
   }
 
   if (!session) return <Navigate to="/login" replace />;
@@ -52,18 +52,45 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 const systems = [
-  { label: 'CREATE', text: 'Creators · Cameras · Production · Cloud', href: '/creator-studio' },
-  { label: 'PROTECT', text: 'Rights · Ownership · Chain of Title · Verification', href: '/crayons-bridge' },
-  { label: 'CONNECT', text: 'Creators · Buyers · Deal Flow · Commerce', href: '/crayons-bridge' },
-  { label: 'DISTRIBUTE', text: 'Master · QC · HLS · FAST · OTT · Global', href: '/crayons-loop' },
+  {
+    step: '01',
+    label: 'CREATE',
+    title: 'Make your project',
+    text: 'Plan, store and manage your film, video or creator work in one place.',
+    href: '/creator-studio',
+  },
+  {
+    step: '02',
+    label: 'PROTECT',
+    title: 'Protect your work',
+    text: 'Keep ownership, rights, approvals and important project records together.',
+    href: '/crayons-bridge',
+  },
+  {
+    step: '03',
+    label: 'CONNECT',
+    title: 'Find the right buyer',
+    text: 'Prepare your title, discover buyers and move approved opportunities into a deal.',
+    href: '/crayons-bridge',
+  },
+  {
+    step: '04',
+    label: 'DISTRIBUTE',
+    title: 'Deliver everywhere',
+    text: 'Move finished content through QC, delivery and distribution workflows.',
+    href: '/crayons-loop',
+  },
 ];
 
-function BridgeHome() {
-  const [pointer, setPointer] = useState({ x: 50, y: 50 });
+function Home() {
+  const [pointer, setPointer] = useState({ x: 50, y: 40 });
 
   useEffect(() => {
     const onMove = (event: MouseEvent) => {
-      setPointer({ x: (event.clientX / window.innerWidth) * 100, y: (event.clientY / window.innerHeight) * 100 });
+      setPointer({
+        x: (event.clientX / window.innerWidth) * 100,
+        y: (event.clientY / window.innerHeight) * 100,
+      });
     };
     window.addEventListener('mousemove', onMove, { passive: true });
     return () => window.removeEventListener('mousemove', onMove);
@@ -71,99 +98,103 @@ function BridgeHome() {
 
   return (
     <main
-      className="min-h-screen overflow-hidden bg-[#030405] text-white selection:bg-white selection:text-black"
-      style={{ backgroundImage: `radial-gradient(circle at ${pointer.x}% ${pointer.y}%, rgba(255,255,255,.08), transparent 24%), radial-gradient(circle at 50% 35%, rgba(120,150,180,.06), transparent 36%)` }}
+      className="min-h-screen bg-[#050607] text-white selection:bg-white selection:text-black"
+      style={{
+        backgroundImage: `radial-gradient(circle at ${pointer.x}% ${pointer.y}%, rgba(255,255,255,.055), transparent 24%), radial-gradient(circle at 50% 18%, rgba(108,132,155,.055), transparent 36%)`,
+      }}
     >
-      <header className="fixed inset-x-0 top-0 z-30 flex items-center justify-between px-6 py-5 md:px-10">
-        <Link to="/" className="text-sm font-semibold tracking-[0.42em] text-white/90">STREAMVISTA</Link>
-        <div className="flex items-center gap-5 text-xs uppercase tracking-[0.2em] text-white/55">
-          <Link to="/pricing" className="transition hover:text-white">Plans</Link>
-          <Link to="/login" className="rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-white/80 backdrop-blur-xl transition hover:border-white/30 hover:bg-white/[0.08]">Sign in</Link>
+      <header className="sticky top-0 z-30 border-b border-white/[0.07] bg-[#050607]/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+          <Link to="/" className="text-sm font-semibold tracking-[0.3em] text-white">STREAMVISTA</Link>
+          <nav className="flex items-center gap-2 sm:gap-3">
+            <Link to="/pricing" className="rounded-full px-3 py-2 text-sm text-white/55 transition hover:text-white">Plans</Link>
+            <Link to="/login" className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-sm text-white/80 transition hover:border-white/20 hover:bg-white/[0.06]">Sign in</Link>
+          </nav>
         </div>
       </header>
 
-      <section className="relative flex min-h-screen items-center justify-center px-6 pb-24 pt-28">
-        <div className="pointer-events-none absolute inset-0 opacity-40" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px)', backgroundSize: '80px 80px', maskImage: 'radial-gradient(circle at center, black, transparent 68%)' }} />
-        <div className="relative z-10 flex w-full max-w-6xl flex-col items-center text-center">
-          <div className="relative mb-10 h-[min(62vw,520px)] w-[min(62vw,520px)] max-w-[520px] min-w-[290px]">
-            <div className="absolute inset-[12%] rounded-full border border-white/10 bg-white/[0.025] shadow-[0_0_120px_rgba(255,255,255,.07)] backdrop-blur-3xl" />
-            <div className="absolute inset-[22%] rounded-full border border-white/15 bg-gradient-to-br from-white/[0.12] via-white/[0.015] to-transparent shadow-[inset_0_0_60px_rgba(255,255,255,.06)]" />
-            <div className="absolute inset-[32%] rounded-full border border-white/20 bg-black/40 shadow-[0_0_80px_rgba(150,180,210,.12)]" />
-            <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_30px_10px_rgba(255,255,255,.45)]" />
-            {[0, 45, 90, 135].map((rotation) => (
-              <span key={rotation} className="absolute left-1/2 top-1/2 h-px w-[58%] origin-left bg-gradient-to-r from-white/40 to-transparent" style={{ transform: `rotate(${rotation}deg)` }} />
-            ))}
-            <span className="absolute inset-[7%] rounded-full border border-dashed border-white/10" />
-            <span className="absolute inset-[16%] rounded-full border border-dashed border-white/10" />
-            <span className="absolute inset-[28%] rounded-full border border-dashed border-white/10" />
-            <div className="absolute left-[8%] top-[28%] rounded-full border border-white/10 bg-black/50 px-3 py-2 text-[9px] uppercase tracking-[0.22em] text-white/45 backdrop-blur-xl">Rights</div>
-            <div className="absolute right-[5%] top-[45%] rounded-full border border-white/10 bg-black/50 px-3 py-2 text-[9px] uppercase tracking-[0.22em] text-white/45 backdrop-blur-xl">AI / QC</div>
-            <div className="absolute bottom-[18%] left-[15%] rounded-full border border-white/10 bg-black/50 px-3 py-2 text-[9px] uppercase tracking-[0.22em] text-white/45 backdrop-blur-xl">Cloud</div>
-            <div className="absolute bottom-[14%] right-[13%] rounded-full border border-white/10 bg-black/50 px-3 py-2 text-[9px] uppercase tracking-[0.22em] text-white/45 backdrop-blur-xl">Commerce</div>
-          </div>
-
-          <p className="mb-5 text-[10px] font-semibold uppercase tracking-[0.48em] text-white/45">The infrastructure behind visual content</p>
-          <h1 className="max-w-5xl text-5xl font-medium tracking-[-0.045em] text-white md:text-7xl lg:text-8xl">The Operating System for Visual Content.</h1>
-          <p className="mt-7 max-w-2xl text-base leading-7 text-white/45 md:text-lg">Create. Protect. Connect. Distribute.</p>
-          <div className="mt-9 flex flex-wrap justify-center gap-3">
-            <Link to="/login" className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition hover:scale-[1.02]">ENTER STREAMVISTA</Link>
-            <a href="#ecosystem" className="rounded-full border border-white/15 bg-white/[0.03] px-7 py-3 text-sm font-semibold text-white/75 backdrop-blur-xl transition hover:border-white/30 hover:bg-white/[0.07]">EXPLORE THE ECOSYSTEM →</a>
+      <section className="mx-auto max-w-7xl px-5 pb-20 pt-20 md:px-8 md:pb-28 md:pt-28">
+        <div className="max-w-4xl">
+          <div className="mb-7 inline-flex items-center rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs text-white/45">For filmmakers, creators and visual teams</div>
+          <h1 className="text-5xl font-medium tracking-[-0.045em] md:text-7xl lg:text-8xl">Your visual work, from idea to release.</h1>
+          <p className="mt-7 max-w-2xl text-base leading-7 text-white/48 md:text-lg">Create projects. Protect ownership. Find buyers. Deliver finished content.</p>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <Link to="/login" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:scale-[1.01]">Start creating</Link>
+            <a href="#ecosystem" className="rounded-full border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-white/75 transition hover:border-white/20 hover:bg-white/[0.06]">See how it works</a>
           </div>
         </div>
       </section>
 
-      <section id="ecosystem" className="relative mx-auto max-w-7xl px-6 py-28 md:px-10">
-        <div className="mb-14 max-w-2xl">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.42em] text-white/35">CONTENT UNIVERSE</p>
-          <h2 className="mt-4 text-4xl font-medium tracking-tight md:text-6xl">One system. Every stage.</h2>
+      <section id="ecosystem" className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
+        <div className="mb-10 max-w-2xl">
+          <p className="text-xs font-semibold tracking-[0.24em] text-white/30">ONE WORKFLOW</p>
+          <h2 className="mt-4 text-3xl font-medium tracking-tight md:text-5xl">Everything in four clear steps.</h2>
+          <p className="mt-4 text-base leading-7 text-white/42">Use only what you need. Your work stays connected as it moves forward.</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {systems.map((system, index) => (
-            <Link key={system.label} to={system.href} className="group relative min-h-56 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-7 transition duration-500 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
-              <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full border border-white/10 transition duration-700 group-hover:scale-125" />
-              <span className="text-[10px] tracking-[0.35em] text-white/35">0{index + 1}</span>
-              <h3 className="mt-12 text-2xl font-medium tracking-tight">{system.label}</h3>
-              <p className="mt-3 max-w-sm text-sm leading-6 text-white/40">{system.text}</p>
-              <span className="absolute bottom-7 right-7 text-xs text-white/30 transition group-hover:text-white/80">OPEN →</span>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {systems.map((system) => (
+            <Link key={system.label} to={system.href} className="group rounded-2xl border border-white/10 bg-white/[0.025] p-6 transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.045]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/28">{system.step}</span>
+                <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] tracking-[0.16em] text-white/35">{system.label}</span>
+              </div>
+              <h3 className="mt-10 text-2xl font-medium tracking-tight">{system.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-white/42">{system.text}</p>
+              <span className="mt-8 inline-flex text-xs font-medium text-white/35 transition group-hover:text-white/80">Open →</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="border-y border-white/[0.07] bg-white/[0.015] px-6 py-32 md:px-10">
-        <div className="mx-auto grid max-w-7xl gap-16 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+      <section className="border-y border-white/[0.07] bg-white/[0.015]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 md:px-8 md:py-28 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.42em] text-white/35">CRAYONS BRIDGE</p>
-            <h2 className="mt-5 text-4xl font-medium tracking-tight md:text-6xl">Where content becomes commerce.</h2>
-            <p className="mt-6 max-w-xl text-base leading-7 text-white/45">Rights, metadata, buyer discovery, deal flow, licensing and payment — connected as one commercial path.</p>
-            <Link to="/crayons-bridge" className="mt-8 inline-flex rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/80 transition hover:border-white/30 hover:bg-white/[0.06]">ENTER BRIDGE →</Link>
+            <p className="text-xs font-semibold tracking-[0.24em] text-white/30">CRAYONS BRIDGE</p>
+            <h2 className="mt-4 text-3xl font-medium tracking-tight md:text-5xl">Turn finished content into business.</h2>
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/42">Prepare rights and metadata, find matching buyers, manage deals and move approved content toward payment and delivery.</p>
+            <Link to="/crayons-bridge" className="mt-7 inline-flex rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white/75 transition hover:border-white/20 hover:bg-white/[0.05]">Open Bridge</Link>
           </div>
-          <div className="relative rounded-3xl border border-white/10 bg-black/30 p-5 md:p-8">
-            <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] text-white/50">
-              {['Rights Verification', 'Metadata', 'Screener', 'Buyer Discovery', 'Deal Room', 'License', 'Payment', 'Distribution'].map((step, i) => (
-                <React.Fragment key={step}>
-                  <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-2">{step}</span>
-                  {i < 7 && <span className="text-white/20">→</span>}
-                </React.Fragment>
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-5 md:p-7">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {['Rights', 'Metadata', 'Buyer match', 'Deal', 'Payment', 'Delivery'].map((item, index) => (
+                <div key={item} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-4">
+                  <span className="text-[10px] text-white/25">0{index + 1}</span>
+                  <span className="text-sm text-white/60">{item}</span>
+                </div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-32 text-center md:px-10">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.42em] text-white/35">REAL INFRASTRUCTURE</p>
-        <h2 className="mx-auto mt-5 max-w-4xl text-4xl font-medium tracking-tight md:text-6xl">Built for real business.</h2>
-        <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-white/45">Identity · RBAC · RLS · Rights · Audit · Payments · Data</p>
-        <div className="mx-auto mt-14 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 sm:grid-cols-4">
-          {['IDENTITY', 'RIGHTS', 'DELIVERY', 'REVENUE'].map((item) => <div key={item} className="bg-[#050607] px-5 py-7 text-[10px] tracking-[0.3em] text-white/45">{item}</div>)}
+      <section className="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold tracking-[0.24em] text-white/30">REAL INFRASTRUCTURE</p>
+          <h2 className="mt-4 text-3xl font-medium tracking-tight md:text-5xl">Built for real work.</h2>
+          <p className="mt-5 text-base leading-7 text-white/42">Secure sign-in, permissions, rights records, project data, payments and delivery workflows — designed to work together.</p>
+        </div>
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ['Identity', 'Sign in and account access'],
+            ['Rights', 'Ownership and approvals'],
+            ['Delivery', 'QC and release workflows'],
+            ['Revenue', 'Payments and commercial records'],
+          ].map(([title, text]) => (
+            <div key={title} className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
+              <div className="text-sm font-medium text-white/80">{title}</div>
+              <div className="mt-2 text-sm leading-6 text-white/38">{text}</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.07] px-6 py-16 md:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div><div className="text-sm font-semibold tracking-[0.35em]">STREAMVISTA</div><div className="mt-2 text-xs text-white/30">Create. Protect. Connect. Distribute.</div></div>
-          <Link to="/login" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black">ENTER STREAMVISTA →</Link>
+      <footer className="border-t border-white/[0.07]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-12 md:px-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-semibold tracking-[0.3em]">STREAMVISTA</div>
+            <div className="mt-2 text-sm text-white/30">Create. Protect. Connect. Distribute.</div>
+          </div>
+          <Link to="/login" className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-black">Start creating →</Link>
         </div>
       </footer>
     </main>
@@ -183,7 +214,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<BridgeHome />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

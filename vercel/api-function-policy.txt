@@ -1,0 +1,7 @@
+# Vercel Hobby Function Policy
+
+The canonical StreamVista app is linked to the Vercel Hobby plan.
+
+Keep the root-level `api/` tree at or below the Hobby plan's 12-function deployment limit. Shared logic belongs under `apps/` or `supabase/functions/`; only thin Vercel entrypoints should live under `api/`.
+
+Do not add one Vercel function per internal route when an existing Express router can handle the route behind `api/index.ts`.

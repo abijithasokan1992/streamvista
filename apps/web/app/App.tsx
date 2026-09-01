@@ -16,6 +16,7 @@ import CrayonsLoop from './pages/CrayonsLoop';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import NOCDashboard from './admin/noc/page';
+import SimpleMVP from './pages/SimpleMVP';
 import Layout from './components/Layout';
 import { supabase } from './lib/supabase';
 
@@ -58,7 +59,7 @@ function Home() {
 
 export default function App() {
   return <BrowserRouter><Routes>
-    <Route path="/" element={<Home />} /><Route path="/login" element={<Login />} /><Route path="/signup" element={<SignUp />} /><Route path="/forgot-password" element={<ForgotPassword />} /><Route path="/reset-password" element={<ResetPassword />} /><Route path="/pricing" element={<Pricing />} /><Route path="/ott-ready" element={<OTTRready />} />
+    <Route path="/" element={<Home />} /><Route path="/simple-mvp" element={<SimpleMVP />} /><Route path="/login" element={<Login />} /><Route path="/signup" element={<SignUp />} /><Route path="/forgot-password" element={<ForgotPassword />} /><Route path="/reset-password" element={<ResetPassword />} /><Route path="/pricing" element={<Pricing />} /><Route path="/ott-ready" element={<OTTRready />} />
     <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} /><Route path="/dashboard" element={<ProtectedRoute><CreatorStudio /></ProtectedRoute>} /><Route path="/creator-studio" element={<ProtectedRoute><CreatorStudio /></ProtectedRoute>} /><Route path="/film-os" element={<ProtectedRoute><FilmOS /></ProtectedRoute>} /><Route path="/film-os/:id" element={<ProtectedRoute><FilmOS /></ProtectedRoute>} /><Route path="/crayons-pictures" element={<ProtectedRoute><WorkspacePlaceholder name="Crayons Pictures" /></ProtectedRoute>} /><Route path="/crayons-bridge" element={<ProtectedRoute><CrayonsBridge /></ProtectedRoute>} /><Route path="/watch" element={<ProtectedRoute><Watch /></ProtectedRoute>} /><Route path="/revenue" element={<ProtectedRoute><RevenueDashboard /></ProtectedRoute>} /><Route path="/crayons-loop" element={<ProtectedRoute><CrayonsLoop /></ProtectedRoute>} /><Route path="/enterprise" element={<ProtectedRoute><WorkspacePlaceholder name="StreamVista Enterprise" /></ProtectedRoute>} /><Route path="/crayons-vault" element={<ProtectedRoute><WorkspacePlaceholder name="StreamVista Vault" /></ProtectedRoute>} /><Route path="/admin/noc" element={<ProtectedRoute><NOCDashboard /></ProtectedRoute>} /><Route path="*" element={<Navigate to="/" replace />} />
   </Routes><SpeedInsights /></BrowserRouter>;
 }

@@ -4,8 +4,29 @@
 node_modules/
 dist/
 .vscode/
+
+# Local secrets / environment files
+.env
+.env.*
+!.env.example
+apps/**/.env
+apps/**/.env.*
+!apps/**/.env.example
+*.pem
+*.key
+*service-account*.json
+
+# Local media / build output
 thumbnails/
 uploads/
+
+# Cloud Shell & system cache
+.local/
+*.so
+*.dylib
+*.dll
+.bash_history
+.npm/
 .local/lib/python3.12/site-packages/llvmlite/binding/libllvmlite.so
 .cache/cloud-code/cloudcode_cli/cloudcode_cli/6aca8e36/cloudcode_cli
 

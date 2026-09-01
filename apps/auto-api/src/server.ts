@@ -14,6 +14,7 @@ import aiJobRoutes from './routes/ai-jobs';
 import hostingerIncomingRoutes from './routes/hostingerIncoming';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
+import flagsRoutes from './routes/flags';
 import { initializeDb } from './config/db';
 import { assertProductionRuntime, providerAvailability } from './lib/productionReadiness';
 
@@ -99,6 +100,7 @@ app.use('/api/ai', authenticateToken, aiRoutes);
 app.use('/api/ai-jobs', authenticateToken, aiJobRoutes);
 app.use('/api/agents', authenticateToken, agentRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
+app.use('/api/flags', flagsRoutes);
 app.use('/api/legacy-razorpay-webhook', razorpayWebhook);
 
 app.get('/api/health', (_req, res) => res.json({

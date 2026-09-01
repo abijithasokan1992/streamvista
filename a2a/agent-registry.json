@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "network": "streamvista-revenue",
+  "transport": "http-json-envelope",
+  "agents": [
+    {"id":"revenue-orchestrator","role":"orchestrator","status":"active"},
+    {"id":"creator-acquisition","role":"creator_acquisition","status":"active"},
+    {"id":"rights-catalog","role":"rights_catalog","status":"active"},
+    {"id":"buyer-match","role":"buyer_match","status":"active"},
+    {"id":"deal-desk","role":"deal_desk","status":"active"},
+    {"id":"payment","role":"payment","status":"active"},
+    {"id":"follow-up","role":"follow_up","status":"active"}
+  ],
+  "approval_required_for": [
+    "payment_capture",
+    "refund",
+    "role_change",
+    "rights_approval",
+    "deal_finalization",
+    "external_creator_buyer_contact"
+  ],
+  "canonical_dependencies": {
+    "supabase_project_ref": "tqzimuwozhipqgyerdff",
+    "payment_provider": "razorpay",
+    "production_domain": "streamvista.in"
+  }
+}

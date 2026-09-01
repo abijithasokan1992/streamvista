@@ -30,6 +30,7 @@ import GlobalBusinessCenter from "./pages/GlobalBusinessCenter";
 import ComplaintBoxHome from "./pages/ComplaintBoxHome";
 import ComplaintBoxCase from "./pages/ComplaintBoxCase";
 import ComplaintBoxDashboard from "./pages/ComplaintBoxDashboard";
+import CloudStorage from "./pages/CloudStorage";
 
 const PLATFORM = ["platform_owner", "founder", "super_admin"] as const;
 const ADMIN = [...PLATFORM, "admin"] as const;
@@ -77,6 +78,7 @@ function App() {
   return <AuthProvider><BrowserRouter><Routes>
     <Route path="/chat" element={<ChatRoute />} />
     <Route path="/home" element={<Home />} />
+    <Route path="/cloud-storage" element={<CloudStorage />} />
     <Route path="/login" element={<LoginRoute />} />
     <Route path="/auth" element={<LegacyAuthRedirect />} />
 

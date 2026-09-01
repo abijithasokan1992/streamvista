@@ -1,0 +1,25 @@
+[Info  - 6:52:07 AM] 2026/08/26 06:52:07 Created View (#1)
+	directory=/home/abijithasokan1992
+	view_type="AdHoc"
+	root_dir="file:///home/abijithasokan1992"
+	go_version="go version go1.27.0 linux/amd64"
+	build_flags=[]
+	env={GOOS:linux GOARCH:amd64 GOCACHE:/home/abijithasokan1992/.cache/go-build GOMODCACHE:/home/abijithasokan1992/gopath/pkg/mod GOPATH:/home/abijithasokan1992/gopath:/google/gopath GOPRIVATE: GOFLAGS: GO111MODULE: GOTOOLCHAIN:auto GOROOT:/usr/local/go GoVersion:27 GoVersionOutput:go version go1.27.0 linux/amd64
+ ExplicitGOWORK: EffectiveGOPACKAGESDRIVER:}
+	env_overlay=[]
+
+[Info  - 6:52:07 AM] 2026/08/26 06:52:07 go/packages.Load #1
+	view_id="1"
+	snapshot=0
+	directory=/home/abijithasokan1992
+	query=[./ builtin]
+	packages=2
+	duration=294.415082ms
+
+[Info  - 6:53:00 AM] 2026/08/26 06:52:37 background imports cache refresh starting
+
+[Info  - 6:53:00 AM] 2026/08/26 06:52:37 background refresh finished after 24.829497ms
+
+[Info  - 6:53:00 AM] 2026/08/26 06:53:00 Shutdown session
+	shutdown_session=1
+

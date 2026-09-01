@@ -1,0 +1,12 @@
+# Exclude node_modules from local deployment uploads
+node_modules/
+**/node_modules/
+.next/
+.cache/
+.npm/
+.vscode/
+.git/
+.env
+**/dist
+**/build
+**/out

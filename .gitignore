@@ -1,28 +1,40 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+.gemini/
+*.zip
+.cache/
+node_modules/
+dist/
+.vscode/
 
-node_modules
-dist
-dist-ssr
-*.local
-.data/
+# Local secrets / environment files
 .env
 .env.*
 !.env.example
+apps/**/.env
+apps/**/.env.*
+!apps/**/.env.example
+*.pem
+*.key
+*service-account*.json
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Local media / build output
+thumbnails/
+uploads/
+
+# Cloud Shell & system cache
+.local/
+*.so
+*.dylib
+*.dll
+.bash_history
+.npm/
+.local/lib/python3.12/site-packages/llvmlite/binding/libllvmlite.so
+.cache/cloud-code/cloudcode_cli/cloudcode_cli/6aca8e36/cloudcode_cli
+
+libllvmlite.so
+cloudcode_cli
+.local/
+
+# Secrets / environment files
+.env
+.env.*
+!.env.example

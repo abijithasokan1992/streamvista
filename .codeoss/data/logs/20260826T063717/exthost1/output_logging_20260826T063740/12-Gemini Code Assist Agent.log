@@ -1,0 +1,10 @@
+Starting background process...
+Background process started with PID 2587
+[INFO] 2026-08-26 06:38:05.530 AM -- [CoderAgentExecutor] Overriding workspace path to: /home/abijithasokan1992
+[ERROR] 2026-08-26 06:38:05.583 AM -- Warning: unexpected file /home/abijithasokan1992/.gemini/extensions/extension-enablement.json in extensions directory.
+[ERROR] 2026-08-26 06:38:05.588 AM -- Warning: unexpected file /home/abijithasokan1992/.gemini/extensions/extension-enablement.json in extensions directory.
+[INFO] 2026-08-26 06:38:05.588 AM -- Loading extension: vertex (version: 0.1.0)
+Ignore file not found: /home/abijithasokan1992/.geminiignore, continue without it.
+Ignore file not found: /home/abijithasokan1992/.aiexclude, continue without it.
+Ignore file not found: /home/abijithasokan1992/.geminiignore, continue without it.
+Ignore file not found: /home/abijithasokan1992/.aiexclude, continue without it.

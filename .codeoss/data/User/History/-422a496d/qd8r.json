@@ -1,0 +1,23 @@
+{
+    "window.menuBarVisibility": "classic",
+    "window.commandCenter": true,
+    "http.proxySupport": "off",
+    "workbench.startupEditor": "welcomePageInEmptyWorkbench",
+    "redhat.telemetry.enabled": false,
+    "workbench.layoutControl.enabled": false,
+    "window.autoDetectColorScheme": true,
+    "chat.disableAIFeatures": true,
+    "http.systemCertificatesNode": true,
+    "cloudcode.beta.enableBigqueryExplorer": false,
+    "terminal.integrated.defaultProfile.linux": "Google Cloud Shell",
+    "google.cloud.project": "streamvista-ai-studio",
+    "google.cloud.region": "asia-southeast1",
+    "google.cloud.billingQuotaProject": "streamvista-ai-studio",
+    "jupyter.runStartupCommands": [
+        "import bigframes",
+        "%load_ext bigframes",
+        "bigframes.options.bigquery.project = \"streamvista-ai-studio\"",
+        "bigframes.options.bigquery.application_name = \"datacloud.code oss for cloud shell\""
+    ],
+    "jupyter.jupyterLaunchTimeout": 300000
+}

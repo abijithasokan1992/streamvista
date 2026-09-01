@@ -1,0 +1,33 @@
+2026-08-26 06:37:49.096 [warning] Dir "/home/abijithasokan1992/.pixi/envs" is not watchable (directory does not exist)
+2026-08-26 06:37:51.880 [info] Starting Environment refresh
+2026-08-26 06:37:51.880 [info] Searching for interpreters in posix paths locator
+2026-08-26 06:37:51.891 [info] Searching for pyenv environments
+2026-08-26 06:37:51.891 [info] Searching for conda environments
+2026-08-26 06:37:51.892 [info] Searching for global virtual environments
+2026-08-26 06:37:51.892 [info] Searching for custom virtual environments
+2026-08-26 06:37:51.943 [info] pyenv is not installed
+2026-08-26 06:37:51.943 [info] Finished searching for pyenv environments: 61 milliseconds
+2026-08-26 06:37:51.945 [info] Finished searching for custom virtual envs: 62 milliseconds
+2026-08-26 06:37:51.954 [info] > conda info --json
+2026-08-26 06:37:51.965 [info] > hatch env show --json
+2026-08-26 06:37:51.965 [info] cwd: .
+2026-08-26 06:37:52.027 [info] Skipping ActivatedEnv Detection:  process.env.VSCODE_CLI !== '1'
+2026-08-26 06:37:52.028 [info] Skipping ActivatedEnv Detection:  process.env.VSCODE_CLI !== '1'
+2026-08-26 06:37:52.083 [info] > pyenv which python
+2026-08-26 06:37:52.084 [info] cwd: .
+2026-08-26 06:37:52.084 [info] Finished searching for global virtual envs: 201 milliseconds
+2026-08-26 06:37:52.109 [info] Found: /bin/python --> /bin/python3.12
+2026-08-26 06:37:52.112 [info] Found: /bin/python3 --> /bin/python3.12
+2026-08-26 06:37:52.113 [info] Found: /bin/python3.12 --> /bin/python3.12
+2026-08-26 06:37:52.147 [info] Found: /usr/bin/python --> /usr/bin/python3.12
+2026-08-26 06:37:52.148 [info] Found: /usr/bin/python3 --> /usr/bin/python3.12
+2026-08-26 06:37:52.148 [info] Found: /usr/bin/python3.12 --> /usr/bin/python3.12
+2026-08-26 06:37:52.340 [info] Finished searching for interpreters in posix paths locator: 454 milliseconds
+2026-08-26 06:37:52.341 [info] > /bin/python -I /google/devshell/editor/code-oss-for-cloud-shell/extensions/ms-python.python/python_files/get_output_via_markers.py /google/devshell/editor/code-oss-for-cloud-shell/extensions/ms-python.python/python_files/interpreterInfo.py
+2026-08-26 06:37:52.468 [info] > /usr/bin/python -I /google/devshell/editor/code-oss-for-cloud-shell/extensions/ms-python.python/python_files/get_output_via_markers.py /google/devshell/editor/code-oss-for-cloud-shell/extensions/ms-python.python/python_files/interpreterInfo.py
+2026-08-26 06:37:52.556 [info] Environments refresh paths discovered (event): 679 milliseconds
+2026-08-26 06:37:52.556 [info] Environments refresh paths discovered: 679 milliseconds
+2026-08-26 06:37:52.559 [info] Environments refresh finished (event): 682 milliseconds
+2026-08-26 06:37:52.576 [info] Environment refresh took 698 milliseconds
+2026-08-26 06:37:52.583 [info] Python interpreter path: /bin/python
+2026-08-26 06:37:55.754 [info] Starting Jedi language server for abijithasokan1992.

@@ -1,11 +1,24 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "rewrites": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/:path*",
+      "destination": "https://command.streamvista.in/api/:path*"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
     }
   ]
 }

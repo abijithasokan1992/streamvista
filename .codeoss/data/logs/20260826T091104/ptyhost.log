@@ -1,0 +1,21 @@
+2026-08-26 10:50:23.811 [info] Expanding terminal instance, old id 7acb42e1-5 -> new id undefined
+2026-08-26 10:50:23.812 [info] Expanding terminal instance, old id 7acb42e1-6 -> new id undefined
+2026-08-26 10:50:23.813 [info] Expanding terminal instance, old id 7acb42e1-7 -> new id undefined
+2026-08-26 10:51:21.933 [warning] Persistent process "5": Process had no disconnect runners but was an orphan
+2026-08-26 10:51:21.933 [warning] Persistent process "6": Process had no disconnect runners but was an orphan
+2026-08-26 10:51:21.933 [warning] Persistent process "7": Process had no disconnect runners but was an orphan
+2026-08-26 10:51:21.933 [info] Persistent process reconnection "5"
+2026-08-26 10:51:21.933 [info] Persistent process reconnection "6"
+2026-08-26 10:51:21.933 [info] Persistent process reconnection "7"
+2026-08-26 10:51:24.001 [info] Persistent process "5": Replaying 3148 chars and 1 size events
+2026-08-26 10:51:24.025 [info] Persistent process "6": Replaying 7321 chars and 1 size events
+2026-08-26 10:51:24.026 [info] Persistent process "7": Replaying 1766 chars and 1 size events
+2026-08-26 10:53:47.332 [info] Expanding terminal instance, old id 7acb42e1-5 -> new id undefined
+2026-08-26 10:53:47.332 [info] Expanding terminal instance, old id 7acb42e1-6 -> new id undefined
+2026-08-26 10:53:47.332 [info] Expanding terminal instance, old id 7acb42e1-7 -> new id undefined
+2026-08-26 11:28:18.682 [info] Expanding terminal instance, old id 7acb42e1-9 -> new id undefined
+2026-08-26 11:28:18.708 [info] Expanding terminal instance, old id 7acb42e1-10 -> new id undefined
+2026-08-26 11:28:18.708 [info] Expanding terminal instance, old id 7acb42e1-11 -> new id undefined
+2026-08-26 11:29:54.612 [info] Expanding terminal instance, old id 7acb42e1-9 -> new id undefined
+2026-08-26 11:29:54.612 [info] Expanding terminal instance, old id 7acb42e1-10 -> new id undefined
+2026-08-26 11:29:54.613 [info] Expanding terminal instance, old id 7acb42e1-11 -> new id undefined

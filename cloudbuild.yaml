@@ -1,0 +1,39 @@
+steps:
+  # Build and push API image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/union-api', './apps/auto-api']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/union-api']
+
+  # Build and push Web image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/union-web', './apps/auto-web']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/union-web']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'union-api'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/union-api'
+      - '--region'
+      - 'asia-southeast1' # Match your preference
+      - '--platform'
+      - 'managed'
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'union-web'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/union-web'
+      - '--region'
+      - 'asia-southeast1'
+      - '--platform'
+      - 'managed'

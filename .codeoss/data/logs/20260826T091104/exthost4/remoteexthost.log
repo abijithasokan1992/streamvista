@@ -1,0 +1,58 @@
+2026-08-26 10:50:29.561 [info] Extension host with pid 21646 started
+2026-08-26 10:50:29.585 [info] Lock '/home/abijithasokan1992/.codeoss/data/User/workspaceStorage/7acb42e1/vscode.lock': Lock acquired.
+2026-08-26 10:50:30.150 [info] ExtensionService#_doActivateExtension vscode.github-authentication, startup: false, activationEvent: 'onAuthenticationRequest:github'
+2026-08-26 10:50:30.152 [info] ExtensionService#_doActivateExtension vscode.emmet, startup: false, activationEvent: 'onLanguage'
+2026-08-26 10:50:30.152 [info] ExtensionService#_doActivateExtension google.geminicodeassist, startup: false, activationEvent: 'onView:cloudcode.gemini.chatView'
+2026-08-26 10:50:31.889 [info] ExtensionService#_doActivateExtension vscode.git-base, startup: true, activationEvent: '*', root cause: vscode.git
+2026-08-26 10:50:31.917 [info] ExtensionService#_doActivateExtension vscode.npm, startup: true, activationEvent: 'workspaceContains:package.json'
+2026-08-26 10:50:32.392 [info] ExtensionService#_doActivateExtension google.cloud-shell, startup: false, activationEvent: 'onCommand:cloudshell.isAuthorized'
+2026-08-26 10:50:32.439 [info] ExtensionService#_doActivateExtension vscode.git, startup: true, activationEvent: '*'
+2026-08-26 10:50:32.440 [info] ExtensionService#_doActivateExtension vscode.github, startup: true, activationEvent: '*'
+2026-08-26 10:50:32.902 [info] ExtensionService#_doActivateExtension vscode.configuration-editing, startup: false, activationEvent: 'onLanguage:jsonc'
+2026-08-26 10:50:32.915 [info] ExtensionService#_doActivateExtension vscode.json-language-features, startup: false, activationEvent: 'onLanguage:jsonc'
+2026-08-26 10:50:32.918 [info] ExtensionService#_doActivateExtension vscode.typescript-language-features, startup: false, activationEvent: 'onLanguage:jsonc'
+2026-08-26 10:50:38.893 [info] Not activating extension 'ms-python.python': Timed out while searching for 'workspaceContains' pattern **/pylock.*.toml
+2026-08-26 10:50:38.894 [info] Not activating extension 'redhat.java': Timed out while searching for 'workspaceContains' pattern */pom.xml,*/build.gradle,*/settings.gradle,*/build.gradle.kts,*/settings.gradle.kts,*/.classpath
+2026-08-26 10:50:38.895 [info] Not activating extension 'vscjava.vscode-java-dependency': Timed out while searching for 'workspaceContains' pattern */pom.xml,*/build.gradle,*/settings.gradle,*/build.gradle.kts,*/settings.gradle.kts,*/.classpath
+2026-08-26 10:50:38.896 [info] Not activating extension 'vscjava.vscode-java-test': Timed out while searching for 'workspaceContains' pattern */pom.xml,*/build.gradle,*/settings.gradle,*/build.gradle.kts,*/settings.gradle.kts,*/.classpath
+2026-08-26 10:50:38.896 [info] Not activating extension 'vscjava.vscode-maven': Timed out while searching for 'workspaceContains' pattern **/pom.xml
+2026-08-26 10:50:39.006 [info] Eager extensions activated
+2026-08-26 10:50:39.007 [info] ExtensionService#_doActivateExtension EditorConfig.EditorConfig, startup: false, activationEvent: 'onStartupFinished'
+2026-08-26 10:50:39.007 [info] ExtensionService#_doActivateExtension ms-toolsai.jupyter, startup: false, activationEvent: 'onStartupFinished', root cause: googlecloudtools.cloudcode
+2026-08-26 10:50:39.007 [info] ExtensionService#_doActivateExtension vscode.debug-auto-launch, startup: false, activationEvent: 'onStartupFinished'
+2026-08-26 10:50:39.008 [info] ExtensionService#_doActivateExtension google.gemini-cli-vscode-ide-companion, startup: false, activationEvent: 'onStartupFinished'
+2026-08-26 10:50:39.008 [info] ExtensionService#_doActivateExtension vscode.merge-conflict, startup: false, activationEvent: 'onStartupFinished'
+2026-08-26 10:50:39.815 [info] ExtensionService#_doActivateExtension ms-python.python, startup: false, activationEvent: 'api', root cause: ms-toolsai.jupyter
+2026-08-26 10:50:40.252 [info] ExtensionService#_doActivateExtension googlecloudtools.datacloud, startup: false, activationEvent: 'onStartupFinished', root cause: googlecloudtools.cloudcode
+2026-08-26 10:50:44.472 [info] ExtensionService#_doActivateExtension googlecloudtools.cloudcode, startup: false, activationEvent: 'onStartupFinished'
+2026-08-26 10:51:21.025 [info] ExtensionService#_doActivateExtension vscode.extension-editing, startup: false, activationEvent: 'onLanguage:json'
+2026-08-26 10:51:24.949 [info] ExtensionService#_doActivateExtension vscode.terminal-suggest, startup: false, activationEvent: 'onTerminalShellIntegration:*'
+2026-08-26 11:51:53.480 [info] Extension host terminating: received terminate message from renderer
+2026-08-26 11:51:53.503 [info] Lock '/home/abijithasokan1992/.codeoss/data/User/workspaceStorage/7acb42e1/vscode.lock': Marking the lockfile as scheduled to be released in 6000 ms.
+2026-08-26 11:51:53.967 [error] ProxyResolver#resolveProxy undefined Canceled: Canceled
+    at new Wz (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:29:133537)
+    at sx.U (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:29:138147)
+    at Proxy.r.<computed>.n.charCodeAt.r.<computed> (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:29:135641)
+    at DS.resolveProxy (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:114:84417)
+    at Object.resolveProxy (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:267:24859)
+    at useProxySettings (/google/devshell/editor/code-oss-for-cloud-shell/node_modules/@vscode/proxy-agent/out/index.js:208:16)
+    at /google/devshell/editor/code-oss-for-cloud-shell/node_modules/@vscode/proxy-agent/out/index.js:145:13
+    at /google/devshell/editor/code-oss-for-cloud-shell/node_modules/@vscode/proxy-agent/out/index.js:1054:13 
+2026-08-26 11:51:54.001 [error] Error: Channel has been closed
+    at r (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:133:2618)
+    at Object.append (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:133:2715)
+    at append (/google/devshell/editor/code-oss-for-cloud-shell/extensions/geminicodeassist/dist/webpack:/common/packages/logging/buffered_output_logger.ts:134:18)
+    at Socket.<anonymous> (/google/devshell/editor/code-oss-for-cloud-shell/extensions/geminicodeassist/dist/webpack:/node_modules/vscode-languageclient/lib/node/main.js:430:80)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Socket.Readable.push (node:internal/streams/readable:394:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+2026-08-26 11:51:54.033 [error] Error: Channel has been closed
+    at n (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:133:3003)
+    at Object.info (file:///google/devshell/editor/code-oss-for-cloud-shell/out/vs/workbench/api/node/extensionHostProcess.js:133:3348)
+    at QT.info (/google/devshell/editor/code-oss-for-cloud-shell/extensions/json-language-features/client/dist/node/jsonClientMain.js:14:709)
+    at ChildProcess.<anonymous> (/google/devshell/editor/code-oss-for-cloud-shell/extensions/json-language-features/client/dist/node/jsonClientMain.js:19:48759)
+    at ChildProcess.emit (node:events:509:28)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:295:12)
+2026-08-26 11:51:54.097 [info] Extension host with pid 21646 exiting with code 0

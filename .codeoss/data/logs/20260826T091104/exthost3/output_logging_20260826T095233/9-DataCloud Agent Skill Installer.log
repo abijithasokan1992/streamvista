@@ -1,0 +1,117 @@
+[2026-08-26T09:52:45.237Z] Activating Agent Skill Installer
+[2026-08-26T09:52:45.250Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:52:45.250Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:52:45.250Z] Profile antigravity is NOT active
+[2026-08-26T09:52:45.250Z] Profile jetski is NOT active
+[2026-08-26T09:52:45.250Z] Profile cursor is NOT active
+[2026-08-26T09:52:45.250Z] Profile copilot is NOT active
+[2026-08-26T09:52:45.250Z] Profile gemini-code-assist is active
+[2026-08-26T09:52:45.251Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:52:45.251Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:52:45.251Z] Profile antigravity is NOT active
+[2026-08-26T09:52:45.251Z] Profile jetski is NOT active
+[2026-08-26T09:52:45.251Z] Profile cursor is NOT active
+[2026-08-26T09:52:45.251Z] Profile copilot is NOT active
+[2026-08-26T09:52:45.251Z] Profile gemini-code-assist is active
+[2026-08-26T09:52:52.018Z] Checking skills for Gemini Code Assist in /home/abijithasokan1992/.gemini/skills. Force=false
+[2026-08-26T09:52:52.023Z] Bundle checksum match. Skipping installation.
+[2026-08-26T09:52:52.023Z] Syncing telemetry hooks for gemini-code-assist. Telemetry enabled: true
+[2026-08-26T09:52:52.032Z] Hook plugin for gemini-code-assist installed successfully to /home/abijithasokan1992/.gemini/config/plugins/googlecloudtools.datacloud_telemetry
+[2026-08-26T09:53:42.993Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:53:42.993Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:53:42.994Z] Profile antigravity is NOT active
+[2026-08-26T09:53:42.994Z] Profile jetski is NOT active
+[2026-08-26T09:53:42.994Z] Profile cursor is NOT active
+[2026-08-26T09:53:42.994Z] Profile copilot is NOT active
+[2026-08-26T09:53:42.994Z] Profile gemini-code-assist is active
+[2026-08-26T09:53:42.994Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:53:42.994Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:53:42.994Z] Profile antigravity is NOT active
+[2026-08-26T09:53:42.994Z] Profile jetski is NOT active
+[2026-08-26T09:53:42.994Z] Profile cursor is NOT active
+[2026-08-26T09:53:42.994Z] Profile copilot is NOT active
+[2026-08-26T09:53:42.994Z] Profile gemini-code-assist is active
+[2026-08-26T09:54:18.327Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:54:18.327Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:54:18.327Z] Profile antigravity is NOT active
+[2026-08-26T09:54:18.327Z] Profile jetski is NOT active
+[2026-08-26T09:54:18.327Z] Profile cursor is NOT active
+[2026-08-26T09:54:18.327Z] Profile copilot is NOT active
+[2026-08-26T09:54:18.327Z] Profile gemini-code-assist is active
+[2026-08-26T09:54:18.327Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:54:18.327Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:54:18.327Z] Profile antigravity is NOT active
+[2026-08-26T09:54:18.327Z] Profile jetski is NOT active
+[2026-08-26T09:54:18.327Z] Profile cursor is NOT active
+[2026-08-26T09:54:18.327Z] Profile copilot is NOT active
+[2026-08-26T09:54:18.327Z] Profile gemini-code-assist is active
+[2026-08-26T09:54:30.823Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:54:30.823Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:54:30.823Z] Profile antigravity is NOT active
+[2026-08-26T09:54:30.823Z] Profile jetski is NOT active
+[2026-08-26T09:54:30.823Z] Profile cursor is NOT active
+[2026-08-26T09:54:30.823Z] Profile copilot is NOT active
+[2026-08-26T09:54:30.823Z] Profile gemini-code-assist is active
+[2026-08-26T09:54:30.823Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:54:30.824Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:54:30.824Z] Profile antigravity is NOT active
+[2026-08-26T09:54:30.824Z] Profile jetski is NOT active
+[2026-08-26T09:54:30.824Z] Profile cursor is NOT active
+[2026-08-26T09:54:30.824Z] Profile copilot is NOT active
+[2026-08-26T09:54:30.824Z] Profile gemini-code-assist is active
+[2026-08-26T09:58:45.618Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:58:45.619Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:58:45.619Z] Profile antigravity is NOT active
+[2026-08-26T09:58:45.619Z] Profile jetski is NOT active
+[2026-08-26T09:58:45.619Z] Profile cursor is NOT active
+[2026-08-26T09:58:45.619Z] Profile copilot is NOT active
+[2026-08-26T09:58:45.619Z] Profile gemini-code-assist is active
+[2026-08-26T09:58:45.619Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T09:58:45.619Z] Profile antigravity-ide is NOT active
+[2026-08-26T09:58:45.619Z] Profile antigravity is NOT active
+[2026-08-26T09:58:45.619Z] Profile jetski is NOT active
+[2026-08-26T09:58:45.619Z] Profile cursor is NOT active
+[2026-08-26T09:58:45.619Z] Profile copilot is NOT active
+[2026-08-26T09:58:45.619Z] Profile gemini-code-assist is active
+[2026-08-26T10:01:02.743Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T10:01:02.743Z] Profile antigravity-ide is NOT active
+[2026-08-26T10:01:02.743Z] Profile antigravity is NOT active
+[2026-08-26T10:01:02.743Z] Profile jetski is NOT active
+[2026-08-26T10:01:02.743Z] Profile cursor is NOT active
+[2026-08-26T10:01:02.743Z] Profile copilot is NOT active
+[2026-08-26T10:01:02.743Z] Profile gemini-code-assist is active
+[2026-08-26T10:01:02.743Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T10:01:02.743Z] Profile antigravity-ide is NOT active
+[2026-08-26T10:01:02.743Z] Profile antigravity is NOT active
+[2026-08-26T10:01:02.743Z] Profile jetski is NOT active
+[2026-08-26T10:01:02.743Z] Profile cursor is NOT active
+[2026-08-26T10:01:02.743Z] Profile copilot is NOT active
+[2026-08-26T10:01:02.743Z] Profile gemini-code-assist is active
+[2026-08-26T10:02:34.705Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T10:02:34.705Z] Profile antigravity-ide is NOT active
+[2026-08-26T10:02:34.705Z] Profile antigravity is NOT active
+[2026-08-26T10:02:34.705Z] Profile jetski is NOT active
+[2026-08-26T10:02:34.705Z] Profile cursor is NOT active
+[2026-08-26T10:02:34.705Z] Profile copilot is NOT active
+[2026-08-26T10:02:34.705Z] Profile gemini-code-assist is active
+[2026-08-26T10:02:34.705Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T10:02:34.705Z] Profile antigravity-ide is NOT active
+[2026-08-26T10:02:34.705Z] Profile antigravity is NOT active
+[2026-08-26T10:02:34.705Z] Profile jetski is NOT active
+[2026-08-26T10:02:34.705Z] Profile cursor is NOT active
+[2026-08-26T10:02:34.705Z] Profile copilot is NOT active
+[2026-08-26T10:02:34.705Z] Profile gemini-code-assist is active
+[2026-08-26T10:02:36.060Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T10:02:36.060Z] Profile antigravity-ide is NOT active
+[2026-08-26T10:02:36.060Z] Profile antigravity is NOT active
+[2026-08-26T10:02:36.060Z] Profile jetski is NOT active
+[2026-08-26T10:02:36.060Z] Profile cursor is NOT active
+[2026-08-26T10:02:36.060Z] Profile copilot is NOT active
+[2026-08-26T10:02:36.060Z] Profile gemini-code-assist is active
+[2026-08-26T10:02:36.060Z] appName: Code OSS for Cloud Shell, ideType: 6
+[2026-08-26T10:02:36.060Z] Profile antigravity-ide is NOT active
+[2026-08-26T10:02:36.060Z] Profile antigravity is NOT active
+[2026-08-26T10:02:36.060Z] Profile jetski is NOT active
+[2026-08-26T10:02:36.060Z] Profile cursor is NOT active
+[2026-08-26T10:02:36.060Z] Profile copilot is NOT active
+[2026-08-26T10:02:36.060Z] Profile gemini-code-assist is active

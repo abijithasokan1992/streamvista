@@ -27,6 +27,8 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_UPI_VPA: ${{ vars.VITE_UPI_VPA }}
+          VITE_UPI_PAYEE_NAME: ${{ vars.VITE_UPI_PAYEE_NAME }}
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v4.2.2
         with:

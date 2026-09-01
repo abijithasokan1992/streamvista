@@ -1,79 +1,31 @@
-import oracledb from 'oracledb';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbConfig = {
-  user: process.env.ORACLE_DB_USER,
-  password: process.env.ORACLE_DB_PASSWORD,
-  connectString: process.env.ORACLE_DB_CONNECTION_STRING,
-};
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-let poolReady = false;
-
-export async function initializeDb() {
-  if (!dbConfig.user || !dbConfig.password || !dbConfig.connectString) {
-    throw new Error('Oracle database credentials are not configured. Refusing to start in mock mode.');
-  }
-
-  try {
-    await oracledb.createPool({
-      user: dbConfig.user,
-      password: dbConfig.password,
-      connectString: dbConfig.connectString,
-      poolMax: 10,
-      poolMin: 2,
-      poolIncrement: 2,
-    });
-    poolReady = true;
-    console.log('Oracle DB Connection Pool initialized');
-  } catch (err) {
-    console.error('Oracle DB initialization failed:', err);
-    throw err;
-  }
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error('Missing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Production backend must fail closed.');
 }
 
-export async function getDbConnection() {
-  if (!poolReady) throw new Error('Database pool is not initialized');
-  return await oracledb.getConnection();
-}
-
-export async function executeQuery(sql: string, params: any = [], options: oracledb.ExecuteOptions = {}) {
-  if (!poolReady) throw new Error('Database is not initialized');
-
-  let connection;
-  try {
-    connection = await getDbConnection();
-    return await connection.execute(sql, params, {
-      ...options,
-      outFormat: oracledb.OUT_FORMAT_OBJECT,
-      autoCommit: true,
-    });
-  } finally {
-    if (connection) {
-      await connection.close();
-    }
-  }
-/**
- * Legacy database compatibility boundary.
- *
- * The production command API is Supabase-backed. The old Oracle query layer is
- * intentionally disabled so legacy modules cannot silently fall back to mock
- * data or a second production database.
- */
+let client: SupabaseClient | null = null;
 
 export async function initializeDb(): Promise<void> {
-  return;
+  if (client) return;
+  client = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { error } = await client.from('sv_app_profiles').select('id', { head: true, count: 'exact' }).limit(1);
+  if (error) throw new Error(`Supabase initialization failed: ${error.message}`);
 }
 
-export async function getDbConnection(): Promise<null> {
-  return null;
+export function getDbClient(): SupabaseClient {
+  if (!client) throw new Error('Database not initialized');
+  return client;
 }
 
-export async function executeQuery<T = any>(
-  _sql: string,
-  _params: any = [],
-  _options: any = {},
-): Promise<T> {
-  throw new Error('Legacy Oracle database adapter is disabled; use Supabase-backed services.');
+export async function executeQuery<T = unknown>(query: string): Promise<{ rows: T[] }> {
+  throw new Error(`Raw SQL execution is intentionally disabled in the application API: ${query}`);
 }

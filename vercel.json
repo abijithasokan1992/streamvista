@@ -11,19 +11,10 @@
     {
       "source": "/api/:path*",
       "destination": "/api/entrypoint"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/:path*",
-      "dest": "/api/entrypoint"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [

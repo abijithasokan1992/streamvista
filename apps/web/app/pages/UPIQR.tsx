@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import QRCode from 'qrcode';
+import QRCode from 'qrcode-generator';
 
 const DEFAULT_VPA = import.meta.env.VITE_UPI_VPA || '';
 const DEFAULT_NAME = import.meta.env.VITE_UPI_PAYEE_NAME || 'StreamVista';
@@ -12,28 +12,37 @@ function buildUpiUri(vpa: string, name: string, amount: string, note: string) {
   return `upi://pay?${params.toString()}`;
 }
 
+function createQrSvg(value: string) {
+  const qr = QRCode(0, 'M');
+  qr.addData(value);
+  qr.make();
+  return qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+}
+
 export default function UPIQR() {
   const [vpa, setVpa] = useState(DEFAULT_VPA);
   const [name, setName] = useState(DEFAULT_NAME);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
-  const [qr, setQr] = useState('');
+  const [qrSvg, setQrSvg] = useState('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
 
   const upiUri = useMemo(() => buildUpiUri(vpa, name, amount, note), [vpa, name, amount, note]);
 
   useEffect(() => {
-    let active = true;
     if (!vpa.trim()) {
-      setQr('');
+      setQrSvg('');
       setError('Add a UPI ID to generate the payment QR.');
-      return () => { active = false; };
+      return;
     }
-    QRCode.toDataURL(upiUri, { width: 420, margin: 2, errorCorrectionLevel: 'M' })
-      .then((url) => { if (active) { setQr(url); setError(''); } })
-      .catch(() => { if (active) setError('Could not generate the QR. Check the payment details.'); });
-    return () => { active = false; };
+    try {
+      setQrSvg(createQrSvg(upiUri));
+      setError('');
+    } catch {
+      setQrSvg('');
+      setError('Could not generate the QR. Check the payment details.');
+    }
   }, [upiUri, vpa]);
 
   const copyUri = async () => {
@@ -49,12 +58,17 @@ export default function UPIQR() {
   };
 
   const download = () => {
-    if (!qr) return;
+    if (!qrSvg) return;
+    const blob = new Blob([qrSvg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = qr;
-    a.download = `${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'upi-payment'}-qr.png`;
+    a.href = url;
+    a.download = `${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'upi-payment'}-qr.svg`;
     a.click();
+    URL.revokeObjectURL(url);
   };
+
+  const qrSrc = qrSvg ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrSvg)}` : '';
 
   return (
     <main className="min-h-screen bg-[#f7f7f8] text-[#171717] px-4 py-6 sm:px-6">
@@ -75,7 +89,7 @@ export default function UPIQR() {
           </div>
 
           <div className="mx-auto flex w-[min(78vw,310px)] aspect-square items-center justify-center rounded-3xl border border-black/5 bg-white p-3">
-            {qr ? <img src={qr} alt="UPI payment QR code" className="h-full w-full" /> : <div className="px-8 text-center text-sm text-zinc-400">Enter a UPI ID below to generate your QR.</div>}
+            {qrSrc ? <img src={qrSrc} alt="UPI payment QR code" className="h-full w-full" /> : <div className="px-8 text-center text-sm text-zinc-400">Enter a UPI ID below to generate your QR.</div>}
           </div>
 
           <div className="px-6 py-6">
@@ -97,12 +111,12 @@ export default function UPIQR() {
             {error && <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">{error}</div>}
 
             <div className="mt-5 grid grid-cols-3 gap-2">
-              <button onClick={copyUri} disabled={!qr} className="rounded-xl border border-black/10 px-3 py-3 text-xs font-semibold disabled:opacity-40">{copied ? 'Copied' : 'Copy'}</button>
-              <button onClick={share} disabled={!qr} className="rounded-xl border border-black/10 px-3 py-3 text-xs font-semibold disabled:opacity-40">Share</button>
-              <button onClick={download} disabled={!qr} className="rounded-xl bg-[#111] px-3 py-3 text-xs font-semibold text-white disabled:opacity-40">Save QR</button>
+              <button onClick={copyUri} disabled={!qrSvg} className="rounded-xl border border-black/10 px-3 py-3 text-xs font-semibold disabled:opacity-40">{copied ? 'Copied' : 'Copy'}</button>
+              <button onClick={share} disabled={!qrSvg} className="rounded-xl border border-black/10 px-3 py-3 text-xs font-semibold disabled:opacity-40">Share</button>
+              <button onClick={download} disabled={!qrSvg} className="rounded-xl bg-[#111] px-3 py-3 text-xs font-semibold text-white disabled:opacity-40">Save QR</button>
             </div>
 
-            <a href={upiUri} className={`mt-3 flex items-center justify-center rounded-xl px-4 py-3.5 text-sm font-semibold ${qr ? 'bg-[#111] text-white' : 'pointer-events-none bg-zinc-200 text-zinc-400'}`}>Open UPI app</a>
+            <a href={upiUri} className={`mt-3 flex items-center justify-center rounded-xl px-4 py-3.5 text-sm font-semibold ${qrSvg ? 'bg-[#111] text-white' : 'pointer-events-none bg-zinc-200 text-zinc-400'}`}>Open UPI app</a>
 
             <div className="mt-5 rounded-2xl bg-zinc-50 p-4 text-xs leading-5 text-zinc-500">
               <strong className="text-zinc-700">Before paying:</strong> verify the recipient name and amount in your UPI app. This page only creates the payment intent; it does not claim a payment is successful.

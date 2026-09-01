@@ -10,11 +10,14 @@ if (!supabaseUrl || !serviceRoleKey) {
   throw new Error('Missing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Production backend must fail closed.');
 }
 
+const resolvedSupabaseUrl: string = supabaseUrl;
+const resolvedServiceRoleKey: string = serviceRoleKey;
+
 let client: SupabaseClient | null = null;
 
 export async function initializeDb(): Promise<void> {
   if (client) return;
-  client = createClient(supabaseUrl, serviceRoleKey, {
+  client = createClient(resolvedSupabaseUrl, resolvedServiceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   const { error } = await client.from('sv_app_profiles').select('id', { head: true, count: 'exact' }).limit(1);

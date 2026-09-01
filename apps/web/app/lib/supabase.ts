@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Canonical production Auth/data plane. Never point the browser client at a legacy Bridge project.
 const EXPECTED_SUPABASE_PROJECT_REF = 'tqzimuwozhipqgyerdff';
 const CANONICAL_SUPABASE_URL = `https://${EXPECTED_SUPABASE_PROJECT_REF}.supabase.co`;
 const configuredPublishableKey = (

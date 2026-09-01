@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/Dashboard";
 import RevenuePotential from "./pages/RevenuePotential";
+import RealProjects from "./pages/RealProjects";
 import Titles from "./pages/Titles";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import BuyerDashboard from "./pages/BuyerDashboard";
@@ -77,6 +78,7 @@ function App() {
   return <AuthProvider><BrowserRouter><Routes>
     <Route path="/chat" element={<ChatRoute />} />
     <Route path="/home" element={<Home />} />
+    <Route path="/projects" element={<RealProjects />} />
     <Route path="/login" element={<LoginRoute />} />
     <Route path="/auth" element={<LegacyAuthRedirect />} />
 

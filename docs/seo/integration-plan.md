@@ -1,15 +1,29 @@
-# StreamVista — AI SEO Metadata Integration Plan
+# StreamVista — AI SEO Metadata Implementation Milestones
 
-## Objective
+## M0 — Repository & Architecture Baseline
 
-Integrate the StreamVista SEO metadata engine into the existing content workflow for movies, series, documentaries, music and shows, using the existing application architecture and avoiding duplicate content systems.
+**Owner:** Engineering  
+**Due:** September 1, 2026  
+**Dependency:** Existing `main` branch
 
-## Current Baseline
+- Inspect existing Film/Series models.
+- Identify content creation and public watch pages.
+- Identify existing SEO implementation.
+- Identify Supabase fields and APIs.
+- Confirm integration points.
+- Establish rollback path.
 
-Repository: `abijithasokan1992/streamvista`
-Branch: `main`
+**Acceptance:** No duplicate content architecture and all integration points identified.
 
-SEO engine foundation already committed under:
+---
+
+## M1 — SEO Engine Foundation
+
+**Owner:** Engineering  
+**Due:** September 1, 2026  
+**Status:** Complete
+
+Implement:
 
 ```text
 apps/web/app/lib/seo/
@@ -17,188 +31,265 @@ apps/web/app/lib/seo/
 └── README.md
 ```
 
-Foundation commit:
+Supports:
 
-`bf9d37cca873d988f9b5486d4c0743743bb69763`
+- Meta titles
+- Meta descriptions
+- Keywords
+- Canonical URLs
+- Open Graph
+- Twitter metadata
+- Schema.org JSON-LD
+- Movie/Series/Documentary/Music/Show types
 
-The foundation provides deterministic SEO title/description generation, keywords, canonical URL, Open Graph, Twitter metadata and Schema.org JSON-LD support without requiring an AI provider.
+**Commit:** `bf9d37cca873d988f9b5486d4c0743743bb69763`
 
-## Owners
+**Acceptance:** P0 SEO engine tests pass 100%.
 
-| Area | Owner |
-|---|---|
-| Product / Release | StreamVista Founder / Product Owner |
-| Engineering | StreamVista Engineering |
-| Frontend | StreamVista Engineering — Frontend |
-| Backend | StreamVista Engineering — Backend |
-| AI | StreamVista Engineering — AI |
-| Database | StreamVista Engineering — Supabase |
-| SEO QA | StreamVista Product + Engineering |
-| Content QA | StreamVista Product / Content Team |
-| Deployment | StreamVista Engineering / DevOps |
+---
 
-## Milestones, Owners, Dependencies and Due Dates
+## M2 — Content-to-SEO Integration
 
-| Milestone | Deliverable | Primary Owner | Dependencies | Due Date |
-|---|---|---|---|---|
-| M0 | Repository and architecture baseline | Engineering | `main` branch | 2026-09-01 |
-| M1 | SEO engine foundation | Engineering | M0 | Complete — 2026-09-01 |
-| M2 | Content to SEO integration | Frontend + Backend | M0, M1 | 2026-09-02 |
-| M3 | Dynamic page metadata | Frontend | M2 | 2026-09-02 |
-| M4 | Structured data | Frontend + SEO QA | M2, M3 | 2026-09-03 |
-| M5 | SEO management UI | Frontend | M2 | 2026-09-04 |
-| M6 | Metadata persistence | Backend / Supabase | M5 | 2026-09-04 |
-| M7 | Optional AI generation | AI / Backend | M2, M5, M6 | 2026-09-05 |
-| M8 | AI cost-control layer | Backend | M7 | 2026-09-05 |
-| M9 | Sitemap integration | Backend / SEO | M3, M6 | 2026-09-06 |
-| M10 | Automated build and regression gate | Engineering | M1–M9 | 2026-09-06 |
-| M11 | Full SEO QA | SEO QA + Content QA | M10 | 2026-09-07 |
-| M12 | Vercel preview | DevOps / Engineering | M10, M11 | 2026-09-07 |
-| M13 | Production release | Product + Engineering | M12 | 2026-09-08 |
+**Owner:** Frontend + Backend Engineering  
+**Due:** September 2, 2026  
+**Dependencies:** M0, M1
 
-## Measurable Acceptance Criteria
-
-### M2 — Content Integration
-
-Test at least:
-
-- 3 movies
-- 3 series
-- 1 documentary
-- 1 music/show record
-
-Targets:
+Connect existing content data to:
 
 ```text
-Valid records generating metadata = 100%
-Optional-field failures = 0
-Missing-required-field crashes = 0
-Duplicate canonical URLs in test set = 0
+Content
+   ↓
+SEO Input Builder
+   ↓
+generateSEOMetadata()
 ```
 
-### M3 — Dynamic Metadata
-
-For every tested public page:
+Map:
 
 ```text
-<title> = present
-meta description = present
-canonical = present and valid
-og:title = present
-og:description = present
-og:type = present
-twitter:title = present
-twitter:description = present
+title
+contentType
+genre
+language
+year
+synopsis
+focusKeyword
+image
+canonicalUrl
 ```
 
-Targets:
+**Acceptance:** Valid test content generates SEO metadata with zero mapping errors.
+
+---
+
+## M3 — Dynamic Public Page Metadata
+
+**Owner:** Frontend Engineering  
+**Due:** September 2, 2026  
+**Dependency:** M2
+
+Automatically apply:
 
 ```text
-Public test pages with SEO metadata = 100%
-Duplicate title tags = 0
-Duplicate descriptions = 0
-Missing canonical URLs = 0
-Broken canonical URLs = 0
+<title>
+description
+canonical
+og:title
+og:description
+og:type
+twitter:title
+twitter:description
 ```
 
-### M4 — Structured Data
+**Acceptance:**
 
-Expected mappings:
+- 100% of tested public pages contain required metadata.
+- Duplicate title tags = 0.
+- Missing canonical URLs = 0.
+- Broken canonical URLs = 0.
+
+---
+
+## M4 — Structured Data
+
+**Owner:** Frontend + SEO Engineering  
+**Due:** September 3, 2026  
+**Dependencies:** M2, M3
+
+Implement:
 
 ```text
-Movie → Movie
-Series → TVSeries
-Music → MusicRecording
-Other → CreativeWork
+Movie
+TVSeries
+MusicRecording
+CreativeWork
 ```
 
-Targets:
+**Acceptance:**
+
+- Valid JSON-LD = 100%.
+- Fabricated metadata = 0.
+- Invalid schema = 0.
+
+---
+
+## M5 — SEO Management UI
+
+**Owner:** Frontend Engineering  
+**Due:** September 4, 2026  
+**Dependency:** M2
+
+Add:
 
 ```text
-Public pages with JSON-LD = 100%
-Valid JSON-LD = 100%
-Fabricated values = 0
-Unnecessary undefined fields = 0
+[Generate SEO]
+[Regenerate]
+[Save]
 ```
 
-### M5 — SEO UI
+Allow editing of:
 
-Required workflow:
+- Meta title
+- Meta description
+- Focus keyword
+- Canonical URL
+
+Display SEO health indicators.
+
+**Acceptance:**
 
 ```text
-Generate → Review → Edit → Save → Regenerate
+Generate → Review → Edit → Save → Reload
 ```
 
-Targets:
+works successfully with no critical content-workflow regression.
+
+---
+
+## M6 — SEO Metadata Persistence
+
+**Owner:** Backend / Supabase Engineering  
+**Due:** September 4, 2026  
+**Dependency:** M5
+
+Persist approved metadata:
 
 ```text
-Generate success ≥ 99%
-Save success ≥ 99%
-Manual editing = supported
-Metadata lost after refresh = 0
-Critical content-workflow regressions = 0
+seo_title
+seo_description
+seo_keywords
+canonical_url
+og_title
+og_description
+og_image
+seo_schema
+seo_generated_at
+seo_version
 ```
 
-### M6 — Persistence
+Reuse existing fields where possible.
 
-Targets:
+**Acceptance:**
+
+- Persistence success = 100%.
+- Data loss = 0.
+- Wrong-record association = 0.
+
+---
+
+## M7 — Optional AI SEO Generation
+
+**Owner:** AI / Backend Engineering  
+**Due:** September 5, 2026  
+**Dependencies:** M2, M5, M6
+
+Implement:
 
 ```text
-Persistence success = 100%
-Data loss = 0
-Wrong-record association = 0
-Unintended regeneration = 0
+Content
+   ↓
+AI Generator
+   ↓
+Validation
+   ↓
+SEO Engine
+   ↓
+Persistence
 ```
 
-### M7 — AI Layer
-
-Two mandatory tests:
+Fallback:
 
 ```text
-AI available → AI generation → validation → save = PASS
-AI unavailable → deterministic fallback → save = PASS
+AI unavailable
+      ↓
+Deterministic SEO generator
 ```
 
-Targets:
+**Acceptance:**
+
+- AI success handled = 100%.
+- AI failure handled = 100%.
+- Fallback success = 100%.
+- Browser-exposed AI secrets = 0.
+
+---
+
+## M8 — AI Cost Control
+
+**Owner:** Backend Engineering  
+**Due:** September 5, 2026  
+**Dependency:** M7
+
+Generate metadata only when:
+
+- Content is created.
+- Important SEO fields change.
+- User manually requests regeneration.
+
+Reuse saved metadata otherwise.
+
+**Acceptance:**
+
+- Unnecessary AI calls = 0.
+- Expected regeneration behavior = 100%.
+
+---
+
+## M9 — Sitemap Integration
+
+**Owner:** Backend / SEO Engineering  
+**Due:** September 6, 2026  
+**Dependencies:** M3, M6
+
+Include:
 
 ```text
-AI errors handled = 100%
-Fallback success = 100%
-Browser-exposed AI secrets = 0
-Unvalidated AI output saved = 0
+Published public content
 ```
 
-### M8 — Cost Control
-
-Required behavior:
+Exclude:
 
 ```text
-First creation → generation allowed
-Reload → no regeneration
-Important SEO field change → regeneration allowed
-Manual regenerate → regeneration allowed
+Draft
+Private
+Restricted
+Deleted
 ```
 
-Target:
+**Acceptance:**
 
-```text
-Unnecessary AI calls = 0
-```
+- Eligible content included = 100%.
+- Ineligible content included = 0%.
+- Duplicate sitemap URLs = 0.
+- Canonical/sitemap mismatch = 0.
 
-### M9 — Sitemap
+---
 
-Published public content must be included. Draft, private, restricted and deleted content must be excluded.
+## M10 — Automated Build & Regression Gate
 
-Targets:
-
-```text
-Eligible content included = 100%
-Ineligible content included = 0%
-Canonical/sitemap mismatches = 0
-Duplicate sitemap URLs = 0
-```
-
-### M10 — Build and Regression Gate
+**Owner:** Engineering  
+**Due:** September 6, 2026  
+**Dependencies:** M1–M9
 
 Run:
 
@@ -209,17 +300,23 @@ npm run build:api
 npm run build
 ```
 
-Release threshold:
+**Acceptance:**
 
 ```text
 TypeScript errors = 0
-Build errors = 0
+Build errors      = 0
 Critical warnings = 0
 ```
 
-### M11 — SEO QA
+---
 
-Required test categories:
+## M11 — Full SEO QA
+
+**Owner:** SEO QA + Product/Content  
+**Due:** September 7, 2026  
+**Dependency:** M10
+
+Test:
 
 ```text
 Movie
@@ -233,160 +330,146 @@ Missing genre
 Missing image
 Missing language
 Special characters
-Malayalam text
-English text
+Malayalam
+English
 ```
 
-P0 test pass rate must be 100%.
+Test at least **10 representative public pages**.
 
-### M12 — Vercel Preview
+**Acceptance:** P0 test pass rate = 100%.
 
-Evidence must include:
+---
+
+## M12 — Vercel Preview Release
+
+**Owner:** Deployment / Engineering  
+**Due:** September 7, 2026  
+**Dependencies:** M10, M11
+
+Deployment:
 
 ```text
-GitHub commit SHA
-Vercel deployment ID
-Preview URL
-Deployment status
-Build status
-Runtime status
+GitHub main
+     ↓
+Vercel Preview
+     ↓
+SEO verification
 ```
 
-Targets:
+Verify:
+
+- Page loading
+- Authentication
+- Content rendering
+- Metadata
+- JSON-LD
+- Sitemap
+- Browser console
+
+**Acceptance:**
 
 ```text
-Deployment = READY
+Vercel status = READY
 Critical runtime errors = 0
 SEO QA failures = 0
 ```
 
-### M13 — Production Release
+---
 
-Production target:
+## M13 — Production Release
 
-`2026-09-08`
+**Owner:** Product Owner + Engineering  
+**Due:** September 8, 2026  
+**Dependency:** M12
 
-Final measurable gates:
-
-```text
-Build success = 100%
-P0 test pass rate = 100%
-Public pages with metadata = 100%
-Broken canonical URLs = 0
-Invalid JSON-LD = 0
-Duplicate metadata = 0
-Private/draft indexed = 0
-Critical security issues = 0
-Critical regressions = 0
-```
-
-## Test Evidence Standard
-
-Every milestone marked `PASS` must have objective evidence.
-
-Acceptable evidence:
-
-- GitHub commit SHA
-- Changed-file list
-- Typecheck/build output
-- Automated test results
-- Browser/page-source verification
-- UI screenshot
-- Database migration/result
-- Sitemap output
-- JSON-LD validation
-- Vercel deployment URL/status
-
-A milestone must not be marked `PASS` from visual inspection or developer assertion alone.
-
-## Sign-Off Matrix
-
-| Gate | Engineering | SEO QA | Product | Release |
-|---|:---:|:---:|:---:|:---:|
-| M1 Foundation | ✓ | — | ✓ | — |
-| M2 Integration | ✓ | ✓ | ✓ | — |
-| M3 Metadata | ✓ | ✓ | ✓ | — |
-| M4 JSON-LD | ✓ | ✓ | — | — |
-| M5 SEO UI | ✓ | ✓ | ✓ | — |
-| M6 Persistence | ✓ | — | ✓ | — |
-| M7 AI | ✓ | ✓ | ✓ | — |
-| M8 Cost Control | ✓ | — | ✓ | — |
-| M9 Sitemap | ✓ | ✓ | — | — |
-| M10 Build Gate | ✓ | — | — | — |
-| M11 QA | ✓ | ✓ | ✓ | — |
-| M12 Preview | ✓ | ✓ | ✓ | — |
-| M13 Production | ✓ | ✓ | ✓ | GO |
-
-## Evidence Register
-
-| Milestone | Minimum evidence |
-|---|---|
-| M0 | Architecture/integration map |
-| M1 | Foundation commit SHA |
-| M2 | Content-to-SEO test results |
-| M3 | Page-source metadata evidence |
-| M4 | JSON-LD validation evidence |
-| M5 | SEO UI screenshot + functional test |
-| M6 | Persistence test evidence |
-| M7 | AI success + fallback evidence |
-| M8 | AI invocation/cost evidence |
-| M9 | Sitemap inclusion/exclusion evidence |
-| M10 | Typecheck/build output |
-| M11 | SEO QA matrix |
-| M12 | Vercel preview record |
-| M13 | Production verification + sign-offs |
-
-## Critical Blockers
-
-Production release must stop if any of these occur:
-
-1. Existing content creation breaks.
-2. SEO metadata contains fabricated information.
-3. AI failure causes a public page failure.
-4. Private/draft content becomes publicly indexed.
-5. Canonical URLs are incorrect.
-6. JSON-LD is malformed.
-7. TypeScript or build fails.
-8. Vercel deployment is not READY.
-9. Authentication/content workflows regress.
-10. AI or database credentials are exposed to the browser.
-
-## Release Principle
+Release:
 
 ```text
-Build → Validate → Preview → Verify → Deploy
+GitHub main
+     ↓
+Vercel
+     ↓
+streamvista.in
 ```
 
-The feature is not production-certified until engineering, SEO QA and product sign-off are complete and the deployed StreamVista pages pass live verification.
+Required sign-offs:
+
+```text
+Engineering ✓
+SEO QA      ✓
+Product     ✓
+```
+
+**Acceptance:**
+
+```text
+Build success              = 100%
+P0 tests                   = 100% PASS
+Public pages with SEO     = 100%
+Broken canonical URLs     = 0
+Invalid JSON-LD            = 0
+Duplicate metadata         = 0
+Private/draft indexed      = 0
+Critical security issues   = 0
+Critical regressions       = 0
+```
+
+---
+
+# Final Delivery Flow
+
+```text
+M0
+ ↓
+M1
+ ↓
+M2
+ ├──→ M3 → M4
+ └──→ M5 → M6 → M7 → M8
+              │
+M3 + M6 ──────┴──→ M9
+                      ↓
+                     M10
+                      ↓
+                     M11
+                      ↓
+                     M12
+                      ↓
+                     M13
+```
 
 ## Definition of Done
 
-A content creator can:
+The implementation is complete only when:
 
 ```text
-Create Film
-    ↓
-Enter content information
-    ↓
+Create Content
+      ↓
 Generate SEO
-    ↓
-Review/edit metadata
-    ↓
+      ↓
+Review / Edit
+      ↓
 Save
-    ↓
+      ↓
 Publish
-    ↓
-Open public page
-    ↓
-Verify title + description + canonical
-    ↓
-Verify OG/Twitter metadata
-    ↓
-Verify JSON-LD
-    ↓
-Verify sitemap
+      ↓
+Public Page
+      ↓
+Meta + OG + Twitter
+      ↓
+JSON-LD
+      ↓
+Canonical
+      ↓
+Sitemap
+      ↓
+Vercel Production
+      ↓
+Live Verification
+      ↓
+All Sign-offs
 ```
 
-Business target:
+**Production target:** September 8, 2026.
 
-> Prepare SEO metadata for one normal movie/series page in under 2 minutes, including review and manual adjustment.
+**Release rule:** No milestone is considered complete without its measurable acceptance criteria and required evidence.

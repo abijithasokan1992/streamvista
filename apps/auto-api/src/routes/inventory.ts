@@ -5,7 +5,7 @@ const router = Router();
 
 router.get('/product/:productId', async (req, res) => {
   try {
-    const inventory = await InventoryService.getInventoryByProduct(Number(req.params.productId));
+    const inventory = await InventoryService.getInventoryByProduct(String(req.params.productId));
     res.json(inventory);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -25,8 +25,8 @@ router.get('/alerts', async (req, res) => {
 router.post('/update', async (req, res) => {
   try {
     const { inventoryId, quantity, movementType, referenceId } = req.body;
-    await InventoryService.updateStock(inventoryId, quantity, movementType, referenceId);
-    res.json({ message: 'Stock updated successfully' });
+    const result = await InventoryService.updateStock(String(inventoryId), Number(quantity), String(movementType || 'adjustment'), referenceId ? String(referenceId) : undefined);
+    res.json({ message: 'Stock updated successfully', result });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
   }

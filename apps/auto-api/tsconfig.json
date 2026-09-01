@@ -16,8 +16,9 @@
   "include": [
     "src/server.ts",
     "src/config/**/*.ts",
-    "src/routes/payments.ts",
-    "src/services/PaymentService.ts"
+    "src/routes/**/*.ts",
+    "src/services/**/*.ts",
+    "src/lib/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

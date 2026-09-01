@@ -1,64 +1,71 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { executeQuery } from '../config/db';
+import { createClient } from '@supabase/supabase-js';
+import { getDbClient } from '../config/db';
 
-function jwtSecret() {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error('JWT_SECRET is not configured');
-  return secret;
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required in production`);
+  return value;
+}
+
+function publicAuthClient() {
+  return createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_ANON_KEY'), {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
 
 export class AuthService {
-  static async signup(userData: any) {
-    const { email, password } = userData;
+  static async signup(userData: { email?: string; password?: string; displayName?: string }) {
+    const email = String(userData.email || '').trim().toLowerCase();
+    const password = String(userData.password || '');
+    const displayName = String(userData.displayName || '').trim();
     if (!email || !password) throw new Error('Email and password are required');
+    if (password.length < 8) throw new Error('Password must contain at least 8 characters');
 
-    const passwordHash = await bcrypt.hash(password, 12);
-    const sql = `
-      INSERT INTO users (username, email, password_hash)
-      VALUES (:email, :email, :passwordHash)
-      RETURNING user_id INTO :userId
-    `;
-
-    const result: any = await executeQuery(sql, {
+    const { data, error } = await getDbClient().auth.admin.createUser({
       email,
-      passwordHash,
-      userId: { type: 2002, dir: 3003 }
+      password,
+      email_confirm: false,
+      user_metadata: { display_name: displayName },
     });
-
-    return result.outBinds.userId[0];
+    if (error) throw new Error(error.message);
+    if (!data.user) throw new Error('User creation returned no identity');
+    return data.user.id;
   }
 
-  static async login(email: string, password: string) {
+  static async login(emailInput: string, password: string) {
+    const email = String(emailInput || '').trim().toLowerCase();
     if (!email || !password) throw new Error('Email and password are required');
 
-    const sql = `SELECT * FROM users WHERE email = :email`;
-    const result: any = await executeQuery(sql, { email });
+    const { data, error } = await publicAuthClient().auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    if (!data.session || !data.user) throw new Error('Authentication session was not created');
 
-    if (result.rows.length === 0) throw new Error('User not found');
+    const { data: profile, error: profileError } = await getDbClient()
+      .from('sv_app_profiles')
+      .select('id,email,app_role,verification_status')
+      .eq('id', data.user.id)
+      .maybeSingle();
+    if (profileError) throw new Error(profileError.message);
 
-    const user = result.rows[0];
-    const isPasswordValid = await bcrypt.compare(password, user.PASSWORD_HASH);
-    if (!isPasswordValid) throw new Error('Invalid password');
-
-    const token = jwt.sign(
-      { userId: user.USER_ID, email: user.EMAIL, username: user.USERNAME },
-      jwtSecret(),
-      { expiresIn: '24h' }
-    );
-
-    return { token, user: { id: user.USER_ID, email: user.EMAIL, username: user.USERNAME, fullName: user.FULL_NAME } };
+    return {
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      expires_at: data.session.expires_at,
+      user: profile || {
+        id: data.user.id,
+        email: data.user.email || email,
+        display_name: String(data.user.user_metadata?.display_name || ''),
+      },
+    };
   }
 
-  static async getUserPermissions(userId: number) {
-    const sql = `
-      SELECT p.permission_name
-      FROM permissions p
-      JOIN role_permissions rp ON p.permission_id = rp.permission_id
-      JOIN user_roles ur ON rp.role_id = ur.role_id
-      WHERE ur.user_id = :userId
-    `;
-    const result: any = await executeQuery(sql, { userId });
-    return result.rows.map((row: any) => row.PERMISSION_NAME);
+  static async getUserPermissions(userId: string) {
+    const { data, error } = await getDbClient()
+      .from('sv_app_profiles')
+      .select('app_role')
+      .eq('id', userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data?.app_role ? [data.app_role] : [];
   }
 }

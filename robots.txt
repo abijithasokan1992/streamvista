@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /creator-studio
+Disallow: /admin
+Sitemap: https://streamvista.in/sitemap.xml

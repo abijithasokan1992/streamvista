@@ -1,79 +1,50 @@
-import { executeQuery } from '../config/db';
+import { getDbClient } from '../config/db';
 
 export class OrderService {
   static async createOrder(orderData: any) {
-    const { customerId, totalAmount, items, paymentId } = orderData;
-    
-    // Create Order
-    const orderSql = `
-      INSERT INTO orders (customer_id, total_amount, status)
-      VALUES (:customerId, :totalAmount, 'CONFIRMED')
-      RETURNING order_id INTO :orderId
-    `;
-    const orderResult: any = await executeQuery(orderSql, {
-      customerId, totalAmount,
-      orderId: { type: 2002, dir: 3003 }
-    });
-    const orderId = orderResult.outBinds.orderId[0];
+    const { userId, titleId, dealId, purpose, amount, currency = 'INR', paymentId, orderId } = orderData;
+    const client = getDbClient();
 
-    // Create Order Items
-    for (const item of items) {
-      const itemSql = `
-        INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-        VALUES (:orderId, :productId, :quantity, :unitPrice)
-      `;
-      await executeQuery(itemSql, {
-        orderId,
-        productId: item.PRODUCT_ID,
-        quantity: item.quantity,
-        unitPrice: item.PRICE
-      });
+    const { data, error } = await client
+      .from('sv_payments')
+      .insert({
+        user_id: userId || null,
+        title_id: titleId || null,
+        deal_id: dealId || null,
+        purpose: purpose || 'order',
+        amount: Number(amount || 0),
+        currency,
+        provider: 'razorpay',
+        provider_order_id: orderId || null,
+        provider_payment_id: paymentId || null,
+        status: paymentId ? 'captured' : 'created',
+        verified_at: paymentId ? new Date().toISOString() : null,
+      })
+      .select('id,provider_order_id,provider_payment_id,status,amount,currency,created_at')
+      .single();
 
-      // Update Inventory (Reserve/Reduce)
-      const inventorySql = `
-        UPDATE inventory 
-        SET quantity = quantity - :quantity 
-        WHERE product_id = :productId AND quantity >= :quantity
-      `;
-      await executeQuery(inventorySql, { quantity: item.quantity, productId: item.PRODUCT_ID });
-    }
-
-    // Record Payment
-    if (paymentId) {
-      const paymentSql = `
-        INSERT INTO payments (order_id, transaction_id, payment_method, amount, status)
-        VALUES (:orderId, :transactionId, 'Razorpay', :amount, 'SUCCESS')
-      `;
-      await executeQuery(paymentSql, {
-        orderId,
-        transactionId: paymentId,
-        amount: totalAmount
-      });
-    }
-
-    return orderId;
+    if (error) throw new Error(error.message);
+    return data;
   }
 
-  static async getOrdersByCustomer(customerId: number) {
-    const sql = `SELECT * FROM orders WHERE customer_id = :customerId ORDER BY created_at DESC`;
-    const result: any = await executeQuery(sql, { customerId });
-    return result.rows;
+  static async getOrdersByCustomer(userId: string) {
+    const { data, error } = await getDbClient()
+      .from('sv_payments')
+      .select('id,title_id,deal_id,purpose,provider_order_id,provider_payment_id,amount,currency,status,created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return data || [];
   }
 
-  static async getOrderDetails(orderId: number) {
-    const orderSql = `SELECT * FROM orders WHERE order_id = :orderId`;
-    const itemsSql = `
-      SELECT oi.*, p.product_name, p.sku 
-      FROM order_items oi 
-      JOIN products p ON oi.product_id = p.product_id 
-      WHERE oi.order_id = :orderId
-    `;
-    
-    const [orderRes, itemsRes]: any = await Promise.all([
-      executeQuery(orderSql, { orderId }),
-      executeQuery(itemsSql, { orderId })
-    ]);
-
-    return { ...orderRes.rows[0], items: itemsRes.rows };
+  static async getOrderDetails(paymentId: string) {
+    const { data, error } = await getDbClient()
+      .from('sv_payments')
+      .select('id,user_id,title_id,deal_id,purpose,provider,provider_order_id,provider_payment_id,amount,currency,status,verified_at,created_at')
+      .eq('id', paymentId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error('Payment/order not found');
+    return { ...data, items: [] };
   }
 }

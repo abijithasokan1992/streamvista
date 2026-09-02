@@ -1,7 +1,5 @@
 import { BrowserRouter, Navigate, Routes, Route, useSearchParams } from "react-router-dom";
-import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from "@vercel/analytics/react";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { MainLayout } from "./layouts/MainLayout";
 

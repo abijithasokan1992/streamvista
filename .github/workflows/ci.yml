@@ -32,4 +32,4 @@ jobs:
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v4.2.2
         with:
-          subject-path: apps/web/dist/**
+          subject-path: 'apps/web/dist/*'

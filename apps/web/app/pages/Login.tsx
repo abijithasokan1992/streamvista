@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Lock, Mail, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { cleanAuthErrorMessage } from '../lib/authError';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,10 +16,15 @@ export default function Login() {
     setMessage(null);
     if (!supabase) return setMessage('Authentication is not configured yet.');
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) return setMessage(error.message);
-    navigate('/creator-studio', { replace: true });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return setMessage(cleanAuthErrorMessage(error));
+      navigate('/creator-studio', { replace: true });
+    } catch (error) {
+      setMessage(cleanAuthErrorMessage(error));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

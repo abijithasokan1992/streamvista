@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Routes, Route, useSearchParams } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { MainLayout } from "./layouts/MainLayout";
@@ -114,7 +115,7 @@ function App() {
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<div className="flex h-full items-center justify-center text-slate-400"><p>Page not found or under construction.</p></div>} />
     </Route>
-  </Routes><SpeedInsights /></BrowserRouter></AuthProvider>;
+  </Routes><VercelAnalytics /><SpeedInsights /></BrowserRouter></AuthProvider>;
 }
 
 export default App;

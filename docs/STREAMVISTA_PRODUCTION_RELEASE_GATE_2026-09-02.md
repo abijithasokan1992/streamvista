@@ -42,6 +42,8 @@ Therefore, payment and revenue changes present on `main` must not be treated as 
 
 The repository already contains the revenue and payment path. Do not create duplicate payment handlers, duplicate products, duplicate schemas, duplicate Supabase projects, or parallel auth systems.
 
+Do not connect StreamVista, Crayons Bridge, Crayons Pictures, or Crayons Loop to the Union Auto Spares Supabase project `jpfyhahrdxbtwximsglj`; that database is for automobile inventory/order operations and is not the media-production platform data plane.
+
 Use the existing implementation first:
 
 - `/api/payment/create-plan-order`

@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-const CANONICAL_SUPABASE_PROJECT_REF = "tqzimuwozhipqgyerdff";
+const CANONICAL_SUPABASE_PROJECT_REF = "uakpqqardziifcwzvgfx";
 
 function json(res, status, body) {
   res.status(status).setHeader("Cache-Control", "no-store").setHeader("Content-Type", "application/json; charset=utf-8");

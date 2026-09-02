@@ -16,6 +16,7 @@ Customer → StreamVista/Vercel → Supabase Auth + DB + Storage → Razorpay Bi
 - Razorpay provides payment processing and billing events.
 - Hostinger Mail provides transactional and inbound mail infrastructure.
 - Current release-gate evidence is recorded in `docs/STREAMVISTA_PRODUCTION_RELEASE_GATE_2026-09-02.md`.
+- Supabase project separation is defined in `docs/SUPABASE_PROJECT_SEPARATION_POLICY.md`.
 
 ### Safety
 

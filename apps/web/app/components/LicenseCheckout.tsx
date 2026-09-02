@@ -96,7 +96,7 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
       const dealId = dealResult.deal.id;
       const idempotencyKey = `sv_${dealId.replace(/[^A-Za-z0-9]/g, '').slice(0, 48)}_${crypto.randomUUID()}`;
 
-      const orderResponse = await fetch('/api/payment/create-order', {
+      const orderResponse = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,17 +106,17 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
         body: JSON.stringify({
           dealId,
           idempotencyKey,
+          amount: price,
         }),
       });
       const orderResult = await orderResponse.json();
-      if (!orderResponse.ok || !orderResult?.payment?.provider_order_id || !orderResult?.razorpay?.keyId) {
+      if (!orderResponse.ok || !orderResult?.payment?.provider_order_id || !orderResult?.keyId) {
         throw new Error(orderResult?.error || 'Payment order was not created');
       }
 
       const payment = orderResult.payment;
-      const razorpay = orderResult.razorpay;
       const paymentObject = new window.Razorpay({
-        key: razorpay.keyId,
+        key: orderResult.keyId,
         amount: Math.round(Number(payment.amount) * 100),
         currency: payment.currency || 'INR',
         name: 'StreamVista · Crayons Bridge',
@@ -124,7 +124,7 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
         order_id: payment.provider_order_id,
         handler: async (response: any) => {
           try {
-            const verifyResponse = await fetch('/api/payment/verify', {
+            const verifyResponse = await fetch('/api/payments/verify', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -134,6 +134,8 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
+                dealId,
+                titleId: assetId,
               }),
             });
             const verifyResult = await verifyResponse.json();

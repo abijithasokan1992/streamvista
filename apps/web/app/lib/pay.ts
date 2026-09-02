@@ -52,20 +52,19 @@ export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean
 
   try {
     const key = idempotencyKey(session.user.id, cycle);
-    const onboarding = await apiPost('/api/payment/create-plan-order', session.access_token, {
+    const onboarding = await apiPost('/api/payments/create-order', session.access_token, {
       cycle,
       idempotencyKey: key,
     }, { 'Idempotency-Key': key });
 
     const order = onboarding?.order;
     const payment = onboarding?.payment;
-    const orderId = onboarding?.orderId ?? order?.id;
-    const amount = Number(onboarding?.amount ?? order?.amount);
-    const keyId = onboarding?.keyId ?? onboarding?.razorpay?.keyId;
-    const currency = onboarding?.currency ?? order?.currency ?? 'INR';
-    const onboardingId = onboarding?.onboardingId;
+    const orderId = onboarding?.orderId ?? order?.id ?? payment?.provider_order_id;
+    const amount = Number(onboarding?.amount ?? order?.amount ?? (Number(payment?.amount) * 100));
+    const keyId = onboarding?.keyId ?? onboarding?.razorpay?.keyId ?? onboarding?.razorpayKeyId ?? onboarding?.key_id ?? onboarding?.payment?.keyId ?? onboarding?.razorpay?.keyId;
+    const currency = onboarding?.currency ?? order?.currency ?? payment?.currency ?? 'INR';
 
-    if (!orderId || !keyId || !onboardingId || !Number.isFinite(amount) || amount <= 0) {
+    if (!orderId || !keyId || !Number.isFinite(amount) || amount <= 0) {
       return { ok: false, error: onboarding?.error ?? 'Order create failed' };
     }
 
@@ -88,13 +87,11 @@ export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean
           razorpay_signature: string;
         }) => {
           try {
-            const verified = await apiPost('/api/payment/verify-plan-payment', session.access_token, {
-              onboardingId,
+            const verified = await apiPost('/api/payments/verify', session.access_token, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               cycle,
-              paymentIdHint: payment?.id ?? null,
             }, { 'Idempotency-Key': `${response.razorpay_order_id}:${response.razorpay_payment_id}` });
             resolve({ ok: verified?.verified === true });
           } catch (error) {

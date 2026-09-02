@@ -1,6 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build:web && npm run build:api",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/entrypoint.ts": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/entrypoint"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

@@ -5,7 +5,7 @@
 - Canonical repository: `abijithasokan1992/streamvista`
 - Default branch: `main`
 - Vercel project: `streamvista`
-- Canonical production Supabase ref: `tqzimuwozhipqgyerdff`
+- Canonical production Supabase ref: `uakpqqardziifcwzvgfx`
 
 ## Architecture
 

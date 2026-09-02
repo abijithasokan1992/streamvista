@@ -5,8 +5,7 @@ const router = Router();
 
 router.get('/activities', (req, res) => {
   try {
-    const activities = AgentService.getRecentActivities();
-    res.json(activities);
+    res.json(AgentService.getRecentActivities());
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -15,17 +14,15 @@ router.get('/activities', (req, res) => {
 router.post('/negotiate', async (req, res) => {
   try {
     const { assetId, counterParty, initialOffer } = req.body;
-    const result = await RightsNegotiatorAgent.negotiate(assetId, counterParty, initialOffer);
-    res.json(result);
+    res.json(await RightsNegotiatorAgent.negotiate(String(assetId), String(counterParty), Number(initialOffer)));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.post('/leads', async (req, res) => {
+router.post('/leads', async (_req, res) => {
   try {
-    const leads = await A2ASalesAgent.generateLeads();
-    res.json(leads);
+    res.json(await A2ASalesAgent.generateLeads());
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -33,9 +30,7 @@ router.post('/leads', async (req, res) => {
 
 router.post('/matchmaking', async (req, res) => {
   try {
-    const { requirement } = req.body;
-    const result = await A2ASalesAgent.dynamicMatchmaking(requirement);
-    res.json(result);
+    res.json(await A2ASalesAgent.dynamicMatchmaking(String(req.body.requirement || '')));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -43,18 +38,15 @@ router.post('/matchmaking', async (req, res) => {
 
 router.post('/pitch', async (req, res) => {
   try {
-    const { email, pitchData } = req.body;
-    const result = await A2ASalesAgent.sendPitch(email, pitchData);
-    res.json(result);
+    res.json(await A2ASalesAgent.sendPitch(String(req.body.email || ''), req.body.pitchData));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.post('/procurement/analyze', async (req, res) => {
+router.post('/procurement/analyze', async (_req, res) => {
   try {
-    const result = await ProcurementAgent.analyzeInventory();
-    res.json(result);
+    res.json(await ProcurementAgent.analyzeInventory());
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

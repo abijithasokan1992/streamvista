@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 
 interface LayoutProps {
@@ -21,15 +22,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="footer-links">
             <div className="link-group">
               <h4>Platform</h4>
-              <a href="#">Crayons Bridge</a>
-              <a href="#">Creator Studio</a>
-              <a href="#">Cloud X</a>
+              <Link to="/crayons-bridge">Crayons Bridge</Link>
+              <Link to="/creator-studio">Creator Studio</Link>
+              <Link to="/crayons-loop">Crayons Loop</Link>
+              <Link to="/revenue">Revenue</Link>
             </div>
             <div className="link-group">
               <h4>Legal</h4>
-              <a href="#">Privacy Policy</a>
-              <a href="#">Rights & Licensing</a>
-              <a href="#">Terms of Use</a>
+              <span className="coming-soon">Privacy Policy · Published page required</span>
+              <span className="coming-soon">Rights & Licensing · Published page required</span>
+              <span className="coming-soon">Terms of Use · Published page required</span>
             </div>
           </div>
         </div>
@@ -40,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <style>{`
         .app-layout {
-          min-height: 100-vh;
+          min-height: 100vh;
           display: flex;
           flex-direction: column;
           background: var(--studio-black);
@@ -48,7 +50,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         .main-content {
           flex: 1;
-          margin-top: 80px; /* Navbar height */
+          margin-top: 80px;
           padding: 40px 5%;
         }
 
@@ -96,7 +98,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           text-transform: uppercase;
         }
 
-        .link-group a {
+        .link-group a,
+        .coming-soon {
           display: block;
           color: var(--studio-silver-muted);
           margin-bottom: 12px;
@@ -105,6 +108,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         .link-group a:hover {
           color: var(--royal-gold);
+        }
+
+        .coming-soon {
+          cursor: default;
+          opacity: .75;
         }
 
         .footer-bottom {

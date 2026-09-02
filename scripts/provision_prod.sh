@@ -6,16 +6,20 @@ REGION="asia-south1"
 
 echo "Provisioning production infrastructure for $PROJECT_ID..."
 
-# 1. Setup Secrets (Assuming values are stored in your env or passed)
-# This maps the secrets into Cloud Run at runtime
-gcloud secrets create DB_PASSWORD --replication-policy="automatic"
-echo -n "Abi@123456789" | gcloud secrets versions add DB_PASSWORD --data-file=-
+# 1. Setup Secrets
+# Export these values in the shell before running this script. Never commit live secret values.
+: "${DB_PASSWORD:?Set DB_PASSWORD in the shell before running this script}"
+: "${RAZORPAY_KEY_SECRET:?Set RAZORPAY_KEY_SECRET in the shell before running this script}"
+: "${GEMINI_API_KEY:?Set GEMINI_API_KEY in the shell before running this script}"
 
-gcloud secrets create RAZORPAY_KEY_SECRET --replication-policy="automatic"
-echo -n "5pn6E0MqMjy1jjyCvT9TDyrx" | gcloud secrets versions add RAZORPAY_KEY_SECRET --data-file=-
+gcloud secrets create DB_PASSWORD --replication-policy="automatic" || true
+printf '%s' "$DB_PASSWORD" | gcloud secrets versions add DB_PASSWORD --data-file=-
 
-gcloud secrets create GEMINI_API_KEY --replication-policy="automatic"
-echo -n "AIzaSyDEkEvNu28F2Zg3xllLuxKn0Av84hAWLSg" | gcloud secrets versions add GEMINI_API_KEY --data-file=-
+gcloud secrets create RAZORPAY_KEY_SECRET --replication-policy="automatic" || true
+printf '%s' "$RAZORPAY_KEY_SECRET" | gcloud secrets versions add RAZORPAY_KEY_SECRET --data-file=-
+
+gcloud secrets create GEMINI_API_KEY --replication-policy="automatic" || true
+printf '%s' "$GEMINI_API_KEY" | gcloud secrets versions add GEMINI_API_KEY --data-file=-
 
 # 2. Setup Cloud Armor
 gcloud compute security-policies create union-armor-policy --description="DDoS and SQLi protection"

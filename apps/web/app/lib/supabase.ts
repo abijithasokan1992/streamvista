@@ -1,15 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+// Canonical production Auth/data plane. Never point the browser client at a retired Bridge project.
+const CANONICAL_SUPABASE_PROJECT_REF = 'uakpqqardziifcwzvgfx';
+const CANONICAL_SUPABASE_URL = `https://${CANONICAL_SUPABASE_PROJECT_REF}.supabase.co`;
+const configuredPublishableKey = (
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
+) as string | undefined;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('[StreamVista] Supabase Auth is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+export const SUPABASE_URL = CANONICAL_SUPABASE_URL;
+export const SUPABASE_CONFIG_ERROR = !configuredPublishableKey
+  ? 'Authentication is not configured for this deployment.'
+  : null;
+
+if (!configuredPublishableKey) {
+  console.warn('[StreamVista] Supabase Auth is not configured. Set VITE_SUPABASE_PUBLISHABLE_KEY.');
 }
 
-export const supabase =
-  supabaseUrl && supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-      })
-    : null;
+export const supabase = configuredPublishableKey
+  ? createClient(SUPABASE_URL, configuredPublishableKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : null;

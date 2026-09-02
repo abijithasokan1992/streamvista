@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Loader2, Shield } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { cleanAuthErrorMessage } from '../lib/authError';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -17,15 +18,20 @@ export default function SignUp() {
     if (password.length < 8) return setMessage('Use a password with at least 8 characters.');
     setBusy(true);
     setMessage(null);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name } },
-    });
-    setBusy(false);
-    if (error) return setMessage(error.message);
-    if (data.session) navigate('/creator-studio', { replace: true });
-    else setMessage('Account created. Check your email to confirm your address, then sign in.');
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name } },
+      });
+      if (error) return setMessage(cleanAuthErrorMessage(error));
+      if (data.session) navigate('/creator-studio', { replace: true });
+      else setMessage('Account created. Check your email to confirm your address, then sign in.');
+    } catch (error) {
+      setMessage(cleanAuthErrorMessage(error));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

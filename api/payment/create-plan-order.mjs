@@ -12,6 +12,10 @@ export default async function handler(request, response) {
     const cycle = String(request.body?.cycle || '').trim().toLowerCase();
     if (!Object.prototype.hasOwnProperty.call(PRICE_RULES, cycle)) return json(response, 422, { error: 'Unsupported plan' });
     const amount = PRICE_RULES[cycle];
+    const idempotencyKey = String(request.headers['idempotency-key'] || request.body?.idempotencyKey || '').trim();
+    if (!idempotencyKey || !/^[A-Za-z0-9._:-]{8,128}$/.test(idempotencyKey)) {
+      return json(response, 400, { error: 'A valid Idempotency-Key is required' });
+    }
 
     const { data: row, error: insertError } = await client
       .from('onboarding_requests')
@@ -42,6 +46,20 @@ export default async function handler(request, response) {
       .eq('id', row.id)
       .eq('submitter_user_id', user.id);
     if (updateError) return json(response, 500, { error: 'Payment ledger update failed' });
+
+    const { error: paymentError } = await client
+      .from('sv_payments')
+      .upsert({
+        user_id: user.id,
+        provider: 'razorpay',
+        provider_order_id: payload.id,
+        amount: amount / 100,
+        currency: 'INR',
+        purpose: `plan:${cycle}`,
+        status: 'created',
+        idempotency_key: idempotencyKey,
+      }, { onConflict: 'idempotency_key' });
+    if (paymentError) return json(response, 500, { error: 'Payment ledger update failed' });
 
     return json(response, 200, {
       ok: true,

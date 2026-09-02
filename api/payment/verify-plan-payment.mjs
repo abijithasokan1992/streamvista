@@ -37,14 +37,36 @@ export default async function handler(request, response) {
     if (!upstream.ok || providerPayment?.order_id !== orderId) {
       return json(response, 409, { error: 'Payment provider verification failed' });
     }
+    if (Number(providerPayment?.amount) !== Number(onboarding.amount_paise)) {
+      return json(response, 409, { error: 'Payment amount mismatch' });
+    }
 
     const status = providerPayment.captured ? 'captured' : providerPayment.status === 'authorized' ? 'authorized' : providerPayment.status === 'failed' ? 'failed' : onboarding.payment_status;
     const { error: updateError } = await client
       .from('onboarding_requests')
-      .update({ payment_status: status, razorpay_payment_id: paymentId, payment_verified_at: new Date().toISOString() })
+      .update({
+        payment_status: status,
+        onboarding_status: status === 'captured' ? 'active' : status === 'failed' ? 'failed' : 'pending_payment',
+        razorpay_payment_id: paymentId,
+        razorpay_signature: signature,
+        payment_verified_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', onboardingId)
       .eq('submitter_user_id', user.id);
     if (updateError) throw updateError;
+
+    const { error: paymentError } = await client
+      .from('sv_payments')
+      .update({
+        provider_payment_id: paymentId,
+        status,
+        verified_at: new Date().toISOString(),
+      })
+      .eq('provider_order_id', orderId)
+      .eq('provider', 'razorpay')
+      .eq('user_id', user.id);
+    if (paymentError) throw paymentError;
 
     return json(response, 200, { ok: status === 'captured', verified: status === 'captured', paymentStatus: status });
   } catch (error) {

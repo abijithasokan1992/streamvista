@@ -10,33 +10,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="app-layout">
       <Navbar />
-      <main className="main-content">
-        {children}
-      </main>
+      <main className="main-content">{children}</main>
       <footer className="footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <h2 className="footer-logo">StreamVista</h2>
-            <p>Strategic Data Partner for Pan-Indian AI & OTT.</p>
+            <div className="footer-logo">Crayons Pictures</div>
+            <p>Digital Production House</p>
+            <span>Film · Short Film · Documentary · Original Content</span>
           </div>
           <div className="footer-links">
-            <div className="link-group">
-              <h4>Platform</h4>
-              <Link to="/crayons-bridge">Crayons Bridge</Link>
-              <Link to="/creator-studio">Creator Studio</Link>
-              <Link to="/crayons-loop">Crayons Loop</Link>
-              <Link to="/revenue">Revenue</Link>
-            </div>
-            <div className="link-group">
-              <h4>Legal</h4>
-              <span className="coming-soon">Privacy Policy · Published page required</span>
-              <span className="coming-soon">Rights & Licensing · Published page required</span>
-              <span className="coming-soon">Terms of Use · Published page required</span>
-            </div>
+            <Link to="/crayons-bridge">Bridge</Link>
+            <Link to="/crayons-loop">Loop</Link>
+            <Link to="/revenue">Revenue</Link>
+            <Link to="/profile">Account</Link>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2026 Streamvista OPC Pvt Ltd. All rights reserved.</p>
+          <span>Part of StreamVista OPC Pvt Ltd</span>
+          <span>© 2026</span>
         </div>
       </footer>
 
@@ -50,78 +41,74 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         .main-content {
           flex: 1;
-          margin-top: 80px;
-          padding: 40px 5%;
+          margin-top: 68px;
+          padding: 28px 4%;
         }
 
         .footer {
           background: var(--obsidian);
-          border-top: 1px solid var(--glass-border);
-          padding: 60px 5% 30px;
-          margin-top: 80px;
+          border-top: 1px solid rgba(255,255,255,0.07);
+          padding: 34px 4% 20px;
+          margin-top: 42px;
         }
 
         .footer-content {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 40px;
-          max-width: 1400px;
+          width: min(94%, 1320px);
           margin: 0 auto;
-        }
-
-        @media (min-width: 768px) {
-          .footer-content {
-            grid-template-columns: 2fr 1fr;
-          }
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 32px;
         }
 
         .footer-logo {
+          color: var(--studio-silver);
           font-family: var(--font-display);
-          color: var(--royal-gold);
-          margin-bottom: 16px;
+          font-size: 1rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
         }
 
         .footer-brand p {
+          margin: 7px 0 4px;
+          color: var(--studio-silver);
+          font-size: 0.8rem;
+        }
+
+        .footer-brand span {
           color: var(--studio-silver-muted);
-          max-width: 300px;
+          font-size: 0.7rem;
         }
 
         .footer-links {
           display: flex;
-          gap: 60px;
+          flex-wrap: wrap;
+          gap: 18px;
         }
 
-        .link-group h4 {
-          color: var(--royal-gold);
-          margin-bottom: 20px;
-          font-size: 0.9rem;
-          text-transform: uppercase;
-        }
-
-        .link-group a,
-        .coming-soon {
-          display: block;
+        .footer-links a {
           color: var(--studio-silver-muted);
-          margin-bottom: 12px;
-          font-size: 0.85rem;
+          font-size: 0.76rem;
+          text-decoration: none;
         }
 
-        .link-group a:hover {
-          color: var(--royal-gold);
-        }
-
-        .coming-soon {
-          cursor: default;
-          opacity: .75;
-        }
+        .footer-links a:hover { color: var(--studio-silver); }
 
         .footer-bottom {
-          text-align: center;
-          margin-top: 60px;
-          padding-top: 30px;
+          width: min(94%, 1320px);
+          margin: 24px auto 0;
+          padding-top: 14px;
           border-top: 1px solid rgba(255,255,255,0.05);
+          display: flex;
+          justify-content: space-between;
           color: var(--studio-silver-muted);
-          font-size: 0.75rem;
+          font-size: 0.68rem;
+        }
+
+        @media (max-width: 700px) {
+          .main-content { padding: 22px 5%; }
+          .footer-content { flex-direction: column; }
+          .footer-bottom { width: 100%; }
         }
       `}</style>
     </div>

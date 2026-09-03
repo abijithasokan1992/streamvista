@@ -34,6 +34,15 @@ export default function CrayonsLoop() {
   const [running, setRunning] = useState(false);
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<QCResult | null>(null);
+  const [qcEnabled, setQcEnabled] = useState(false);
+
+  React.useEffect(() => {
+    void (async () => {
+      const response = await fetch('/api/features');
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.ok) setQcEnabled(Boolean(payload?.data?.qcTriggerEnabled));
+    })();
+  }, []);
 
   const triggerScan = async () => {
     setRunning(true);
@@ -60,11 +69,11 @@ export default function CrayonsLoop() {
       });
 
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload?.success) {
-        throw new Error(payload?.error || 'QC Scan execution failed');
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error?.message || 'QC Scan execution failed');
       }
 
-      const scanResult = payload.result as QCResult;
+      const scanResult = payload.data?.result as QCResult;
       setResult(scanResult);
       setQueue((current) => current.map((item) => item.id === '#ML-BATCH-04'
         ? { ...item, progress: scanResult.passed ? 100 : 90, status: scanResult.passed ? 'VERIFIED' : 'ANALYTIC_SCAN' }
@@ -85,9 +94,9 @@ export default function CrayonsLoop() {
           <p className="subtitle">High-Precision Quality Control & Metadata Engine</p>
         </div>
         <div className="loop-actions">
-          <button className="action-btn primary" onClick={triggerScan} disabled={running} type="button">
+          <button className="action-btn primary" onClick={triggerScan} disabled={running || !qcEnabled} type="button">
             {running ? <Loader2 size={16} className="spin" /> : <PlayCircle size={16} />}
-            {running ? 'Scanning…' : 'Trigger New Scan'}
+            {!qcEnabled ? 'Temporarily unavailable' : running ? 'Scanning…' : 'Trigger New Scan'}
           </button>
         </div>
       </header>

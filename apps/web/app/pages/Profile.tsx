@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Shield, Key, History, Mail, MapPin, Globe } from 'lucide-react';
+import { User, Mail, MapPin, Globe } from 'lucide-react';
 
 export default function Profile() {
   const user = {
@@ -218,7 +218,7 @@ export default function Profile() {
   );
 }
 
-function PermissionItem({ label, active }: any) {
+function PermissionItem({ label }: any) {
   return (
     <div className="perm-item">
       <span className="perm-label">{label}</span>

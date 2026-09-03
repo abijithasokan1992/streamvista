@@ -112,7 +112,7 @@ export default function Pricing() {
               ) : (
                 <button
                   disabled={busy !== null}
-                  onClick={() => buy(plan.cycle)}
+                  onClick={() => buy(plan.cycle as PaidCycle)}
                   className="w-full py-3 rounded font-bold bg-cyan-500 text-black hover:bg-cyan-400 disabled:opacity-60"
                 >
                   {busy === plan.cycle ? 'Opening Razorpay…' : 'Pay with Razorpay'}

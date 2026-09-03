@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Activity, ShieldAlert, Cpu, Database, Server, Terminal, CheckCircle2 } from 'lucide-react';
 
 interface QCLog {
@@ -8,7 +8,7 @@ interface QCLog {
 }
 
 export default function NOCDashboard() {
-  const [logs, setLogs] = useState<QCLog[]>([
+  const [logs] = useState<QCLog[]>([
     { time: '23:27:01', type: 'INFO', message: 'Triggering Automated 10-Point QC Scan on Asset ID: #MV-2026-04' },
     { time: '23:27:03', type: 'CHECK', message: 'Video Bitrate Check: 45 Mbps [STABLE]' },
     { time: '23:27:05', type: 'CHECK', message: 'Frame Drop Audit: 0 Dropped Frames [PASSED]' },

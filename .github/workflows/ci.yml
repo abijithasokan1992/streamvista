@@ -7,27 +7,37 @@ on:
 
 permissions:
   contents: read
-  id-token: write
-  attestations: write
 
 jobs:
-  web-build:
+  canonical-production-gates:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
           cache: npm
       - name: Install
         run: npm install --no-audit --no-fund
-      - name: Build web
-        run: npm run build:web
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Integration tests
+        run: npm run test:integration
+      - name: Production build
+        run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      - name: Attest Build Provenance
-        uses: actions/attest-build-provenance@v4.2.2
-        with:
-          subject-path: 'dist/*'
+          VITE_UPI_VPA: ${{ vars.VITE_UPI_VPA }}
+          VITE_UPI_PAYEE_NAME: ${{ vars.VITE_UPI_PAYEE_NAME }}
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -27,6 +27,20 @@ Customer → StreamVista/Vercel → Supabase Auth + DB + Storage → Razorpay Bi
 ### Build
 
 ```bash
+npm run lint
 npm run typecheck
+npm run test
 npm run build
 ```
+
+### Required Node.js runtime
+
+- Pinned runtime: Node.js 22.x (`/home/runner/work/streamvista/streamvista/.nvmrc` and root `package.json` engines)
+- CI uses `.nvmrc` via `actions/setup-node`
+- Vercel runtime for `api/entrypoint.ts` is pinned to `nodejs22.x`
+
+### Canonical production boundary
+
+- Frontend: `apps/web`
+- Backend API: `apps/auto-api` via `api/entrypoint.ts`
+- Legacy/non-production candidates (`apps/auto-web`, `visual-guardian`) are not release-blocking for canonical production until explicitly promoted.

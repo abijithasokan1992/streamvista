@@ -10,12 +10,6 @@ interface LicenseCheckoutProps {
   onClose: () => void;
 }
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
 const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
 const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
@@ -89,11 +83,11 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
         body: JSON.stringify({ titleId: assetId }),
       });
       const dealResult = await dealResponse.json();
-      if (!dealResponse.ok || !dealResult?.deal?.id) {
-        throw new Error(dealResult?.error || 'Marketplace deal was not created');
+      if (!dealResponse.ok || !dealResult?.ok || !dealResult?.data?.deal?.id) {
+        throw new Error(dealResult?.error?.message || 'Marketplace deal was not created');
       }
 
-      const dealId = dealResult.deal.id;
+      const dealId = dealResult.data.deal.id;
       const idempotencyKey = `sv_${dealId.replace(/[^A-Za-z0-9]/g, '').slice(0, 48)}_${crypto.randomUUID()}`;
 
       const orderResponse = await fetch('/api/payments/create-order', {
@@ -110,13 +104,13 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
         }),
       });
       const orderResult = await orderResponse.json();
-      if (!orderResponse.ok || !orderResult?.payment?.provider_order_id || !orderResult?.keyId) {
-        throw new Error(orderResult?.error || 'Payment order was not created');
+      if (!orderResponse.ok || !orderResult?.ok || !orderResult?.data?.payment?.provider_order_id || !orderResult?.data?.keyId) {
+        throw new Error(orderResult?.error?.message || 'Payment order was not created');
       }
 
-      const payment = orderResult.payment;
+      const payment = orderResult.data.payment;
       const paymentObject = new window.Razorpay({
-        key: orderResult.keyId,
+        key: orderResult.data.keyId,
         amount: Math.round(Number(payment.amount) * 100),
         currency: payment.currency || 'INR',
         name: 'StreamVista · Crayons Bridge',
@@ -139,8 +133,8 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
               }),
             });
             const verifyResult = await verifyResponse.json();
-            if (!verifyResponse.ok || verifyResult?.payment?.status !== 'captured') {
-              throw new Error(verifyResult?.error || 'Payment verification failed');
+            if (!verifyResponse.ok || !verifyResult?.ok || verifyResult?.data?.payment?.status !== 'captured') {
+              throw new Error(verifyResult?.error?.message || 'Payment verification failed');
             }
             setStatus('SUCCESS');
             onSuccess();

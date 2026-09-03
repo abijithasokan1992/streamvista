@@ -1,17 +1,11 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { requiredEnv, requiredUrlEnv } from './env';
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error('Missing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Production backend must fail closed.');
-}
-
-const resolvedSupabaseUrl: string = supabaseUrl;
-const resolvedServiceRoleKey: string = serviceRoleKey;
+const resolvedSupabaseUrl: string = requiredUrlEnv('SUPABASE_URL');
+const resolvedServiceRoleKey: string = requiredEnv('SUPABASE_SERVICE_ROLE_KEY');
 
 let client: SupabaseClient | null = null;
 

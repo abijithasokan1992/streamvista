@@ -27,6 +27,14 @@ Customer → StreamVista/Vercel → Supabase Auth + DB + Storage → Razorpay Bi
 ### Build
 
 ```bash
+npm run lint
 npm run typecheck
+npm run test
 npm run build
 ```
+
+### Canonical production boundary
+
+- Frontend: `apps/web`
+- Backend API: `apps/auto-api` via `api/entrypoint.ts`
+- Legacy/non-production candidates (`apps/auto-web`, `visual-guardian`) are not release-blocking for canonical production until explicitly promoted.

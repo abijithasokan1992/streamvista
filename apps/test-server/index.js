@@ -6,6 +6,10 @@ app.get('/', (req, res) => {
   res.send('Test server is running successfully!');
 });
 
-app.listen(port, () => {
-  console.log(`Test server listening at http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Test server listening at http://localhost:${port}`);
+  });
+}
+
+module.exports = { app };

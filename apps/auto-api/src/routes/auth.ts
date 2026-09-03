@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import { AuthService } from '../services/AuthService';
+import { fail, ok } from '../lib/http';
 
 const router = Router();
 
 router.post('/signup', async (req, res) => {
   try {
     const userId = await AuthService.signup(req.body);
-    res.status(201).json({ message: 'User created successfully', userId });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    return ok(res, req, { userId, message: 'User created successfully' }, 201);
+  } catch {
+    return fail(res, req, 400, { code: 'SIGNUP_FAILED', message: 'Signup failed.' });
   }
 });
 
@@ -16,9 +17,9 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const result = await AuthService.login(email, password);
-    res.json(result);
-  } catch (err: any) {
-    res.status(401).json({ error: err.message });
+    return ok(res, req, result);
+  } catch {
+    return fail(res, req, 401, { code: 'LOGIN_FAILED', message: 'Invalid email or password.' });
   }
 });
 

@@ -8,14 +8,20 @@ import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
 import inventoryRoutes from './routes/inventory';
 import orderRoutes from './routes/orders';
-import razorpayWebhook from './routes/razorpayWebhook';
 import aiRoutes from './routes/ai';
 import aiJobRoutes from './routes/ai-jobs';
 import hostingerIncomingRoutes from './routes/hostingerIncoming';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
+import qcRoutes from './routes/qc';
+import marketplaceRoutes from './routes/marketplace';
+import filmOsRoutes from './routes/filmOs';
+import webhookRoutes, { handleRazorpayWebhook, webhookRateLimit } from './routes/webhooks';
 import { initializeDb } from './config/db';
 import { assertProductionRuntime, providerAvailability } from './lib/productionReadiness';
+import { fail, ok } from './lib/http';
+import { requiredEnv, requiredUrlEnv } from './config/env';
+import { featureFlags } from './lib/features';
 
 dotenv.config();
 
@@ -25,10 +31,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function supabaseAdmin() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Supabase server configuration is missing');
-  }
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  return createClient(requiredUrlEnv('SUPABASE_URL'), requiredEnv('SUPABASE_SERVICE_ROLE_KEY'), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
@@ -60,18 +63,18 @@ async function resolveUser(accessToken: string) {
 export const authenticateToken = async (req: any, res: any, next: any) => {
   const header = String(req.headers.authorization || '');
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
-  if (!token) return res.status(401).json({ error: 'Access token missing' });
+  if (!token) return fail(res, req, 401, { code: 'ACCESS_TOKEN_MISSING', message: 'Access token missing.' });
   try {
     req.user = await resolveUser(token);
     return next();
-  } catch (error: any) {
-    return res.status(401).json({ error: error?.message || 'Invalid or expired session' });
+  } catch {
+    return fail(res, req, 401, { code: 'INVALID_SESSION', message: 'Invalid or expired session.' });
   }
 };
 
 export const authorize = (roles: string[] = []) => (req: any, res: any, next: any) => {
   if (roles.length > 0 && !roles.includes(String(req.user?.role || ''))) {
-    return res.status(403).json({ error: 'Insufficient permissions' });
+    return fail(res, req, 403, { code: 'INSUFFICIENT_PERMISSIONS', message: 'Insufficient permissions.' });
   }
   return next();
 };
@@ -83,15 +86,17 @@ app.use(cors({
   credentials: false,
 }));
 
-app.use('/api/razorpay/webhook', express.raw({ type: 'application/json' }), (req: any, res, next) => {
-  req.url = '/webhook';
-  return paymentRoutes(req, res, next);
-});
+app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookRoutes);
+app.post('/api/razorpay/webhook', express.raw({ type: 'application/json' }), webhookRateLimit, handleRazorpayWebhook);
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), webhookRateLimit, handleRazorpayWebhook);
 app.use('/api/hostinger-incoming', express.text({ type: '*/*', limit: '2mb' }), hostingerIncomingRoutes);
 app.use(express.json({ limit: '4mb' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/marketplace', authenticateToken, marketplaceRoutes);
+app.use('/api/qc', authenticateToken, qcRoutes);
+app.use('/api/film-os', authenticateToken, filmOsRoutes);
 app.use('/api/inventory', authenticateToken, authorize(['admin', 'staff']), inventoryRoutes);
 app.use('/api/orders', authenticateToken, orderRoutes);
 app.use('/api/payments', authenticateToken, paymentRoutes);
@@ -99,35 +104,37 @@ app.use('/api/ai', authenticateToken, aiRoutes);
 app.use('/api/ai-jobs', authenticateToken, aiJobRoutes);
 app.use('/api/agents', authenticateToken, agentRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
-app.use('/api/legacy-razorpay-webhook', razorpayWebhook);
+app.post('/api/legacy-razorpay-webhook', express.raw({ type: 'application/json' }), webhookRateLimit, handleRazorpayWebhook);
 
-app.get('/api/health', (_req, res) => res.json({
+app.get('/api/health', (req, res) => ok(res, req, {
   status: 'OK',
   service: 'StreamVista Command API',
   timestamp: new Date().toISOString(),
   providers: providerAvailability(),
 }));
 
-app.get('/api/readiness', (_req, res) => {
+app.get('/api/readiness', (req, res) => {
   const supabase = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
   const razorpay = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
   const ready = supabase && razorpay;
-  return res.status(ready ? 200 : 503).json({
+  return ok(res, req, {
     ready,
     checks: {
       supabase: supabase ? 'configured' : 'not_configured',
       razorpay: razorpay ? 'configured' : 'not_configured',
+      featureFlags: featureFlags(),
     },
-  });
+  }, ready ? 200 : 503);
 });
 
-app.get('/api/runtime/readiness', (_req, res) => res.json(providerAvailability()));
-app.get('/api/storage/status', (_req, res) => {
+app.get('/api/runtime/readiness', (req, res) => ok(res, req, providerAvailability()));
+app.get('/api/features', (req, res) => ok(res, req, featureFlags()));
+app.get('/api/storage/status', (req, res) => {
   const provider = process.env.STORAGE_PROVIDER;
   const bucket = process.env.OCI_BUCKET_NAME || process.env.S3_BUCKET_NAME || process.env.GCS_BUCKET_NAME;
   const region = process.env.OCI_REGION || process.env.AWS_REGION || process.env.GCP_REGION;
-  if (!provider || !bucket) return res.status(503).json({ status: 'UNCONFIGURED' });
-  return res.json({ provider, region: region || null, bucket, status: 'CONFIGURED' });
+  if (!provider || !bucket) return fail(res, req, 503, { code: 'STORAGE_UNCONFIGURED', message: 'Storage is not configured.' });
+  return ok(res, req, { provider, region: region || null, bucket, status: 'CONFIGURED' });
 });
 
 app.use(express.static(path.join(__dirname, '../../../dist')));

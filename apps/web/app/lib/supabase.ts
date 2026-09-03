@@ -1,23 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Canonical production Auth/data plane. Never point the browser client at a retired Bridge project.
-const CANONICAL_SUPABASE_PROJECT_REF = 'uakpqqardziifcwzvgfx';
-const CANONICAL_SUPABASE_URL = `https://${CANONICAL_SUPABASE_PROJECT_REF}.supabase.co`;
-const configuredPublishableKey = (
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
+const configuredUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+const configuredAnonKey = (
+  import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 ) as string | undefined;
 
-export const SUPABASE_URL = CANONICAL_SUPABASE_URL;
-export const SUPABASE_CONFIG_ERROR = !configuredPublishableKey
-  ? 'Authentication is not configured for this deployment.'
-  : null;
+const hasValidUrl = (() => {
+  if (!configuredUrl) return false;
+  try {
+    const url = new URL(configuredUrl);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
+})();
 
-if (!configuredPublishableKey) {
-  console.warn('[StreamVista] Supabase Auth is not configured. Set VITE_SUPABASE_PUBLISHABLE_KEY.');
+export const SUPABASE_URL = configuredUrl || '';
+export const SUPABASE_CONFIG_ERROR = !hasValidUrl
+  ? 'Authentication is not configured: VITE_SUPABASE_URL is missing or invalid.'
+  : !configuredAnonKey
+    ? 'Authentication is not configured: VITE_SUPABASE_ANON_KEY is missing.'
+    : null;
+
+if (SUPABASE_CONFIG_ERROR) {
+  console.warn(`[StreamVista] ${SUPABASE_CONFIG_ERROR}`);
 }
 
-export const supabase = configuredPublishableKey
-  ? createClient(SUPABASE_URL, configuredPublishableKey, {
+export const supabase = !SUPABASE_CONFIG_ERROR
+  ? createClient(SUPABASE_URL, configuredAnonKey as string, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,

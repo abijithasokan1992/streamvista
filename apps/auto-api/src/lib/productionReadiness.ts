@@ -7,6 +7,7 @@ const required = (name: string) => {
 export function assertProductionRuntime() {
   required('JWT_SECRET');
   required('SUPABASE_URL');
+  required('SUPABASE_ANON_KEY');
   required('SUPABASE_SERVICE_ROLE_KEY');
 }
 

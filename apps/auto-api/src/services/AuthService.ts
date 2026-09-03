@@ -1,14 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { getDbClient } from '../config/db';
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required in production`);
-  return value;
-}
+import { requiredEnv, requiredUrlEnv } from '../config/env';
 
 function publicAuthClient() {
-  return createClient(requireEnv('SUPABASE_URL'), requireEnv('SUPABASE_ANON_KEY'), {
+  return createClient(requiredUrlEnv('SUPABASE_URL'), requiredEnv('SUPABASE_ANON_KEY'), {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }

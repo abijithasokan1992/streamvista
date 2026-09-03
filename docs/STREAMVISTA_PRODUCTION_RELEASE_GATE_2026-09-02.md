@@ -69,6 +69,12 @@ Product separation must be expressed through modules, route namespaces, domains,
 9. Verify analytics events from authoritative product and payment outcomes.
 10. Declare final green only after every P0 gate passes.
 
+## External release gate (still required)
+
+- Canonical production Supabase project mapping is an owner-controlled environment decision.
+- Runtime code is required to stay project-neutral and environment-driven (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
+- No hard-coded project ref is allowed in production runtime code.
+
 ## Release decision
 
 Do not declare StreamVista officially released yet.

@@ -30,8 +30,10 @@ async function apiPost(path: string, token: string, body: Record<string, unknown
     body: JSON.stringify(body),
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(String(payload?.error || payload?.message || `Request failed (${response.status})`));
-  return payload;
+  if (!response.ok || !payload?.ok) {
+    throw new Error(String(payload?.error?.message || payload?.message || `Request failed (${response.status})`));
+  }
+  return payload.data;
 }
 
 function idempotencyKey(userId: string, seed: string) {

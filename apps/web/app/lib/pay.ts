@@ -30,81 +30,79 @@ async function apiPost(path: string, token: string, body: Record<string, unknown
     body: JSON.stringify(body),
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(String(payload?.error || payload?.message || `Request failed (${response.status})`));
-  }
+  if (!response.ok) throw new Error(String(payload?.error || payload?.message || `Request failed (${response.status})`));
   return payload;
 }
 
-function idempotencyKey(userId: string, cycle: PaidCycle) {
-  const seed = `${userId}:${cycle}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
-  return seed.replace(/[^A-Za-z0-9._:-]/g, '-').slice(0, 96);
+function idempotencyKey(userId: string, seed: string) {
+  return `${userId}:${seed}:${Date.now()}:${Math.random().toString(36).slice(2)}`.replace(/[^A-Za-z0-9._:-]/g, '-').slice(0, 96);
 }
 
-export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean; error?: string }> {
+export async function startCheckout(input: { amountMajor: number; description?: string; titleId?: string; dealId?: string; cycle?: PaidCycle }): Promise<{ ok: boolean; error?: string }> {
   if (!supabase) return { ok: false, error: 'Auth is not configured' };
-
   const { data: sessionData } = await supabase.auth.getSession();
   const session = sessionData.session;
-  if (!session?.access_token || !session.user) {
-    return { ok: false, error: 'Login required' };
-  }
+  if (!session?.access_token || !session.user) return { ok: false, error: 'Login required' };
+
+  const amountMajor = Number(input.amountMajor);
+  if (!Number.isFinite(amountMajor) || amountMajor <= 0) return { ok: false, error: 'Invalid payment amount' };
 
   try {
-    const key = idempotencyKey(session.user.id, cycle);
+    const seed = input.cycle || input.dealId || input.titleId || 'payment';
+    const key = idempotencyKey(session.user.id, seed);
     const onboarding = await apiPost('/api/payments/create-order', session.access_token, {
-      cycle,
+      amount: amountMajor,
+      titleId: input.titleId,
+      dealId: input.dealId,
+      cycle: input.cycle,
       idempotencyKey: key,
     }, { 'Idempotency-Key': key });
 
-    const order = onboarding?.order;
-    const payment = onboarding?.payment;
-    const orderId = onboarding?.orderId ?? order?.id ?? payment?.provider_order_id;
-    const amount = Number(onboarding?.amount ?? order?.amount ?? (Number(payment?.amount) * 100));
-    const keyId = onboarding?.keyId ?? onboarding?.razorpay?.keyId ?? onboarding?.razorpayKeyId ?? onboarding?.key_id ?? onboarding?.payment?.keyId ?? onboarding?.razorpay?.keyId;
-    const currency = onboarding?.currency ?? order?.currency ?? payment?.currency ?? 'INR';
+    const order = onboarding?.order || {};
+    const orderId = onboarding?.orderId ?? order.id;
+    const amountPaise = Number(onboarding?.amount ?? order.amount);
+    const keyId = onboarding?.keyId ?? onboarding?.razorpay?.keyId;
+    const currency = onboarding?.currency ?? order.currency ?? 'INR';
 
-    if (!orderId || !keyId || !Number.isFinite(amount) || amount <= 0) {
-      return { ok: false, error: onboarding?.error ?? 'Order create failed' };
-    }
+    if (!orderId || !keyId || !Number.isFinite(amountPaise) || amountPaise <= 0) return { ok: false, error: onboarding?.error ?? 'Order create failed' };
+    if (Math.round(amountMajor * 100) !== amountPaise) return { ok: false, error: 'Payment amount mismatch' };
 
-    const scriptOk = await loadCheckout();
-    if (!scriptOk) return { ok: false, error: 'Razorpay checkout failed to load' };
+    if (!(await loadCheckout())) return { ok: false, error: 'Razorpay checkout failed to load' };
 
     return await new Promise((resolve) => {
       const rzp = new window.Razorpay({
         key: keyId,
-        amount,
+        amount: amountPaise,
         currency,
         name: 'StreamVista',
-        description: cycle === 'creator' ? 'Creator plan' : '1 TB top-up',
+        description: input.description || 'StreamVista payment',
         order_id: orderId,
         prefill: { email: session.user.email ?? '' },
-        theme: { color: '#22d3ee' },
-        handler: async (response: {
-          razorpay_order_id: string;
-          razorpay_payment_id: string;
-          razorpay_signature: string;
-        }) => {
+        handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
             const verified = await apiPost('/api/payments/verify', session.access_token, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              cycle,
+              titleId: input.titleId,
+              dealId: input.dealId,
+              cycle: input.cycle,
             }, { 'Idempotency-Key': `${response.razorpay_order_id}:${response.razorpay_payment_id}` });
             resolve({ ok: verified?.verified === true });
           } catch (error) {
             resolve({ ok: false, error: error instanceof Error ? error.message : 'Payment verification failed' });
           }
         },
-        modal: {
-          ondismiss: () => resolve({ ok: false, error: 'Payment checkout closed' }),
-        },
+        modal: { ondismiss: () => resolve({ ok: false, error: 'Payment checkout closed' }) },
       });
       rzp.open();
     });
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Payment service is not available' };
   }
+}
+
+export async function startPlanCheckout(cycle: PaidCycle): Promise<{ ok: boolean; error?: string }> {
+  const amountMajor = cycle === 'creator' || cycle === 'topup' ? 767 : 0;
+  return startCheckout({ amountMajor, cycle, description: cycle === 'creator' ? 'Creator plan' : '1 TB top-up' });
 }

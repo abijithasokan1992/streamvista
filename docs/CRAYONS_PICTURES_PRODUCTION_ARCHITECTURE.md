@@ -6,6 +6,40 @@
 
 Primary users: filmmakers, creators, AI video creators, YouTubers, influencers, studios, buyers, operators and administrators.
 
+StreamVista Cloud X is the master control platform. Crayons Pictures and Crayons
+Bridge remain product modules on the canonical identity, API and billing boundary.
+
+## Revenue and deployment boundaries reconciled from PR #125
+
+These are intended product capabilities, not assertions that the workflows are live.
+
+| Capability | Customer | Revenue model |
+|---|---|---|
+| Creator Cloud | Creators and studios | Subscription, storage and usage |
+| AI production tools | Creators and studios | Metered jobs and credits |
+| OTT readiness and delivery | Content owners | Service and delivery packages |
+| Crayons Bridge marketplace | Rights owners and buyers | Transaction/service fees |
+| Studio operations | Production teams | Subscription and bookings |
+| Enterprise workspace | Production companies | Contract pricing |
+
+The canonical deployment target remains Vercel project `streamvista`, repository
+`abijithasokan1992/streamvista`, branch `main`, domain `streamvista.in`. These are
+intended bindings; verify the actual deployment SHA, alias, domain and backend
+before promotion. Other projects must be classified as feature previews, reusable
+source assets, experiments, or retirement candidates. Classification never
+authorizes deletion. A separate production application needs a distinct customer,
+domain, revenue path, data boundary, owner and its own verified release gate.
+
+Reuse the existing AI provider gateway, `/api/ai` routes and `/api/ai-jobs`
+persistence path. Do not introduce PR #125's competing `ai_jobs`/`ai_usage`
+schema over the current `cps_ai_runs` path. Durable worker execution, allowance
+accounting, ownership checks and provider completion remain release gates.
+
+Billing must link the server-priced order to provider verification, durable payment
+and webhook records, and the correct entitlement. A checkout signature, client
+flag, or an `authorized` event alone does not certify a captured payment or grant
+entitlement. Reconcile against the existing ledger and schema before adding tables.
+
 ## Non-negotiable production rules
 
 1. No mock catalog data in production.

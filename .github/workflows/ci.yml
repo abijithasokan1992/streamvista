@@ -18,17 +18,24 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: npm
       - name: Install
-        run: npm install --no-audit --no-fund
-      - name: Build web
-        run: npm run build:web
+        run: npm ci --no-audit --no-fund
+      - name: Build web and API
+        run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_UPI_VPA: ${{ vars.VITE_UPI_VPA }}
           VITE_UPI_PAYEE_NAME: ${{ vars.VITE_UPI_PAYEE_NAME }}
+      - name: Release regression tests
+        run: npm test
+      - name: Lint release tooling
+        run: npm run lint
+      - name: Release security policy
+        if: ${{ !cancelled() }}
+        run: npm run security:release
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v4.2.2
         with:

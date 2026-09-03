@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "scripts": {
     "dev:web": "vite",
     "dev:api": "ts-node-dev --respawn --transpile-only --project apps/auto-api/tsconfig.json apps/auto-api/src/server.ts",

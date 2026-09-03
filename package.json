@@ -16,7 +16,7 @@
     "test": "npm run test:unit && npm run test:integration"
   },
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "dependencies": {
     "@opentelemetry/exporter-logs-otlp-http": "^0.221.0",

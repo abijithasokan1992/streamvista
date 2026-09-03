@@ -5,7 +5,7 @@
   "functions": {
     "api/entrypoint.ts": {
       "maxDuration": 30,
-      "runtime": "nodejs20.x"
+      "runtime": "nodejs22.x"
     }
   },
   "rewrites": [

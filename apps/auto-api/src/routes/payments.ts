@@ -22,20 +22,39 @@ router.post('/create-order', async (req: any, res) => {
     const userId = sessionUser(req);
     const cycle = String(req.body?.cycle || '').trim().toLowerCase();
     const requestedAmount = Number(req.body?.amount);
-    const amount = PLAN_AMOUNT_PAISE[cycle] || requestedAmount;
     const titleId = req.body?.titleId || req.body?.assetId || null;
     const idempotencyKey = String(req.headers['idempotency-key'] || req.body?.idempotencyKey || '').trim();
 
     if (!userId) return res.status(401).json({ error: 'Session required' });
     if (!idempotencyKey || !/^[A-Za-z0-9._:-]{8,128}$/.test(idempotencyKey)) return res.status(400).json({ error: 'A valid Idempotency-Key is required' });
-    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Invalid payment amount' });
-    if (cycle && !PLAN_AMOUNT_PAISE[cycle]) return res.status(400).json({ error: 'Unsupported plan' });
-    if (!cycle && !titleId) return res.status(400).json({ error: 'cycle or titleId is required' });
+
+    let amount = 0;
+    if (cycle) {
+      if (!PLAN_AMOUNT_PAISE[cycle]) return res.status(400).json({ error: 'Unsupported plan' });
+      amount = PLAN_AMOUNT_PAISE[cycle];
+    } else {
+      if (!Number.isFinite(requestedAmount) || requestedAmount <= 0) return res.status(400).json({ error: 'Invalid payment amount' });
+      amount = Math.round(requestedAmount * 100);
+    }
+
+    if (!cycle && !titleId) return res.status(400).json({ error: 'titleId is required for one-time payments' });
 
     const db = admin();
-    const { data: existing, error: existingError } = await db.from('sv_payments').select('id,status,provider_order_id,amount,currency').eq('idempotency_key', idempotencyKey).maybeSingle();
+    const { data: existing, error: existingError } = await db
+      .from('sv_payments')
+      .select('id,status,provider_order_id,amount,currency,purpose')
+      .eq('idempotency_key', idempotencyKey)
+      .maybeSingle();
     if (existingError) return res.status(503).json({ error: existingError.message });
-    if (existing?.provider_order_id) return res.json({ success: true, duplicate: true, order: { id: existing.provider_order_id, amount: Math.round(Number(existing.amount || 0) * 100), currency: existing.currency || 'INR' }, payment: existing, keyId: process.env.RAZORPAY_KEY_ID });
+    if (existing?.provider_order_id) {
+      return res.json({
+        success: true,
+        duplicate: true,
+        order: { id: existing.provider_order_id, amount: Math.round(Number(existing.amount || 0) * 100), currency: existing.currency || 'INR' },
+        payment: existing,
+        keyId: process.env.RAZORPAY_KEY_ID,
+      });
+    }
 
     const order = await PaymentService.createRazorpayOrder(amount, 'INR', `sv_${idempotencyKey}`.slice(0, 40));
     if (Number(order.amount) !== amount) return res.status(502).json({ error: 'Payment provider returned an unexpected amount' });
@@ -49,7 +68,7 @@ router.post('/create-order', async (req: any, res) => {
       purpose: cycle ? `plan:${cycle}` : 'streamvista',
       status: 'created',
       idempotency_key: idempotencyKey,
-    }).select('id,status,provider_order_id,amount,currency').single();
+    }).select('id,status,provider_order_id,amount,currency,purpose').single();
     if (error) return res.status(503).json({ error: error.message });
     return res.json({ success: true, order: { id: order.id, amount: Number(order.amount), currency: order.currency || 'INR' }, payment, keyId: process.env.RAZORPAY_KEY_ID });
   } catch (err: any) {

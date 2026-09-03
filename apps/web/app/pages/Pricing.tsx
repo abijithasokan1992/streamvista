@@ -42,22 +42,22 @@ export default function Pricing() {
   const buy = async (cycle: PaidCycle) => {
     setMessage(null);
     if (!supabase) {
-      setMessage('Auth is not configured');
+      setMessage('Authentication is not configured for this deployment.');
       return;
     }
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      navigate('/login');
-      return;
-    }
+
     setBusy(cycle);
     const result = await startPlanCheckout(cycle);
     setBusy(null);
-    if (!result.ok) setMessage(result.error ?? 'Payment failed');
-    else {
-      setMessage('Payment verified. Plan unlocked.');
-      navigate('/creator-studio');
+
+    if (!result.ok) {
+      setMessage(result.error ?? 'Payment failed');
+      if (/login|required|expired/i.test(result.error ?? '')) navigate('/login', { state: { from: '/pricing' } });
+      return;
     }
+
+    setMessage('Payment verified. Plan unlocked.');
+    navigate('/creator-studio');
   };
 
   return (

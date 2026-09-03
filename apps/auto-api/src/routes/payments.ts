@@ -14,8 +14,22 @@ function admin() {
 
 function sessionUser(req: any): string | null { return req.user?.userId || req.user?.id || null; }
 
-const PLAN_AMOUNT_PAISE: Record<string, number> = { creator: 76700, topup: 76700 };
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+async function resolvePlanAmount(db: ReturnType<typeof admin>, cycle: string): Promise<number> {
+  const { data, error } = await db
+    .from('sales_pipeline_rules')
+    .select('rule_value')
+    .eq('rule_key', 'streamvista_checkout_prices')
+    .maybeSingle();
+  if (error) throw new Error(`Price rule lookup failed: ${error.message}`);
+  const rules = (data?.rule_value ?? {}) as Record<string, unknown>;
+  const amount = Number(rules[cycle]);
+  if (!Number.isInteger(amount) || amount < 100 || String(rules.currency ?? 'INR').toUpperCase() !== 'INR') {
+    throw new Error('Unsupported plan price');
+  }
+  return amount;
+}
 
 router.post('/create-order', async (req: any, res) => {
   try {
@@ -28,10 +42,11 @@ router.post('/create-order', async (req: any, res) => {
     if (!userId) return res.status(401).json({ error: 'Session required' });
     if (!idempotencyKey || !/^[A-Za-z0-9._:-]{8,128}$/.test(idempotencyKey)) return res.status(400).json({ error: 'A valid Idempotency-Key is required' });
 
+    const db = admin();
     let amount = 0;
     if (cycle) {
-      if (!PLAN_AMOUNT_PAISE[cycle]) return res.status(400).json({ error: 'Unsupported plan' });
-      amount = PLAN_AMOUNT_PAISE[cycle];
+      if (!['creator', 'topup'].includes(cycle)) return res.status(400).json({ error: 'Unsupported plan' });
+      amount = await resolvePlanAmount(db, cycle);
     } else {
       if (!Number.isFinite(requestedAmount) || requestedAmount <= 0) return res.status(400).json({ error: 'Invalid payment amount' });
       amount = Math.round(requestedAmount * 100);
@@ -39,7 +54,6 @@ router.post('/create-order', async (req: any, res) => {
 
     if (!cycle && !titleId) return res.status(400).json({ error: 'titleId is required for one-time payments' });
 
-    const db = admin();
     const { data: existing, error: existingError } = await db
       .from('sv_payments')
       .select('id,status,provider_order_id,amount,currency,purpose')
@@ -47,17 +61,43 @@ router.post('/create-order', async (req: any, res) => {
       .maybeSingle();
     if (existingError) return res.status(503).json({ error: existingError.message });
     if (existing?.provider_order_id) {
+      const { data: onboarding } = cycle
+        ? await db.from('onboarding_requests').select('id').eq('razorpay_order_id', existing.provider_order_id).eq('submitter_user_id', userId).maybeSingle()
+        : { data: null as any };
       return res.json({
         success: true,
         duplicate: true,
         order: { id: existing.provider_order_id, amount: Math.round(Number(existing.amount || 0) * 100), currency: existing.currency || 'INR' },
         payment: existing,
         keyId: process.env.RAZORPAY_KEY_ID,
+        onboardingId: onboarding?.id,
       });
     }
 
+    let onboardingId: string | undefined;
+    if (cycle) {
+      const { data: onboarding, error } = await db.from('onboarding_requests').insert({
+        submitter_user_id: userId,
+        selected_cycle: cycle,
+        payment_status: 'pending',
+        onboarding_status: 'pending_payment',
+        amount_paise: amount,
+        currency: 'INR',
+      }).select('id').single();
+      if (error || !onboarding?.id) return res.status(503).json({ error: error?.message || 'Plan checkout ledger unavailable' });
+      onboardingId = onboarding.id;
+    }
+
     const order = await PaymentService.createRazorpayOrder(amount, 'INR', `sv_${idempotencyKey}`.slice(0, 40));
-    if (Number(order.amount) !== amount) return res.status(502).json({ error: 'Payment provider returned an unexpected amount' });
+    if (Number(order.amount) !== amount) {
+      if (onboardingId) await db.from('onboarding_requests').update({ payment_status: 'failed', onboarding_status: 'failed', updated_at: new Date().toISOString() }).eq('id', onboardingId);
+      return res.status(502).json({ error: 'Payment provider returned an unexpected amount' });
+    }
+
+    if (onboardingId) {
+      const { error } = await db.from('onboarding_requests').update({ razorpay_order_id: order.id, payment_status: 'created', updated_at: new Date().toISOString() }).eq('id', onboardingId).eq('submitter_user_id', userId);
+      if (error) return res.status(503).json({ error: error.message });
+    }
 
     const { data: payment, error } = await db.from('sv_payments').insert({
       user_id: userId,
@@ -69,8 +109,11 @@ router.post('/create-order', async (req: any, res) => {
       status: 'created',
       idempotency_key: idempotencyKey,
     }).select('id,status,provider_order_id,amount,currency,purpose').single();
-    if (error) return res.status(503).json({ error: error.message });
-    return res.json({ success: true, order: { id: order.id, amount: Number(order.amount), currency: order.currency || 'INR' }, payment, keyId: process.env.RAZORPAY_KEY_ID });
+    if (error) {
+      if (onboardingId) await db.from('onboarding_requests').update({ payment_status: 'failed', onboarding_status: 'failed', updated_at: new Date().toISOString() }).eq('id', onboardingId);
+      return res.status(503).json({ error: error.message });
+    }
+    return res.json({ success: true, order: { id: order.id, amount: Number(order.amount), currency: order.currency || 'INR' }, payment, keyId: process.env.RAZORPAY_KEY_ID, onboardingId });
   } catch (err: any) {
     return res.status(503).json({ error: err.message || 'Payment order failed closed' });
   }
@@ -79,7 +122,7 @@ router.post('/create-order', async (req: any, res) => {
 router.post('/verify', async (req: any, res) => {
   try {
     const userId = sessionUser(req);
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId, paymentId, signature, titleId, dealId, cycle } = req.body || {};
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId, paymentId, signature, titleId, dealId, cycle, onboardingId } = req.body || {};
     const finalOrderId = razorpay_order_id || orderId;
     const finalPaymentId = razorpay_payment_id || paymentId;
     const finalSignature = razorpay_signature || signature;
@@ -102,6 +145,22 @@ router.post('/verify', async (req: any, res) => {
       ? await db.from('sv_payments').update(patch).eq('id', existing.id).select('id,status,verified_at,provider_payment_id,amount,currency').single()
       : await db.from('sv_payments').insert(patch).select('id,status,verified_at,provider_payment_id,amount,currency').single();
     if (result.error) return res.status(503).json({ error: result.error.message });
+
+    if (cycle || onboardingId) {
+      const query = db.from('onboarding_requests').update({
+        razorpay_payment_id: finalPaymentId,
+        razorpay_signature: finalSignature,
+        payment_status: 'captured',
+        onboarding_status: 'active',
+        payment_verified_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq('submitter_user_id', userId);
+      const onboardingResult = onboardingId
+        ? await query.eq('id', onboardingId)
+        : await query.eq('razorpay_order_id', finalOrderId);
+      if (onboardingResult.error) return res.status(503).json({ error: onboardingResult.error.message });
+    }
+
     return res.json({ success: true, verified: true, payment: result.data });
   } catch (err: any) {
     return res.status(503).json({ error: err.message || 'Payment verification failed closed' });

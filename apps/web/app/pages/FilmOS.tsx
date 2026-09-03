@@ -14,7 +14,7 @@ const departments = [
 const gates = ['Script', 'Character / World Bible', 'Visual Assets', 'Shot', 'Edit', 'Audio', 'Localization', 'Rights', 'QC', 'Final Master'];
 const memberTabs: Record<string,string> = { development:'overview', preproduction:'scenes', production:'shots', post:'edits' };
 
-async function authHeaders() {
+async function authHeaders(): Promise<Record<string, string>> {
   if (!supabase) return {};
   const { data: { session } } = await supabase.auth.getSession();
   return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};

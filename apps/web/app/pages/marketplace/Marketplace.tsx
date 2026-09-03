@@ -18,7 +18,6 @@ type MarketplaceItem = {
 const Marketplace = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<MarketplaceItem | null>(null);
-  const [activeCategory, setActiveCategory] = useState('CONTENT');
   const [assets, setAssets] = useState<MarketplaceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -80,19 +79,21 @@ const Marketplace = () => {
         metadata: Record<string, unknown> | null;
       }>;
 
-      const mapped = rows.map((row) => {
+      const mapped: MarketplaceItem[] = rows.map((row) => {
         const commercial = row.commercial_profile ?? {};
         const metadata = row.metadata ?? {};
         const configuredPrice = Number(commercial.price ?? commercial.license_price ?? metadata.price ?? 0);
         const configuredResolution = String(metadata.resolution ?? commercial.resolution ?? 'MASTER');
         const status = String(metadata.qc_status ?? commercial.qc_status ?? 'PASSED').toUpperCase();
+        const qcStatus: MarketplaceItem['qcStatus'] =
+          status === 'FAILED' ? 'FAILED' : status === 'PENDING' ? 'PENDING' : 'PASSED';
         return {
           id: `TITLE-${row.id.slice(0, 8).toUpperCase()}`,
           title: row.title,
           language: row.primary_language || String(metadata.language ?? 'GLOBAL'),
           resolution: configuredResolution,
           price: Number.isFinite(configuredPrice) ? configuredPrice : 0,
-          qcStatus: status === 'FAILED' ? 'FAILED' : status === 'PENDING' ? 'PENDING' : 'PASSED',
+          qcStatus,
           type: 'CONTENT' as const,
           titleId: row.id,
         };

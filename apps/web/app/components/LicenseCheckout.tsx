@@ -10,12 +10,6 @@ interface LicenseCheckoutProps {
   onClose: () => void;
 }
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
 const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 
 const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({

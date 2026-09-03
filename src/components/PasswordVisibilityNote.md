@@ -1,0 +1,1 @@
+Approved UI behavior: password controls should provide a clear eye icon to show/hide the entered password without changing the authentication contract.

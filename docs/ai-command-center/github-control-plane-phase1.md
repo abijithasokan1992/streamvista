@@ -5,7 +5,8 @@
 - Canonical repository: `abijithasokan1992/streamvista`
 - Default branch: `main`
 - Vercel project: `streamvista`
-- Canonical production Supabase ref: `tqzimuwozhipqgyerdff`
+- Active Supabase project ref: `uakpqqardziifcwzvgfx`
+- Retired Supabase project ref: `tqzimuwozhipqgyerdff` — historical only; never use as an active environment binding.
 
 ## Architecture
 
@@ -47,6 +48,7 @@ AI Command Center UI
 - `Implemented` is not equivalent to `production`.
 - Production status requires a live health check and audit evidence.
 - Agent/tool execution must not bypass the platform API and tool gateway.
+- Retired infrastructure references must never be promoted back to active environment bindings without explicit re-approval.
 
 ## Target architecture
 

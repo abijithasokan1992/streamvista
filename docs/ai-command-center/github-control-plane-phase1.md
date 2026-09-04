@@ -6,7 +6,7 @@
 - Default branch: `main`
 - Vercel project: `streamvista`
 - Active Supabase project ref: `uakpqqardziifcwzvgfx`
-- Retired Supabase project ref: `tqzimuwozhipqgyerdff` — historical only; never use as an active environment binding.
+- Retired Supabase reference has been removed from active configuration and must not be used as an environment binding.
 
 ## Architecture
 
@@ -43,51 +43,3 @@ AI Command Center UI
 10. No inventory count may be fabricated.
 
 ## Production truth rules
-- `Never synced` remains until a successful snapshot exists.
-- `Catalogued` is not equivalent to `implemented`.
-- `Implemented` is not equivalent to `production`.
-- Production status requires a live health check and audit evidence.
-- Agent/tool execution must not bypass the platform API and tool gateway.
-- Retired infrastructure references must never be promoted back to active environment bindings without explicit re-approval.
-
-## Target architecture
-
-```text
-Apps
- ↓
-Agent Platform API
- ↓
-Orchestrator
- ↓
-Canonical Agent
- ↓
-Tool Gateway
- ↓
-External Services
- ↓
-Audit / Approval
- ↓
-Verified Result
-```
-
-Phase 1 does not claim the Agent Platform API, Orchestrator, or Tool Gateway are production until each has independent health evidence.
-
-## Phase 1 exit gate
-
-```text
-GITHUB_TOKEN configured
-       ↓
-Run GitHub sync
-       ↓
-Successful snapshot persisted
-       ↓
-Repository count > 0
-       ↓
-Audit event persisted
-       ↓
-Command Center shows last successful snapshot
-       ↓
-No credential exposed to browser
-       ↓
-PHASE 1 = GREEN
-```

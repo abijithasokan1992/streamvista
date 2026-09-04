@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { getFreshSession, supabase } from './supabase';
 
 type OttCycle = 'audit' | 'launch';
 type CheckoutResult = { ok: boolean; error?: string; onboardingId?: string };
@@ -10,19 +10,13 @@ const PACKAGES: Record<OttCycle, { amountMajor: number; label: string; descripti
   launch: { amountMajor: 25000, label: 'OTT Launch Package', description: 'StreamVista OTT Launch Package' },
 };
 
-async function session() {
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data.session;
-}
-
 export function ottPackage(cycle: OttCycle) {
   return PACKAGES[cycle];
 }
 
 export async function startOttReadinessCheckout(cycle: OttCycle): Promise<CheckoutResult> {
   if (!supabase) return { ok: false, error: 'Authentication is not configured for this deployment.' };
-  const current = await session();
+  const current = await getFreshSession();
   if (!current?.access_token || !current.user) return { ok: false, error: 'Login required' };
 
   const pkg = PACKAGES[cycle];
@@ -50,6 +44,11 @@ export async function startOttReadinessCheckout(cycle: OttCycle): Promise<Checko
         prefill: { email: current.user.email ?? '' },
         notes: { onboarding_id: orderResponse.onboardingId, package: cycle },
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          const verifySession = await getFreshSession();
+          if (!verifySession?.access_token || verifySession.user.id !== current.user.id) {
+            resolve({ ok: false, error: 'Your secure session expired. Please sign in again.' });
+            return;
+          }
           const { data: verified, error: verifyError } = await supabase.functions.invoke<{ ok?: boolean; verified?: boolean }>('verify-razorpay-payment', {
             body: {
               onboardingId: orderResponse.onboardingId,

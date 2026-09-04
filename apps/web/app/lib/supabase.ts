@@ -3,28 +3,21 @@ import { createClient, type Session } from '@supabase/supabase-js';
 // Canonical production Auth/data plane. Never point the browser client at a retired Bridge project.
 const CANONICAL_SUPABASE_PROJECT_REF = 'uakpqqardziifcwzvgfx';
 const CANONICAL_SUPABASE_URL = `https://${CANONICAL_SUPABASE_PROJECT_REF}.supabase.co`;
-const configuredPublishableKey = (
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
-) as string | undefined;
+// This is the project's public legacy anon key. It is intentionally browser-safe and
+// remains constrained by Supabase Auth + RLS. Keeping the fallback canonical prevents
+// a stale Vercel VITE_SUPABASE_* value from silently binding the browser to another project.
+const CANONICAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVha3BxcWFyZHppaWZjd3p2Z2Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MDY4MTAsImV4cCI6MjA2NjM4MjgxMH0.5on-OVA740CVGbI9xCjZQmeOZzhMsh2z45zJNjDqVuI';
 
 export const SUPABASE_URL = CANONICAL_SUPABASE_URL;
-export const SUPABASE_CONFIG_ERROR = !configuredPublishableKey
-  ? 'Authentication is not configured for this deployment.'
-  : null;
+export const SUPABASE_CONFIG_ERROR = null;
 
-if (!configuredPublishableKey) {
-  console.warn('[StreamVista] Supabase Auth is not configured. Set VITE_SUPABASE_PUBLISHABLE_KEY.');
-}
-
-export const supabase = configuredPublishableKey
-  ? createClient(SUPABASE_URL, configuredPublishableKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    })
-  : null;
+export const supabase = createClient(SUPABASE_URL, CANONICAL_SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 
 /**
  * Return a usable session for API/payment calls. A locally cached access token can
@@ -33,8 +26,6 @@ export const supabase = configuredPublishableKey
  * on the same canonical Supabase Auth session.
  */
 export async function getFreshSession(): Promise<Session | null> {
-  if (!supabase) return null;
-
   const { data: current } = await supabase.auth.getSession();
   const session = current.session;
   const expiresAt = Number(session?.expires_at || 0);

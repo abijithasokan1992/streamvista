@@ -21,12 +21,11 @@
   ],
   "canonical_dependencies": {
     "supabase_project_ref": "uakpqqardziifcwzvgfx",
-    "retired_supabase_project_ref": "tqzimuwozhipqgyerdff",
     "payment_provider": "razorpay",
     "production_domain": "streamvista.in"
   },
   "environment_policy": {
-    "retired_supabase_ref_may_be_used_as_active_binding": false,
-    "explicit_reapproval_required_to_reactivate_retired_ref": true
+    "retired_supabase_reference_removed_from_configuration": true,
+    "retired_supabase_reference_may_be_used_as_active_binding": false
   }
 }

@@ -4,12 +4,12 @@ import crypto from 'crypto';
 import { PaymentService } from '../services/PaymentService';
 
 const router = Router();
+const CANONICAL_SUPABASE_URL = 'https://uakpqqardziifcwzvgfx.supabase.co';
 
 function admin() {
-  const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Supabase service role is not configured');
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (!key) throw new Error('Supabase service role is not configured');
+  return createClient(CANONICAL_SUPABASE_URL, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
 function sessionUser(req: any): string | null { return req.user?.userId || req.user?.id || null; }

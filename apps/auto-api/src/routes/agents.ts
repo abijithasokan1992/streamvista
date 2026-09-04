@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AgentService } from '../services/AgentService';
+import { getDbClient } from '../config/db';
 
 const router = Router();
 
@@ -9,7 +10,6 @@ router.get('/activities', (_req, res) => {
 
 router.get('/queue', async (_req, res) => {
   try {
-    const { getDbClient } = await import('../config/db');
     const { data, error } = await getDbClient()
       .from('sales_agent_queue')
       .select('id,task_type,assigned_agent,priority,status,approval_required,approval_id,payload,result,attempt_count,available_at,started_at,completed_at,created_at,updated_at,lead_id,opportunity_id')
@@ -37,7 +37,6 @@ router.post('/process-next', async (_req, res) => {
   if (!task) return res.status(204).send();
 
   try {
-    const { getDbClient } = await import('../config/db');
     const client = getDbClient();
     const evidence: Record<string, unknown> = {
       taskId: task.id,

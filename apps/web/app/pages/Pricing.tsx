@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, getFreshSession } from '../lib/supabase';
 import { startPlanCheckout, type PaidCycle } from '../lib/pay';
 
 const PLANS: Array<{
@@ -45,8 +45,8 @@ export default function Pricing() {
       setMessage('Auth is not configured');
       return;
     }
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    const session = await getFreshSession();
+    if (!session) {
       navigate('/login');
       return;
     }

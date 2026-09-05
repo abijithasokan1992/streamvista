@@ -8,12 +8,12 @@ import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
 import inventoryRoutes from './routes/inventory';
 import orderRoutes from './routes/orders';
-import razorpayWebhook from './routes/razorpayWebhook';
 import aiRoutes from './routes/ai';
 import aiJobRoutes from './routes/ai-jobs';
 import hostingerIncomingRoutes from './routes/hostingerIncoming';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
+import razorpayWebhook from './routes/razorpayWebhook';
 import { initializeDb } from './config/db';
 import { assertProductionRuntime, providerAvailability } from './lib/productionReadiness';
 
@@ -21,13 +21,11 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const CANONICAL_SUPABASE_URL = 'https://uakpqqardziifcwzvgfx.supabase.co';
-const SUPABASE_URL = process.env.SUPABASE_URL || CANONICAL_SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL?.trim();
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function supabaseAdmin() {
-  if (!SUPABASE_SERVICE_ROLE_KEY) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('Supabase server configuration is missing');
   }
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -85,9 +83,10 @@ app.use(cors({
   credentials: false,
 }));
 
-app.use('/api/razorpay/webhook', express.raw({ type: 'application/json' }), (req: any, res, next) => {
-  req.url = '/webhook';
-  return paymentRoutes(req, res, next);
+// Canonical public Razorpay webhook endpoint. Keep raw payload handling before JSON parsing.
+app.use('/api/webhooks/razorpay', express.raw({ type: 'application/json' }), (req: any, res, next) => {
+  req.url = '/';
+  return razorpayWebhook(req, res, next);
 });
 app.use('/api/hostinger-incoming', express.text({ type: '*/*', limit: '2mb' }), hostingerIncomingRoutes);
 app.use(express.json({ limit: '4mb' }));
@@ -101,7 +100,6 @@ app.use('/api/ai', authenticateToken, aiRoutes);
 app.use('/api/ai-jobs', authenticateToken, aiJobRoutes);
 app.use('/api/agents', authenticateToken, agentRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
-app.use('/api/legacy-razorpay-webhook', razorpayWebhook);
 
 app.get('/api/health', (_req, res) => res.json({
   status: 'OK',
@@ -111,7 +109,7 @@ app.get('/api/health', (_req, res) => res.json({
 }));
 
 app.get('/api/readiness', (_req, res) => {
-  const supabase = Boolean(SUPABASE_SERVICE_ROLE_KEY && SUPABASE_URL === CANONICAL_SUPABASE_URL);
+  const supabase = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
   const razorpay = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
   const ready = supabase && razorpay;
   return res.status(ready ? 200 : 503).json({

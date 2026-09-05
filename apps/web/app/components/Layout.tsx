@@ -39,7 +39,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => (
         .footer-bottom { margin-top:22px; padding-top:14px; border-top:1px solid rgba(255,255,255,.05); display:flex; justify-content:space-between; color:var(--sv-dim); font-size:10px; }
         @media(max-width:700px){ .main-content{padding:20px 0 34px;} .footer-content{flex-direction:column;} .footer-links{gap:14px;} }
       `}</style>
-    </div>
+    </footer>
+  </div>
   );
 
 export default Layout;

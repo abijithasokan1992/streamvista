@@ -12,6 +12,7 @@ import aiRoutes from './routes/ai';
 import aiJobRoutes from './routes/ai-jobs';
 import hostingerIncomingRoutes from './routes/hostingerIncoming';
 import agentRoutes from './routes/agents';
+import a2aRoutes from './routes/a2a';
 import notificationRoutes from './routes/notifications';
 import razorpayWebhook from './routes/razorpayWebhook';
 import { initializeDb } from './config/db';
@@ -23,6 +24,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SUPABASE_URL = process.env.SUPABASE_URL?.trim();
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const A2A_PUBLIC_BASE_URL = String(process.env.A2A_PUBLIC_BASE_URL || '').replace(/\/$/, '');
 
 function supabaseAdmin() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -91,6 +93,60 @@ app.use('/api/webhooks/razorpay', express.raw({ type: 'application/json' }), (re
 app.use('/api/hostinger-incoming', express.text({ type: '*/*', limit: '2mb' }), hostingerIncomingRoutes);
 app.use(express.json({ limit: '4mb' }));
 
+app.get('/.well-known/agent-card.json', (_req, res) => {
+  if (!A2A_PUBLIC_BASE_URL) return res.status(503).json({ error: 'A2A public base URL is not configured' });
+  return res.json({
+    protocolVersion: '0.3.0',
+    name: 'StreamVista Business & Revenue Command Center',
+    description: 'Single canonical business orchestrator for revenue, sales, buyers, creators, deals, payments and follow-up. Uses one persistent business queue and fail-closed approvals.',
+    url: `${A2A_PUBLIC_BASE_URL}/a2a`,
+    preferredTransport: 'JSONRPC',
+    version: '1.0.0',
+    documentationUrl: `${A2A_PUBLIC_BASE_URL}/docs/STREAMVISTA_PRODUCT_REVENUE_COMMAND_CENTER.md`,
+    capabilities: {
+      streaming: false,
+      pushNotifications: false,
+      stateTransitionHistory: false,
+    },
+    securitySchemes: {
+      bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'opaque' },
+    },
+    security: [{ bearerAuth: [] }],
+    defaultInputModes: ['text/plain', 'application/json'],
+    defaultOutputModes: ['application/json', 'text/plain'],
+    skills: [
+      {
+        id: 'business.revenue.orchestrate',
+        name: 'Business Revenue Orchestration',
+        description: 'Detect, deduplicate, prioritize and queue revenue-impacting business work.',
+        tags: ['revenue', 'business-queue', 'orchestration'],
+        examples: ['What can close today?', 'Give me the fastest verified path to ₹1 crore.'],
+      },
+      {
+        id: 'business.buyer.match',
+        name: 'Buyer Matching',
+        description: 'Prepare evidence-backed buyer and content matches from verified business data.',
+        tags: ['buyers', 'catalog', 'matching'],
+      },
+      {
+        id: 'business.payment.reconcile',
+        name: 'Payment Reconciliation',
+        description: 'Prepare payment verification and downstream consistency checks without bypassing payment gates.',
+        tags: ['payments', 'razorpay', 'reconciliation'],
+      },
+      {
+        id: 'business.follow-up.prepare',
+        name: 'Follow-up Preparation',
+        description: 'Identify and prepare high-value follow-up actions without automatically sending binding communications.',
+        tags: ['follow-up', 'sales', 'email'],
+      },
+    ],
+  });
+});
+
+app.get('/.well-known/agent.json', (_req, res) => res.redirect(307, '/.well-known/agent-card.json'));
+
+app.use('/a2a', a2aRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/inventory', authenticateToken, authorize(['admin', 'staff']), inventoryRoutes);
@@ -98,7 +154,7 @@ app.use('/api/orders', authenticateToken, orderRoutes);
 app.use('/api/payments', authenticateToken, paymentRoutes);
 app.use('/api/ai', authenticateToken, aiRoutes);
 app.use('/api/ai-jobs', authenticateToken, aiJobRoutes);
-app.use('/api/agents', authenticateToken, agentRoutes);
+app.use('/api/agents', authenticateToken, authorize(['admin', 'staff']), agentRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
 
 app.get('/api/health', (_req, res) => res.json({
@@ -110,13 +166,17 @@ app.get('/api/health', (_req, res) => res.json({
 
 app.get('/api/readiness', (_req, res) => {
   const supabase = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+  const canonicalSupabase = Boolean(SUPABASE_URL && /uakpqqardziifcwzvgfx\.supabase\.co/i.test(SUPABASE_URL));
   const razorpay = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
-  const ready = supabase && razorpay;
+  const a2a = Boolean(process.env.A2A_SHARED_SECRET && A2A_PUBLIC_BASE_URL);
+  const ready = supabase && canonicalSupabase && razorpay && a2a;
   return res.status(ready ? 200 : 503).json({
     ready,
     checks: {
       supabase: supabase ? 'configured' : 'not_configured',
+      canonicalSupabase: canonicalSupabase ? 'configured' : 'wrong_or_unknown_project',
       razorpay: razorpay ? 'configured' : 'not_configured',
+      a2a: a2a ? 'configured' : 'not_configured',
     },
   });
 });

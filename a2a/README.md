@@ -1,59 +1,118 @@
-# StreamVista A2A Revenue Agent Layer
+# StreamVista A2A Business & Revenue Agent Layer
 
 ## Purpose
 
-Turn the existing StreamVista Creator / Marketplace / Sales / Payment surfaces into an agent-to-agent revenue workflow.
+Turn the existing StreamVista Creator / Marketplace / Sales / Payment surfaces into an **agent-to-agent business workflow** controlled by one canonical Business & Revenue Command Center.
 
-## Agents
+The runtime is **single-queue by design**: detect → deduplicate → prioritize → safe action → verify → close → next. Individual leads, buyers, payments, outreach threads and technical incidents must not create separate scheduled watchers.
 
-- Revenue Orchestrator — routes commercial work and maintains evidence gates.
-- Creator Acquisition Agent — qualifies inbound creators and prepares the ₹25,000 OTT Readiness offer.
-- Rights & Catalog Agent — validates title metadata, rights readiness and missing evidence.
-- Buyer Match Agent — identifies buyer-fit opportunities from verified catalog data.
-- Deal Desk Agent — prepares deal-room actions and commercial negotiation state.
-- Payment Agent — prepares Razorpay order/verification actions; never bypasses server-side verification.
-- Follow-up Agent — creates follow-up actions for qualified leads and stalled opportunities.
+## Agent roles
 
-## Hard rules
+- Revenue Orchestrator — owns commercial routing, priority and evidence gates.
+- Creator Acquisition Agent — qualifies creator-side revenue opportunities and prepares the ₹25,000 OTT Readiness offer without making binding commitments.
+- Rights & Catalog Agent — checks rights/readiness evidence and surfaces missing requirements; it never invents clearance.
+- Buyer Match Agent — prepares buyer/content matches from verified catalog and lead data.
+- Deal Desk Agent — prepares deal-room next actions and approval requirements; it does not finalize contracts automatically.
+- Payment Agent — reconciles persisted payment facts and Razorpay verification state; it does not capture, refund or grant entitlements without authorization.
+- Follow-up Agent — prepares evidence-backed follow-ups; it does not send external commercial communication unless an authorized workflow permits it.
 
-1. No agent claims a transaction is complete without system evidence.
-2. No agent writes secrets into GitHub or client code.
-3. No direct creator-to-buyer contact is initiated by an agent unless an authorized workflow explicitly permits it.
-4. Payment state is sourced from the application ledger / Razorpay verification path.
-5. Agent actions that change financial, rights, or access state require explicit server-side authorization.
-6. Existing StreamVista components are reused before new features are created.
+## A2A protocol boundary
 
-## Revenue-first workflows
+The service exposes an A2A-compatible JSON-RPC HTTP endpoint at `/a2a` and a public Agent Card at `/.well-known/agent-card.json`. The compatibility alias `/.well-known/agent.json` is also served.
 
-### Creator readiness
+Supported core methods:
 
-Inbound lead → qualification → rights-readiness check → ₹25,000 package offer → payment → onboarding task → marketplace publication candidate.
+- `message/send`
+- `tasks/get`
+- `tasks/cancel`
 
-### Buyer licensing
+Production transport is HTTPS + JSON-RPC 2.0. The Agent Card advertises bearer authentication without exposing any secret.
 
-Verified buyer → catalog discovery → title screening request → deal room → payment_pending → Razorpay checkout → payment verification → fulfilled/paid state.
+## Persistent single queue
 
-### Sales recovery
+The implementation reuses the existing `sales_agent_queue` and `approval_queue` tables. No new production database schema is required for the A2A runtime.
 
-Lead with no response → follow-up queue → evidence-backed reminder → escalation to founder/admin when required.
+Queue priorities remain:
 
-## A2A envelope
+`P0 → P1 → P2 → P3`
 
-```json
-{
-  "message_id": "string",
-  "from_agent": "string",
-  "to_agent": "string",
-  "task": "string",
-  "entity_type": "lead|creator|title|buyer|deal|payment",
-  "entity_id": "string",
-  "status": "proposed|accepted|blocked|completed",
-  "evidence": [],
-  "requires_approval": false,
-  "created_at": "ISO-8601"
-}
-```
+Task deduplication uses a deterministic business key derived from task type and entity identity. Tasks already queued, running or awaiting approval are not duplicated.
 
-## Production boundary
+Claiming is optimistic and guarded by the current queue status plus attempt count so concurrent workers cannot both successfully claim the same item.
 
-The repository contains the product implementation and A2A contract. Platform credentials remain in deployment environment configuration. The A2A layer must fail closed when required production credentials or canonical data dependencies are unavailable.
+## Approval gate
+
+These classes of work are fail-closed and enter `approval_queue` instead of executing:
+
+- payment capture
+- refunds
+- role changes
+- rights approvals
+- deal finalization
+- external creator ↔ buyer contact
+- outbound email/messages
+- contractual acceptance
+
+## Evidence gate
+
+No agent may claim:
+
+- payment success
+- payment verification
+- collected revenue
+- buyer intent
+- rights clearance
+- contract acceptance
+- partnership completion
+- production health
+
+without system evidence.
+
+Forecasts must remain labelled **FORECAST** and must never be presented as actual revenue.
+
+## Technical boundary
+
+GitHub / CI / build / auth / backend / database / API / deployment / hosting / security / runtime / release diagnosis belongs to **Technology Command**. A technical incident is surfaced here only through its business impact and follow-up requirement; it must not create a duplicate business or technical watcher.
+
+## Production environment activation
+
+The code is production-ready but remains fail-closed until deployment configuration is present:
+
+- `SUPABASE_URL` must point to the canonical StreamVista/Crayons production project `uakpqqardziifcwzvgfx`.
+- `SUPABASE_SERVICE_ROLE_KEY` must exist only in server-side deployment configuration.
+- `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` must be configured server-side for payment readiness.
+- `A2A_SHARED_SECRET` must be provisioned as a Vercel/server environment secret and never committed.
+- `A2A_PUBLIC_BASE_URL` must be the explicitly routed public HTTPS base URL for the A2A server.
+
+The server readiness gate returns `503` until the canonical Supabase binding, payment configuration, and A2A configuration are present.
+
+## Hostinger Mail boundary
+
+Hostinger Mail may provide inbound business signals to the command center through the existing `/api/hostinger-incoming` receiver. A2A agents only prepare follow-up actions unless a separate authorized send workflow is explicitly invoked.
+
+## Vercel boundary
+
+The canonical Vercel project remains `streamvista`. A2A production activation requires the production domain to route to the same backend surface represented by `A2A_PUBLIC_BASE_URL` and the environment secret to be configured in the correct production environment.
+
+## Supabase boundary
+
+The runtime uses the existing production tables with RLS enabled. Authorization remains server-side and role-gated. No service-role credential is exposed to client code.
+
+## Production certification standard
+
+A2A is not considered live merely because the source code exists. Certification requires evidence for:
+
+1. GitHub source and CI
+2. Vercel production deployment
+3. canonical production domain
+4. Agent Card discovery
+5. authenticated `message/send`
+6. persistent queue creation and deduplication
+7. `tasks/get` state retrieval
+8. approval routing for high-risk actions
+9. evidence-backed task completion
+10. fail-closed behavior when dependencies are unavailable
+
+## Result
+
+**One Business & Revenue Command Center. One active business queue. Multiple specialist agent roles. One evidence and approval boundary. No duplicate watchers.**

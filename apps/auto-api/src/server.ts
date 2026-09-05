@@ -83,6 +83,10 @@ app.use(cors({
   credentials: false,
 }));
 
+app.use('/api/webhooks/razorpay', express.raw({ type: 'application/json' }), (req: any, res, next) => {
+  req.url = '/webhook';
+  return paymentRoutes(req, res, next);
+});
 app.use('/api/razorpay/webhook', express.raw({ type: 'application/json' }), (req: any, res, next) => {
   req.url = '/webhook';
   return paymentRoutes(req, res, next);

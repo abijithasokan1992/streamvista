@@ -21,10 +21,9 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-// Keep every Vercel API/Auth request pinned to the same live Supabase project as the browser client.
-// A stale SUPABASE_URL environment variable must never route user JWT validation to a retired project.
+
 const CANONICAL_SUPABASE_URL = 'https://uakpqqardziifcwzvgfx.supabase.co';
-const SUPABASE_URL = CANONICAL_SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL || CANONICAL_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function supabaseAdmin() {
@@ -112,7 +111,7 @@ app.get('/api/health', (_req, res) => res.json({
 }));
 
 app.get('/api/readiness', (_req, res) => {
-  const supabase = Boolean(SUPABASE_SERVICE_ROLE_KEY);
+  const supabase = Boolean(SUPABASE_SERVICE_ROLE_KEY && SUPABASE_URL === CANONICAL_SUPABASE_URL);
   const razorpay = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
   const ready = supabase && razorpay;
   return res.status(ready ? 200 : 503).json({

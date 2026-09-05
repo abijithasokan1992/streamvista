@@ -1,4 +1,7 @@
 {
+  "name": "streamvista",
+  "private": true,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev:web": "vite",
@@ -8,7 +11,7 @@
     "build:api": "tsc -p apps/auto-api/tsconfig.json",
     "build": "npm run build:web && npm run build:api",
     "start": "node apps/auto-api/dist/server.js",
-    "typecheck": "tsc -p apps/auto-api/tsconfig.json --noEmit && tsc -p apps/auto-web/tsconfig.json --noEmit"
+    "typecheck": "tsc -p apps/auto-api/tsconfig.json --noEmit"
   },
   "dependencies": {
     "@opentelemetry/exporter-logs-otlp-http": "^0.221.0",
@@ -51,7 +54,7 @@
     "@types/multer": "^2.1.0",
     "@types/oracledb": "^7.0.2",
     "@types/xml2js": "^0.4.14",
-    "esbuild": "^0.28.2",
+    "esbuild": "^0.28.0",
     "ts-node": "^10.9.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.7.3"

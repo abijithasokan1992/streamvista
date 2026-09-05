@@ -11,25 +11,40 @@ permissions:
   attestations: write
 
 jobs:
-  web-build:
+  production-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
+
       - name: Install
         run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Build web
         run: npm run build:web
         env:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      - name: Verify build output
-        run: test -f dist/index.html
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Verify production outputs
+        run: |
+          test -f dist/index.html
+          test -f apps/auto-api/dist/server.js
+
       - name: Attest Build Provenance
         uses: actions/attest-build-provenance@v4.2.2
         with:
-          subject-path: 'dist/*'
+          subject-path: |
+            dist/*
+            apps/auto-api/dist/*

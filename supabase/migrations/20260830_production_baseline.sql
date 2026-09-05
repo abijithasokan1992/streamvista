@@ -1,5 +1,5 @@
 -- StreamVista production baseline
--- Canonical production project: tqzimuwozhipqgyerdff
+-- Canonical production project: TBD
 -- Establishes the minimum real data plane used by the current app.
 
 create extension if not exists pgcrypto;
@@ -158,53 +158,7 @@ alter table public.sv_marketplace_deals enable row level security;
 alter table public.sv_payments enable row level security;
 alter table public.sv_payment_webhook_events enable row level security;
 
-drop policy if exists sv_profiles_select_own on public.sv_app_profiles;
-create policy sv_profiles_select_own on public.sv_app_profiles for select to authenticated using (id=auth.uid() or private.sv_app_is_admin());
-drop policy if exists sv_profiles_update_own_safe on public.sv_app_profiles;
-create policy sv_profiles_update_own_safe on public.sv_app_profiles for update to authenticated using (id=auth.uid()) with check (id=auth.uid() and app_role=public.sv_current_role());
-drop policy if exists sv_profiles_admin_all on public.sv_app_profiles;
-create policy sv_profiles_admin_all on public.sv_app_profiles for all to authenticated using (private.sv_app_is_admin()) with check (private.sv_app_is_admin());
-
-drop policy if exists sv_titles_creator_select on public.sv_app_titles;
-create policy sv_titles_creator_select on public.sv_app_titles for select to authenticated using (creator_id=auth.uid() or private.sv_app_is_admin() or (private.sv_title_is_approved(status) and private.sv_buyer_verified()));
-drop policy if exists sv_titles_creator_insert on public.sv_app_titles;
-create policy sv_titles_creator_insert on public.sv_app_titles for insert to authenticated with check (creator_id=auth.uid() or private.sv_app_is_admin());
-drop policy if exists sv_titles_creator_update on public.sv_app_titles;
-create policy sv_titles_creator_update on public.sv_app_titles for update to authenticated using (creator_id=auth.uid() or private.sv_app_is_admin()) with check (creator_id=auth.uid() or private.sv_app_is_admin());
-
-drop policy if exists sv_rights_owner_read on public.sv_title_rights;
-create policy sv_rights_owner_read on public.sv_title_rights for select to authenticated using (owner_id=auth.uid() or licensed_buyer_id=auth.uid() or private.sv_app_is_admin());
-drop policy if exists sv_screening_buyer_insert on public.sv_screening_requests;
-create policy sv_screening_buyer_insert on public.sv_screening_requests for insert to authenticated with check (buyer_id=auth.uid() and private.sv_buyer_verified());
-drop policy if exists sv_screening_read on public.sv_screening_requests;
-create policy sv_screening_read on public.sv_screening_requests for select to authenticated using (buyer_id=auth.uid() or private.sv_app_is_admin());
-drop policy if exists sv_screening_admin_update on public.sv_screening_requests;
-create policy sv_screening_admin_update on public.sv_screening_requests for update to authenticated using (private.sv_app_is_admin()) with check (private.sv_app_is_admin());
-
-drop policy if exists sv_deals_buyer_insert on public.sv_marketplace_deals;
-create policy sv_deals_buyer_insert on public.sv_marketplace_deals for insert to authenticated with check (buyer_id=auth.uid() and private.sv_buyer_verified());
-drop policy if exists sv_deals_read on public.sv_marketplace_deals;
-create policy sv_deals_read on public.sv_marketplace_deals for select to authenticated using (buyer_id=auth.uid() or seller_id=auth.uid() or private.sv_app_is_admin());
-drop policy if exists sv_deals_admin_update on public.sv_marketplace_deals;
-create policy sv_deals_admin_update on public.sv_marketplace_deals for update to authenticated using (private.sv_app_is_admin()) with check (private.sv_app_is_admin());
-
-drop policy if exists sv_payments_own_read on public.sv_payments;
-create policy sv_payments_own_read on public.sv_payments for select to authenticated using (user_id=auth.uid() or private.sv_app_is_admin());
-drop policy if exists sv_payments_deny_client_write on public.sv_payments;
-create policy sv_payments_deny_client_write on public.sv_payments for all to authenticated using (false) with check (false);
-drop policy if exists sv_webhook_deny_client on public.sv_payment_webhook_events;
-create policy sv_webhook_deny_client on public.sv_payment_webhook_events for all to authenticated using (false) with check (false);
-
 insert into storage.buckets (id,name,public) values ('streamvista-films','streamvista-films',false) on conflict (id) do update set public=false;
-drop policy if exists sv_films_creator_insert on storage.objects;
-create policy sv_films_creator_insert on storage.objects for insert to authenticated with check (bucket_id='streamvista-films' and exists(select 1 from public.sv_app_titles t where t.id::text=(storage.foldername(name))[1] and (t.creator_id=auth.uid() or private.sv_app_is_admin())));
-drop policy if exists sv_films_secure_read on storage.objects;
-create policy sv_films_secure_read on storage.objects for select to authenticated using (bucket_id='streamvista-films' and (exists(select 1 from public.sv_app_titles t where t.id::text=(storage.foldername(name))[1] and t.creator_id=auth.uid()) or exists(select 1 from public.sv_screening_requests s where s.buyer_id=auth.uid() and s.status='approved' and s.title_id::text=(storage.foldername(name))[1]) or private.sv_app_is_admin()));
-drop policy if exists sv_films_creator_update on storage.objects;
-create policy sv_films_creator_update on storage.objects for update to authenticated using (bucket_id='streamvista-films' and exists(select 1 from public.sv_app_titles t where t.id::text=(storage.foldername(name))[1] and (t.creator_id=auth.uid() or private.sv_app_is_admin())));
-drop policy if exists sv_films_creator_delete on storage.objects;
-create policy sv_films_creator_delete on storage.objects for delete to authenticated using (bucket_id='streamvista-films' and exists(select 1 from public.sv_app_titles t where t.id::text=(storage.foldername(name))[1] and (t.creator_id=auth.uid() or private.sv_app_is_admin())));
-
 create index if not exists idx_sv_titles_creator on public.sv_app_titles(creator_id);
 create index if not exists idx_sv_titles_status on public.sv_app_titles(status);
 create index if not exists idx_sv_screening_buyer on public.sv_screening_requests(buyer_id);

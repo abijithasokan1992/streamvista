@@ -20,8 +20,12 @@
     "external_creator_buyer_contact"
   ],
   "canonical_dependencies": {
-    "supabase_project_ref": "tqzimuwozhipqgyerdff",
+    "supabase_project_ref": "uakpqqardziifcwzvgfx",
     "payment_provider": "razorpay",
     "production_domain": "streamvista.in"
+  },
+  "environment_policy": {
+    "retired_supabase_reference_removed_from_configuration": true,
+    "retired_supabase_reference_may_be_used_as_active_binding": false
   }
 }

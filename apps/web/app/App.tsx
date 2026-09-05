@@ -9,6 +9,7 @@ import Pricing from './pages/Pricing';
 import OTTRready from './pages/OTTRready';
 import CreatorStudio from './pages/CreatorStudio';
 import FilmOS from './pages/FilmOS';
+import Intelligence from './pages/Intelligence';
 import Profile from './pages/Profile';
 import CrayonsBridge from './pages/CrayonsBridge';
 import Watch from './pages/Watch';
@@ -83,6 +84,7 @@ export default function App() {
     <Route path="/creator-studio" element={<ProtectedRoute><CreatorStudio /></ProtectedRoute>} />
     <Route path="/crayons-bridge" element={<ProtectedRoute><CrayonsBridge /></ProtectedRoute>} />
     <Route path="/film-os" element={<ProtectedRoute><FilmOS /></ProtectedRoute>} /><Route path="/film-os/:id" element={<ProtectedRoute><FilmOS /></ProtectedRoute>} />
+    <Route path="/intelligence" element={<ProtectedRoute><Intelligence /></ProtectedRoute>} />
     <Route path="/watch" element={<ProtectedRoute><Watch /></ProtectedRoute>} /><Route path="/revenue" element={<ProtectedRoute><RevenueDashboard /></ProtectedRoute>} />
     <Route path="/admin/noc" element={<ProtectedRoute><NOCDashboard /></ProtectedRoute>} />
     <Route path="/crayons-loop" element={<ProtectedRoute><CrayonsLoop /></ProtectedRoute>} /><Route path="/loop" element={<CrayonsLoopHome />} />

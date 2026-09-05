@@ -22,6 +22,7 @@ export const supabase = configuredPublishableKey
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        flowType: 'pkce',
       },
     })
   : null;
@@ -29,8 +30,8 @@ export const supabase = configuredPublishableKey
 /**
  * Return a usable session for API/payment calls. A locally cached access token can
  * be stale while the refresh-token flow is still pending, so explicitly refresh
- * when the cached session is missing/near expiry. This keeps every product surface
- * on the same canonical Supabase Auth session.
+ * when the cached session is missing/near expiry. If the refresh token has already
+ * been revoked, clear the stale browser session so the UI can recover cleanly.
  */
 export async function getFreshSession(): Promise<Session | null> {
   if (!supabase) return null;
@@ -43,6 +44,12 @@ export async function getFreshSession(): Promise<Session | null> {
   if (session?.access_token && !expiresSoon) return session;
 
   const { data: refreshed, error } = await supabase.auth.refreshSession();
-  if (error || !refreshed.session?.access_token) return null;
-  return refreshed.session;
+  if (!error && refreshed.session?.access_token) return refreshed.session;
+
+  // Supabase can return a 400 refresh_token_not_found when this browser has a
+  // revoked/stale refresh token. Do not leave ProtectedRoute blocked on it.
+  if (error) {
+    await supabase.auth.signOut({ scope: 'local' });
+  }
+  return null;
 }

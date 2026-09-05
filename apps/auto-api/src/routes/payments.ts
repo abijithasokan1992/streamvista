@@ -4,12 +4,12 @@ import crypto from 'crypto';
 import { PaymentService } from '../services/PaymentService';
 
 const router = Router();
-const CANONICAL_SUPABASE_URL = 'https://uakpqqardziifcwzvgfx.supabase.co';
 
 function admin() {
+  const url = process.env.SUPABASE_URL?.trim();
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error('Supabase service role is not configured');
-  return createClient(CANONICAL_SUPABASE_URL, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (!url || !key) throw new Error('Supabase server configuration is missing');
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
 function sessionUser(req: any): string | null { return req.user?.userId || req.user?.id || null; }
@@ -23,10 +23,12 @@ router.post('/create-order', async (req: any, res) => {
     const cycle = String(req.body?.cycle || '').trim().toLowerCase();
     const requestedAmount = Number(req.body?.amount);
     const titleId = req.body?.titleId || req.body?.assetId || null;
+    const dealId = req.body?.dealId || null;
     const idempotencyKey = String(req.headers['idempotency-key'] || req.body?.idempotencyKey || '').trim();
 
     if (!userId) return res.status(401).json({ error: 'Session required' });
     if (!idempotencyKey || !/^[A-Za-z0-9._:-]{8,128}$/.test(idempotencyKey)) return res.status(400).json({ error: 'A valid Idempotency-Key is required' });
+    if (dealId && !UUID_RE.test(String(dealId))) return res.status(400).json({ error: 'Invalid dealId' });
 
     let amount = 0;
     if (cycle) {
@@ -40,11 +42,13 @@ router.post('/create-order', async (req: any, res) => {
     if (!cycle && !titleId) return res.status(400).json({ error: 'titleId is required for one-time payments' });
 
     const db = admin();
-    const { data: existing, error: existingError } = await db
+    let existingQuery = db
       .from('sv_payments')
-      .select('id,status,provider_order_id,amount,currency,purpose')
+      .select('id,status,provider_order_id,amount,currency,purpose,deal_id')
       .eq('idempotency_key', idempotencyKey)
-      .maybeSingle();
+      .eq('user_id', userId);
+    if (dealId) existingQuery = existingQuery.eq('deal_id', dealId);
+    const { data: existing, error: existingError } = await existingQuery.maybeSingle();
     if (existingError) return res.status(503).json({ error: existingError.message });
     if (existing?.provider_order_id) {
       return res.json({
@@ -62,13 +66,15 @@ router.post('/create-order', async (req: any, res) => {
     const { data: payment, error } = await db.from('sv_payments').insert({
       user_id: userId,
       title_id: UUID_RE.test(String(titleId || '')) ? titleId : null,
+      deal_id: UUID_RE.test(String(dealId || '')) ? dealId : null,
+      provider: 'razorpay',
       provider_order_id: order.id,
       amount: amount / 100,
       currency: 'INR',
       purpose: cycle ? `plan:${cycle}` : 'streamvista',
       status: 'created',
       idempotency_key: idempotencyKey,
-    }).select('id,status,provider_order_id,amount,currency,purpose').single();
+    }).select('id,status,provider_order_id,amount,currency,purpose,deal_id').single();
     if (error) return res.status(503).json({ error: error.message });
     return res.json({ success: true, order: { id: order.id, amount: Number(order.amount), currency: order.currency || 'INR' }, payment, keyId: process.env.RAZORPAY_KEY_ID });
   } catch (err: any) {
@@ -89,18 +95,32 @@ router.post('/verify', async (req: any, res) => {
 
     const providerAmount = await PaymentService.getOrderAmount(finalOrderId);
     const db = admin();
-    const { data: existing, error: existingError } = await db.from('sv_payments').select('id,status,user_id,amount,currency').eq('provider_order_id', finalOrderId).maybeSingle();
+    const { data: existing, error: existingError } = await db.from('sv_payments').select('id,status,user_id,amount,currency,deal_id,title_id').eq('provider_order_id', finalOrderId).eq('provider', 'razorpay').maybeSingle();
     if (existingError) return res.status(503).json({ error: existingError.message });
     if (existing?.user_id && existing.user_id !== userId) return res.status(403).json({ error: 'Payment does not belong to session' });
     if (existing?.amount != null && Math.round(Number(existing.amount) * 100) !== Number(providerAmount)) return res.status(409).json({ error: 'Payment amount mismatch' });
 
+    const resolvedDealId = existing?.deal_id || (UUID_RE.test(String(dealId || '')) ? dealId : null);
+    const resolvedTitleId = existing?.title_id || (UUID_RE.test(String(titleId || '')) ? titleId : null);
     const idempotencyKey = String(req.headers['idempotency-key'] || `${finalOrderId}:${finalPaymentId}`).trim();
-    const patch: Record<string, unknown> = { user_id: userId, deal_id: dealId || null, provider_order_id: finalOrderId, provider_payment_id: finalPaymentId, amount: Number(providerAmount) / 100, currency: 'INR', purpose: cycle ? `plan:${cycle}` : 'streamvista', status: 'captured', verified_at: new Date().toISOString(), idempotency_key: idempotencyKey };
-    if (UUID_RE.test(String(titleId || ''))) patch.title_id = titleId;
+    const patch: Record<string, unknown> = {
+      user_id: userId,
+      title_id: resolvedTitleId,
+      deal_id: resolvedDealId,
+      provider: 'razorpay',
+      provider_order_id: finalOrderId,
+      provider_payment_id: finalPaymentId,
+      amount: Number(providerAmount) / 100,
+      currency: 'INR',
+      purpose: cycle ? `plan:${cycle}` : 'streamvista',
+      status: 'captured',
+      verified_at: new Date().toISOString(),
+      idempotency_key: idempotencyKey,
+    };
 
     const result = existing
-      ? await db.from('sv_payments').update(patch).eq('id', existing.id).select('id,status,verified_at,provider_payment_id,amount,currency').single()
-      : await db.from('sv_payments').insert(patch).select('id,status,verified_at,provider_payment_id,amount,currency').single();
+      ? await db.from('sv_payments').update(patch).eq('id', existing.id).select('id,status,verified_at,provider_payment_id,amount,currency,deal_id').single()
+      : await db.from('sv_payments').insert(patch).select('id,status,verified_at,provider_payment_id,amount,currency,deal_id').single();
     if (result.error) return res.status(503).json({ error: result.error.message });
     return res.json({ success: true, verified: true, payment: result.data });
   } catch (err: any) {
@@ -117,18 +137,63 @@ router.post('/webhook', async (req: any, res) => {
     const eventId = String(event?.id || '').trim();
     if (!eventId) return res.status(400).json({ error: 'Missing event id' });
     const payloadHash = crypto.createHash('sha256').update(raw).digest('hex');
+    const paymentEntity = event?.payload?.payment?.entity;
+    const providerPaymentId = String(paymentEntity?.id || '').trim();
+    const providerOrderId = String(paymentEntity?.order_id || '').trim();
     const db = admin();
-    const { data: seen } = await db.from('sv_payment_webhook_events').select('event_id').eq('event_id', eventId).maybeSingle();
+
+    const { data: seen, error: seenError } = await db.from('sv_payment_webhook_events').select('event_id').eq('event_id', eventId).maybeSingle();
+    if (seenError) return res.status(503).json({ error: seenError.message });
     if (seen) return res.status(200).json({ ok: true, duplicate: true });
-    const payment = event?.payload?.payment?.entity;
-    const { error: logError } = await db.from('sv_payment_webhook_events').insert({ event_id: eventId, event_name: event?.event || 'unknown', payload_hash: payloadHash, payment_id: payment?.id || null, received_at: new Date().toISOString(), status: 'received' });
-    if (logError) return res.status(503).json({ error: logError.message });
-    if (['payment.captured', 'payment.authorized', 'payment.failed'].includes(event?.event) && payment?.order_id && payment?.id) {
-      const status = event.event === 'payment.captured' ? 'captured' : event.event === 'payment.authorized' ? 'authorized' : 'failed';
-      const { error } = await db.from('sv_payments').update({ provider_payment_id: payment.id, provider_event_id: eventId, status, verified_at: new Date().toISOString(), raw_event_hash: payloadHash }).eq('provider_order_id', payment.order_id).eq('provider', 'razorpay');
-      if (error) return res.status(503).json({ error: error.message });
+
+    let internalPaymentId: string | null = null;
+    if (providerOrderId) {
+      const { data: linkedPayment, error: linkedPaymentError } = await db
+        .from('sv_payments')
+        .select('id')
+        .eq('provider', 'razorpay')
+        .eq('provider_order_id', providerOrderId)
+        .maybeSingle();
+      if (linkedPaymentError) return res.status(503).json({ error: linkedPaymentError.message });
+      internalPaymentId = linkedPayment?.id || null;
     }
-    await db.from('sv_payment_webhook_events').update({ status: 'processed', processed_at: new Date().toISOString() }).eq('event_id', eventId);
+
+    const { error: logError } = await db.from('sv_payment_webhook_events').insert({
+      event_id: eventId,
+      event_name: event?.event || 'unknown',
+      payload_hash: payloadHash,
+      payment_id: internalPaymentId,
+      received_at: new Date().toISOString(),
+      status: 'received',
+    });
+    if (logError) return res.status(503).json({ error: logError.message });
+
+    if (['payment.captured', 'payment.authorized', 'payment.failed', 'payment.refunded'].includes(event?.event) && providerOrderId && providerPaymentId) {
+      const status = event.event === 'payment.captured' ? 'captured' : event.event === 'payment.authorized' ? 'authorized' : event.event === 'payment.refunded' ? 'refunded' : 'failed';
+      const { data: paymentRow, error: paymentError } = await db.from('sv_payments')
+        .update({
+          provider_payment_id: providerPaymentId,
+          provider_event_id: eventId,
+          status,
+          verified_at: new Date().toISOString(),
+          raw_event_hash: payloadHash,
+          error_reason: event.event === 'payment.failed' ? String(paymentEntity?.error_description || paymentEntity?.error_reason || '').trim() || null : null,
+        })
+        .eq('provider_order_id', providerOrderId)
+        .eq('provider', 'razorpay')
+        .select('id,deal_id')
+        .maybeSingle();
+      if (paymentError) return res.status(503).json({ error: paymentError.message });
+
+      if (paymentRow?.deal_id && (status === 'captured' || status === 'refunded')) {
+        const dealPaymentStatus = status === 'captured' ? 'captured' : 'refunded';
+        const { error: dealError } = await db.from('sv_marketplace_deals').update({ payment_status: dealPaymentStatus }).eq('id', paymentRow.deal_id);
+        if (dealError) return res.status(503).json({ error: dealError.message });
+      }
+    }
+
+    const { error: processedError } = await db.from('sv_payment_webhook_events').update({ status: 'processed', processed_at: new Date().toISOString() }).eq('event_id', eventId);
+    if (processedError) return res.status(503).json({ error: processedError.message });
     return res.status(200).json({ ok: true });
   } catch (err: any) { return res.status(503).json({ error: err.message || 'Webhook failed closed' }); }
 });

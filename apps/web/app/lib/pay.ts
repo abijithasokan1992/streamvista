@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { getFreshSession, supabase } from './supabase';
 
 export type PaidCycle = 'creator' | 'topup';
 
@@ -30,7 +30,11 @@ async function apiPost(path: string, token: string, body: Record<string, unknown
     body: JSON.stringify(body),
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(String(payload?.error || payload?.message || `Request failed (${response.status})`));
+  if (!response.ok) {
+    const error = new Error(String(payload?.error || payload?.message || `Request failed (${response.status})`));
+    (error as Error & { status?: number }).status = response.status;
+    throw error;
+  }
   return payload;
 }
 
@@ -40,8 +44,7 @@ function idempotencyKey(userId: string, seed: string) {
 
 export async function startCheckout(input: { amountMajor: number; description?: string; titleId?: string; dealId?: string; cycle?: PaidCycle }): Promise<{ ok: boolean; error?: string }> {
   if (!supabase) return { ok: false, error: 'Auth is not configured' };
-  const { data: sessionData } = await supabase.auth.getSession();
-  const session = sessionData.session;
+  const session = await getFreshSession();
   if (!session?.access_token || !session.user) return { ok: false, error: 'Login required' };
 
   const amountMajor = Number(input.amountMajor);
@@ -80,7 +83,12 @@ export async function startCheckout(input: { amountMajor: number; description?: 
         prefill: { email: session.user.email ?? '' },
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           try {
-            const verified = await apiPost('/api/payments/verify', session.access_token, {
+            const verifySession = await getFreshSession();
+            if (!verifySession?.access_token || verifySession.user.id !== session.user.id) {
+              resolve({ ok: false, error: 'Your secure session expired. Please sign in again.' });
+              return;
+            }
+            const verified = await apiPost('/api/payments/verify', verifySession.access_token, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
@@ -98,6 +106,8 @@ export async function startCheckout(input: { amountMajor: number; description?: 
       rzp.open();
     });
   } catch (error) {
+    const status = (error as Error & { status?: number })?.status;
+    if (status === 401) return { ok: false, error: 'Your secure session expired. Please sign in again.' };
     return { ok: false, error: error instanceof Error ? error.message : 'Payment service is not available' };
   }
 }

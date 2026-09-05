@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { getFreshSession, supabase } from '../lib/supabase';
 
 interface LicenseCheckoutProps {
   assetId: string;
@@ -62,9 +62,9 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
       return;
     }
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
-    if (!token) {
+    const session = await getFreshSession();
+    const token = session?.access_token;
+    if (!token || !session.user) {
       setError('Your secure session has expired. Please sign in again.');
       setStatus('ERROR');
       setLoading(false);
@@ -124,11 +124,15 @@ const LicenseCheckout: React.FC<LicenseCheckoutProps> = ({
         order_id: payment.provider_order_id,
         handler: async (response: any) => {
           try {
+            const verifySession = await getFreshSession();
+            if (!verifySession?.access_token || verifySession.user.id !== session.user.id) {
+              throw new Error('Your secure session expired. Please sign in again.');
+            }
             const verifyResponse = await fetch('/api/payments/verify', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${verifySession.access_token}`,
               },
               body: JSON.stringify({
                 razorpay_order_id: response.razorpay_order_id,

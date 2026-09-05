@@ -10,6 +10,7 @@ import inventoryRoutes from './routes/inventory';
 import orderRoutes from './routes/orders';
 import aiRoutes from './routes/ai';
 import aiJobRoutes from './routes/ai-jobs';
+import intelligenceRoutes from './routes/intelligence';
 import hostingerIncomingRoutes from './routes/hostingerIncoming';
 import agentRoutes from './routes/agents';
 import notificationRoutes from './routes/notifications';
@@ -98,6 +99,7 @@ app.use('/api/orders', authenticateToken, orderRoutes);
 app.use('/api/payments', authenticateToken, paymentRoutes);
 app.use('/api/ai', authenticateToken, aiRoutes);
 app.use('/api/ai-jobs', authenticateToken, aiJobRoutes);
+app.use('/api/intelligence', authenticateToken, intelligenceRoutes);
 app.use('/api/agents', authenticateToken, agentRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
 

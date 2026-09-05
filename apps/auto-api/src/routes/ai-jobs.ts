@@ -24,9 +24,11 @@ router.post('/', async (req: any, res: any) => {
   const userId = req.user?.userId || req.user?.id;
   const capability = req.body?.capability as AICapability;
   const prompt = typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : '';
+  const projectId = typeof req.body?.projectId === 'string' ? req.body.projectId.trim() : '';
 
   if (!userId) return res.status(401).json({ success: false, error: 'Session required' });
   if (!capability || !prompt) return res.status(400).json({ success: false, error: 'capability and prompt are required' });
+  if (!projectId) return res.status(400).json({ success: false, error: 'projectId is required for persistent AI jobs' });
   if (!TEXT_CAPABILITIES.has(capability)) {
     return res.status(409).json({
       success: false,
@@ -43,7 +45,7 @@ router.post('/', async (req: any, res: any) => {
       .from('ai_runs')
       .insert({
         workspace_id: req.user?.workspace || null,
-        project_id: req.body?.projectId || null,
+        project_id: projectId,
         user_id: userId,
         department: req.body?.department || 'ai_studio',
         agent: capability,
@@ -61,7 +63,13 @@ router.post('/', async (req: any, res: any) => {
 
     if (createError) return res.status(503).json({ success: false, error: createError.message, code: 'job_persist_failed' });
 
-    await client.from('ai_runs').update({ status: 'running', started_at: new Date().toISOString() }).eq('id', job.id).eq('user_id', userId);
+    const { error: runningError } = await client.from('ai_runs')
+      .update({ status: 'running', started_at: new Date().toISOString() })
+      .eq('id', job.id)
+      .eq('user_id', userId);
+    if (runningError) {
+      return res.status(503).json({ success: false, error: runningError.message, code: 'job_start_failed', jobId: job.id });
+    }
 
     try {
       const result = await runAI({
@@ -74,7 +82,7 @@ router.post('/', async (req: any, res: any) => {
       });
 
       const completedAt = new Date().toISOString();
-      const { error: outputError } = await client.from('ai_outputs').insert({
+      const { data: output, error: outputError } = await client.from('ai_outputs').insert({
         ai_run_id: job.id,
         output: {
           text: result.text,
@@ -84,7 +92,7 @@ router.post('/', async (req: any, res: any) => {
           providerRequestId: result.providerRequestId || null,
         },
         approval_state: 'ai_generated',
-      });
+      }).select('id,output,created_at').single();
       if (outputError) {
         await client.from('ai_runs').update({
           status: 'failed',
@@ -92,7 +100,7 @@ router.post('/', async (req: any, res: any) => {
           error_message: outputError.message,
           completed_at: completedAt,
         }).eq('id', job.id).eq('user_id', userId);
-        return res.status(503).json({ success: false, error: outputError.message, code: 'output_persist_failed' });
+        return res.status(503).json({ success: false, error: outputError.message, code: 'output_persist_failed', jobId: job.id });
       }
 
       const { error: updateError } = await client.from('ai_runs').update({
@@ -105,7 +113,7 @@ router.post('/', async (req: any, res: any) => {
         error_code: null,
         error_message: null,
       }).eq('id', job.id).eq('user_id', userId);
-      if (updateError) return res.status(503).json({ success: false, error: updateError.message, code: 'job_update_failed' });
+      if (updateError) return res.status(503).json({ success: false, error: updateError.message, code: 'job_update_failed', jobId: job.id });
 
       return res.json({
         success: true,
@@ -117,7 +125,7 @@ router.post('/', async (req: any, res: any) => {
           completedAt,
           provider: result.provider,
           model: result.model,
-          result: result.text,
+          result: output?.output?.text || result.text,
           usage: result.usage || null,
         },
       });

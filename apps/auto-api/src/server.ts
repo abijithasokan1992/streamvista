@@ -8,7 +8,6 @@ import authRoutes from './routes/auth';
 import productRoutes from './routes/products';
 import inventoryRoutes from './routes/inventory';
 import orderRoutes from './routes/orders';
-import razorpayWebhook from './routes/razorpayWebhook';
 import aiRoutes from './routes/ai';
 import aiJobRoutes from './routes/ai-jobs';
 import hostingerIncomingRoutes from './routes/hostingerIncoming';
@@ -83,13 +82,10 @@ app.use(cors({
   credentials: false,
 }));
 
+// Canonical public Razorpay webhook endpoint. The handler is deliberately mounted before JSON parsing.
 app.use('/api/webhooks/razorpay', express.raw({ type: 'application/json' }), (req: any, res, next) => {
-  req.url = '/webhook';
-  return paymentRoutes(req, res, next);
-});
-app.use('/api/razorpay/webhook', express.raw({ type: 'application/json' }), (req: any, res, next) => {
-  req.url = '/webhook';
-  return paymentRoutes(req, res, next);
+  req.url = '/';
+  return require('./routes/razorpayWebhook').default(req, res, next);
 });
 app.use('/api/hostinger-incoming', express.text({ type: '*/*', limit: '2mb' }), hostingerIncomingRoutes);
 app.use(express.json({ limit: '4mb' }));
@@ -103,7 +99,6 @@ app.use('/api/ai', authenticateToken, aiRoutes);
 app.use('/api/ai-jobs', authenticateToken, aiJobRoutes);
 app.use('/api/agents', authenticateToken, agentRoutes);
 app.use('/api/notifications', authenticateToken, notificationRoutes);
-app.use('/api/legacy-razorpay-webhook', razorpayWebhook);
 
 app.get('/api/health', (_req, res) => res.json({
   status: 'OK',
